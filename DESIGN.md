@@ -170,14 +170,17 @@ MockFinal 的核心内容是长文本：课程资料、复习大纲、模拟试�
 - 工作区项：`rounded-2xl`、文件夹图标、名称 + 截断描述；激活项整块 `bg-invert text-invert-ink`，描述降为 70% 不透明度；hover 用 `raised`。
 - 内容区最大宽度 `max-w-5xl`，居中；不允许横向滚动（表格、公式、Tab 栏除外）。
 
-### 5.3 首页（工作区总览）
+### 5.3 首页（未打开工作区）
 
-- 顶部问候语（`text-sm muted`）+ 主标题「选择要复习的科目」+ 工作区数量；右侧主按钮「新建工作区」。
-- 网格：移动 1 列、`sm` 2 列、`lg` 3 列，`gap-4`。
-- 工作区卡片：`rounded-3xl border bg-panel p-5`；hover 上移 2px、边框加强、`shadow-card`；图标底 44px，hover 时反转为 `bg-invert`；底部以细边框分隔时间与箭头。
-- 新建卡片：虚线边框、居中的 `+` 与文案，hover 边框变 `ink`。
-- 首次加载用 `raised` 骨架块（标题 + 3 张卡），不要用 spinner 占满页面。
-- 无工作区时进入 `EmptyState`：大图标、标题、说明、主 CTA、三张「创建 → 上传 → 生成」步骤卡。
+首页承担「引导 + 选择工作区」两件事，不展示任何业务数据。
+
+- **引导卡**：`rounded-3xl border bg-panel p-6 sm:p-8`。左侧微标签「开始复习」+ 主标题「选择一个工作区继续」+ 问候与一句说明（`max-w-xl`）；右侧「新建工作区」主按钮，移动端通栏。
+- 引导卡内以 `border-t` 分隔三步：01 创建工作区 / 02 上传学习资料 / 03 生成并复习；每步 36px `raised` 图标底 + 序号 + 标题 + 一句话说明，`sm` 起三列。步骤只解释流程，不放链接。
+- **工作区选择列表**：小标题「我的工作区」+ 数量与「点击进入」提示（无工作区时说明排序方式）。
+- 列表项：整行可点击的 `rounded-2xl border bg-panel`，`space-y-2` 分隔；左侧 40px 文件夹图标（hover 反转为 `bg-invert`），中间名称 + 单行描述，右侧相对时间（移动端隐藏）+ 箭头；hover 边框加强并 `shadow-card`。
+- 列表末行为虚线「新建工作区」入口，图标底同为 40px 虚线方框。
+- 首次加载用与真实行同高的 `raised` 骨架（3 行），不要用 spinner 占满页面。
+- 没有工作区时：保留引导卡，列表区改为虚线空态（图标 + 「还没有工作区」+ 一句说明 + 「新建第一个工作区」主 CTA）。
 
 ### 5.4 工作区页
 
@@ -370,7 +373,7 @@ MockFinal 的核心内容是长文本：课程资料、复习大纲、模拟试�
 | 认证页网格/噪点背景 | `frontend/src/components/AuthShell.vue` |
 | 按钮、输入、弹窗、toast、状态徽章 | `frontend/src/components/AppButton.vue`、`AppInput.vue`、`Modal.vue`、`ConfirmModal.vue`、`ToastHost.vue`、`StatusBadge.vue` |
 | 应用外壳与侧栏 | `frontend/src/layouts/AppLayout.vue`、`components/Sidebar.vue` |
-| 首页、工作区页、空态 | `frontend/src/views/HomeView.vue`、`WorkspaceView.vue`、`EmptyState.vue` |
+| 首页、工作区页 | `frontend/src/views/HomeView.vue`、`WorkspaceView.vue` |
 | 上传、资料、工件、Markdown | `frontend/src/components/UploadZone.vue`、`MaterialList.vue`、`ArtifactPanel.vue`、`MarkdownView.vue` |
 | 主题切换与代码高亮主题 | `frontend/src/components/ThemeToggle.vue`、`stores/theme.ts`、`lib/highlight.ts` |
 | 品牌标记 | `frontend/public/favicon.svg`、`index.html` |
