@@ -1,0 +1,134 @@
+{
+  "generated_at": "2026-11-07T10:20:12.443Z",
+  "base_url": "http://localhost:5174",
+  "api_url": "http://127.0.0.1:8001",
+  "username": "p5demo039180",
+  "deck_id": 4,
+  "page_id": 1,
+  "checks": [
+    {
+      "name": "阅读器页面就绪",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "选区桥接打开助手并显示引用上下文",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "助手输入框已启用",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "页面建议问题可用",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "发送后进入流式回答中状态",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "流式增量拼接为完整回答",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "回答结束后流式状态消失",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "回答中的公式已渲染为 KaTeX",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "回答展示来源引用",
+      "ok": true,
+      "detail": "P6 页面助手演示资料.md · 闭区间写法与循环不变式"
+    },
+    {
+      "name": "回答已持久化为 done",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "回答持久化来源引用",
+      "ok": true,
+      "detail": "refs=2"
+    },
+    {
+      "name": "重新打开助手恢复历史对话",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "失败问题触发一次请求",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "失败消息有明确状态",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "失败后提供重试入口",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Shift+Enter 插入换行",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Shift+Enter 不发送请求",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "移动端助手占满可用宽度",
+      "ok": true,
+      "detail": "width=390"
+    },
+    {
+      "name": "移动端助手无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":390,\"clientWidth\":390}"
+    },
+    {
+      "name": "恶意脚本未执行",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "回答中不保留 script 标签",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "回答中不保留 onerror 属性",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "回答中不保留 javascript: 链接",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "正常 Markdown（加粗）仍可渲染",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "console_errors": [],
+  "passed": 24,
+  "failed": 0,
+  "screenshots": "E:\\AIWorkspace\\Qoder\\MockFinal\\docs\\pageref\\p6-screenshots"
+}

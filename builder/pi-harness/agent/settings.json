@@ -1,0 +1,5 @@
+{
+  "tools": ["read", "write", "edit", "check_page", "report_progress"],
+  "defaultModel": null,
+  "extensionDirs": ["../extensions/mockfinal-guard"]
+}

@@ -48,6 +48,30 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: '/workspace/:id/decks/:deckId',
+    component: () => import('@/layouts/DeckLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'deck-overview',
+        component: () => import('@/views/DeckOverviewView.vue'),
+        meta: { title: '复习页' },
+      },
+      {
+        path: 'build',
+        name: 'deck-build',
+        component: () => import('@/views/DeckBuildView.vue'),
+        meta: { title: '构建工作台' },
+      },
+      {
+        path: 'pages/:pageId',
+        name: 'deck-reader',
+        component: () => import('@/views/DeckReaderView.vue'),
+        meta: { title: '复习页阅读' },
+      },
+    ],
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },

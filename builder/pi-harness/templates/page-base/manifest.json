@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "page_id": "page_template_001",
+  "title": "模板页面标题",
+  "subtitle": "一句话副标题：本页唯一的论点",
+  "knowledge_point_ids": ["kp_template"],
+  "importance": "core",
+  "estimated_minutes": 5,
+  "layout": "hero-side",
+  "interactions": [
+    {
+      "id": "template-step",
+      "type": "simulation",
+      "label": "下一步：推进一档状态",
+      "smoke": {
+        "action": "click",
+        "selector": "[data-mp-action='step']",
+        "expect": "[data-mp-state='stepped']"
+      }
+    }
+  ],
+  "source_refs": [
+    {
+      "material_id": 0,
+      "section_id": 0,
+      "heading": "模板占位小节",
+      "quote": "把 brief 对应 section 的原文片段放在这里，不要编造。"
+    }
+  ],
+  "assistant": {
+    "summary": "本页讲解……（一句话，来自 brief 的 knowledge_point.summary）。",
+    "key_facts": ["要点 1", "要点 2", "要点 3"],
+    "suggested_questions": ["为什么……？", "什么时候会……？"]
+  },
+  "a11y": { "reduced_motion": true }
+}

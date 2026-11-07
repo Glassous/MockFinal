@@ -1,0 +1,295 @@
+{
+  "generated_at": "2026-11-07T11:13:51.780Z",
+  "model": {
+    "provider": "DeepSeek 官方 API",
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-flash"
+  },
+  "material": {
+    "workspace_id": 8,
+    "material_id": 3,
+    "sections": 13
+  },
+  "job": {
+    "id": 4,
+    "status": "done",
+    "stage": "构建完成：14/14 页已就绪",
+    "total_pages": 14,
+    "ready_pages": 14,
+    "failed_pages": 0,
+    "duration_seconds": 911,
+    "started_at": "2026-11-07T10:56:26.709638Z",
+    "finished_at": "2026-11-07T11:11:37.323676Z"
+  },
+  "deck": {
+    "id": 18,
+    "status": "ready",
+    "style": {
+      "preset": "editorial",
+      "content": [
+        "公式推导",
+        "代码示例"
+      ],
+      "density": "standard",
+      "custom_prompt": "面向算法复习，强调复杂度与常见错误"
+    },
+    "page_count": 14
+  },
+  "cost": {
+    "gate_cny": 0.14,
+    "e2e_cny": 1.69,
+    "total_cny": 1.83,
+    "budget_cny": 10,
+    "final_balance_cny": 116.19
+  },
+  "events": {
+    "count": 200,
+    "types": {
+      "stage": 105,
+      "text": 1,
+      "tool": 72,
+      "page_ready": 11,
+      "validation": 11
+    }
+  },
+  "pages": [
+    {
+      "id": 10,
+      "ordinal": 0,
+      "title": "闭区间循环不变式",
+      "kind": "interactive",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_10_v1_4eb1076d",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 2033,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 11,
+      "ordinal": 1,
+      "title": "复杂度、边界与常见错误",
+      "kind": "concept",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_11_v1_814459c7",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 2202,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 12,
+      "ordinal": 2,
+      "title": "邻接矩阵与邻接表的选择",
+      "kind": "interactive",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_12_v1_94d4f002",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 1929,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 13,
+      "ordinal": 3,
+      "title": "BFS 与无权最短路",
+      "kind": "interactive",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_13_v1_11768295",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 1912,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 14,
+      "ordinal": 4,
+      "title": "DFS、连通分量与 Tarjan",
+      "kind": "interactive",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_14_v1_81b95428",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 1965,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 15,
+      "ordinal": 5,
+      "title": "Kahn 算法、环检测与 DAG 上的 DP",
+      "kind": "interactive",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_15_v1_efd3e7e9",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 2052,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 16,
+      "ordinal": 6,
+      "title": "Dijkstra 与堆优化",
+      "kind": "interactive",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_16_v1_3e1a9dbf",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 2157,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 17,
+      "ordinal": 7,
+      "title": "Bellman-Ford、负环与 Johnson 重赋权",
+      "kind": "interactive",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_17_v1_7d7f0293",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 2193,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 18,
+      "ordinal": 8,
+      "title": "Floyd-Warshall 与负环判断",
+      "kind": "interactive",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_18_v1_3e55787e",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 2647,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 19,
+      "ordinal": 9,
+      "title": "Kruskal 与并查集",
+      "kind": "interactive",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_19_v1_33299690",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 2125,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 20,
+      "ordinal": 10,
+      "title": "Prim 及与 Dijkstra 的区别",
+      "kind": "concept",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_20_v1_3396582e",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 2044,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 21,
+      "ordinal": 11,
+      "title": "最大流最小割与增广路",
+      "kind": "concept",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_21_v1_4a5bebeb",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 2171,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 22,
+      "ordinal": 12,
+      "title": "二分图匹配与匈牙利算法",
+      "kind": "concept",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_22_v1_83e0fbb8",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 2064,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    },
+    {
+      "id": 23,
+      "ordinal": 13,
+      "title": "工程实践与调试检查表",
+      "kind": "concept",
+      "status": "ready",
+      "attempts": 1,
+      "build_id": "bld_23_v1_45814eb7",
+      "validation_status": "passed",
+      "validation_issues": 0,
+      "validation_duration_ms": 2221,
+      "viewports": [
+        "1280x720",
+        "1440x900",
+        "1920x1080"
+      ]
+    }
+  ]
+}

@@ -1,1 +1,1 @@
-"""Business services (storage / sts / parser / indexer / generator)."""
+"""Business services (storage / sts / parser / sectioner / generator)."""

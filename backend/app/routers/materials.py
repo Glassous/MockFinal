@@ -12,7 +12,6 @@ from ..deps import get_current_user
 from ..models import Material, User, Workspace
 from ..schemas import MaterialOut
 from ..services import storage
-from ..services.indexer import delete_material_vectors
 
 router = APIRouter(prefix="/api", tags=["materials"])
 
@@ -49,11 +48,10 @@ async def delete_material(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """删除资料：向量块（filter material_id）+ 存储对象 + 数据库行。"""
+    """删除资料：分节（FK cascade）+ 存储对象 + 数据库行。"""
     material = await get_owned_material(material_id, user, db)
     await db.delete(material)
     await db.commit()
-    await delete_material_vectors(material_id)
     await storage.delete(material.storage_key)
     return None
 

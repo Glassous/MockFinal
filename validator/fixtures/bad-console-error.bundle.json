@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "runtime_version": "1.0.0",
+  "manifest": {
+    "schema_version": "1.0",
+    "page_id": "page_bad_console_error",
+    "title": "错误夹具：控制台错误",
+    "subtitle": "校验器夹具页面",
+    "knowledge_point_ids": [
+      "kp_012"
+    ],
+    "importance": "core",
+    "estimated_minutes": 5,
+    "layout": "focus",
+    "interactions": [
+      {
+        "id": "noop",
+        "type": "none",
+        "label": "无交互",
+        "smoke": null
+      }
+    ],
+    "source_refs": [
+      {
+        "material_id": 3,
+        "section_id": 102,
+        "quote": "夹具引用原文，用于校验器冒烟测试。"
+      }
+    ],
+    "assistant": {
+      "summary": "本页用于校验器夹具。",
+      "key_facts": [
+        "夹具"
+      ],
+      "suggested_questions": [
+        "这个页面用来做什么？"
+      ]
+    },
+    "a11y": {
+      "reduced_motion": true
+    }
+  },
+  "html": "<div class=\"mp-page\"><h1>控制台错误</h1><p>页面主动打印 error 级日志。</p></div>",
+  "css": ".mp-page { height: 100dvh; overflow: hidden; display: grid; place-content: center; gap: 16px; padding: 32px; background: var(--mp-panel); color: var(--mp-ink); }\nh1 { margin: 0; font-size: clamp(22px, 3vw, 36px); }\np { margin: 0; color: var(--mp-muted); }\nbutton { border: 1px solid var(--mp-border-strong); border-radius: 999px; padding: 8px 18px; background: var(--mp-raised); color: var(--mp-ink); }\n.mp-tall { height: 1800px; background: var(--mp-raised); border: 1px solid var(--mp-border); }",
+  "js": "MockFinal.ready({ title: '控制台错误' });\nconsole.error('夹具：这是一条 error 级日志');"
+}

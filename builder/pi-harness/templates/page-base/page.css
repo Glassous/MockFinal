@@ -1,0 +1,68 @@
+/* 脚手架说明：只使用 --mp-* 运行时变量与 currentColor/transparent；根元素 100dvh 且无纵向滚动。
+   提交前删除本注释与所有 TODO，再按 brief 调整版式。颜色禁止写裸值（#hex / rgb / 命名色）。 */
+
+/* 页面根：唯一允许的高度来源。主体行用 minmax(0, 1fr)，否则内容会把 grid 撑高。 */
+.mp-page {
+  height: 100dvh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: clamp(10px, 1.5vh, 18px);
+  padding: clamp(18px, 2.4vw, 36px);
+  background: var(--mp-panel);
+  color: var(--mp-ink);
+  font-family: var(--mp-font-sans);
+  font-size: clamp(13px, 1vw, 16px);
+}
+.mp-page > * { min-width: 0; }
+
+/* 头部：层级只靠字号与留白，一屏最多三级标题。 */
+.mp-head { display: grid; gap: 6px; }
+.mp-eyebrow { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--mp-faint); }
+.mp-title { margin: 0; font-size: clamp(24px, 2.7vw, 40px); font-weight: 700; line-height: 1.12; letter-spacing: -0.01em; }
+.mp-sub { margin: 0; max-width: 64ch; font-size: clamp(13px, 1.05vw, 16px); line-height: 1.6; color: var(--mp-muted); }
+
+/* 主体：左主视觉 + 右侧注；窄屏退化为单列。 */
+.mp-body { min-height: 0; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(250px, 1fr); gap: clamp(14px, 1.8vw, 26px); }
+
+/* 主视觉区：纸面卡片 + 1px 边框（静态元素不用阴影）。 */
+.mp-stage { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; padding: clamp(14px, 1.7vw, 26px); border: 1px solid var(--mp-border); border-radius: 20px; background: var(--mp-raised); }
+.mp-visual { position: relative; min-height: 0; display: grid; place-content: center; justify-items: center; gap: 8px; border: 1px dashed var(--mp-border-strong); border-radius: 14px; }
+.mp-placeholder { margin: 0; max-width: 34ch; text-align: center; font-size: 13px; line-height: 1.6; color: var(--mp-faint); }
+.mp-status { margin: 0; min-height: 2.6em; font-size: 13px; line-height: 1.6; }
+
+/* 侧注：只有一块核心结论 + 至多 3 条速查。 */
+.mp-side { min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 12px; }
+.mp-note { padding: 12px 14px; border-left: 3px solid var(--mp-border-strong); border-radius: 0 12px 12px 0; background: var(--mp-raised); }
+.mp-label { margin: 0 0 4px; font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--mp-faint); }
+.mp-note-text { margin: 0; font-size: 13px; line-height: 1.65; color: var(--mp-muted); }
+.mp-facts { margin: 0; display: grid; align-content: start; gap: 5px; }
+.mp-fact { display: grid; grid-template-columns: 4em minmax(0, 1fr); gap: 8px; font-size: 12px; line-height: 1.5; }
+.mp-fact dt { margin: 0; color: var(--mp-faint); }
+.mp-fact dd { margin: 0; color: var(--mp-muted); overflow-wrap: anywhere; }
+
+/* 底部：来源摘要 + 操作区。主按钮用反转表达，页面只有一个。 */
+.mp-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 16px; font-size: 12px; color: var(--mp-muted); }
+.mp-source { margin: 0; }
+.mp-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.mp-btn { min-height: 40px; padding: 0 16px; border: 1px solid var(--mp-border-strong); border-radius: 12px; background: var(--mp-panel); color: var(--mp-ink); font: inherit; font-size: 14px; cursor: pointer; }
+.mp-btn:hover { border-color: var(--mp-ink); }
+.mp-btn-primary { background: var(--mp-invert); color: var(--mp-invert-ink); border-color: var(--mp-invert); }
+.mp-btn:focus-visible { outline: 2px solid var(--mp-ink); outline-offset: 2px; }
+
+/* 状态示例：用属性选择器驱动视觉，JS 只改 data-mp-*，样式类名不进入冒烟。 */
+.mp-page[data-mp-state="done"] .mp-visual { border-style: solid; border-color: var(--mp-ink); }
+
+/* reduced-motion：宿主设置 data-mp-reduced-motion 时关闭全部过渡与动画；状态仍立即生效。 */
+html[data-mp-reduced-motion="true"] .mp-page,
+html[data-mp-reduced-motion="true"] .mp-page * { transition: none !important; animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .mp-page, .mp-page * { transition: none; animation: none; }
+}
+
+/* 窄屏（< 768 为阅读模式）：单列；不得横向溢出。 */
+@media (max-width: 900px) {
+  .mp-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .mp-side { grid-template-rows: auto auto; }
+  .mp-facts { display: none; }
+}

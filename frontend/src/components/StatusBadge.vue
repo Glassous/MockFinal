@@ -16,7 +16,7 @@ const config = computed(() => {
       }
     case 'indexing':
       return {
-        label: '索引中',
+        label: '解析中',
         icon: Loader2,
         cls: 'border-border bg-raised text-ink',
         spin: true,

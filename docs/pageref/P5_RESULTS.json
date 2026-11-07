@@ -1,0 +1,217 @@
+{
+  "generated_at": "2026-11-07T10:13:36.999Z",
+  "base_url": "http://localhost:5173",
+  "viewport_checks": [
+    {
+      "name": "总览 1280 无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1280,\"clientWidth\":1280,\"scrollHeight\":720,\"clientHeight\":720}"
+    },
+    {
+      "name": "总览 1280 一屏无页面滚动",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1280,\"clientWidth\":1280,\"scrollHeight\":720,\"clientHeight\":720}"
+    },
+    {
+      "name": "总览 1440×900 零滚动",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1440,\"clientWidth\":1440,\"scrollHeight\":900,\"clientHeight\":900}"
+    },
+    {
+      "name": "总览 1920×1080 零滚动",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1920,\"clientWidth\":1920,\"scrollHeight\":1080,\"clientHeight\":1080}"
+    },
+    {
+      "name": "页面 iframe 零滚动（1280×720）",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1254,\"clientWidth\":1254,\"scrollHeight\":638,\"clientHeight\":638}"
+    },
+    {
+      "name": "移动端总览无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":390,\"clientWidth\":390,\"scrollHeight\":844,\"clientHeight\":844}"
+    },
+    {
+      "name": "移动端阅读器无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":390,\"clientWidth\":390,\"scrollHeight\":844,\"clientHeight\":844}"
+    }
+  ],
+  "results": [
+    {
+      "name": "工作区复习页列表无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1280,\"clientWidth\":1280,\"scrollHeight\":720,\"clientHeight\":720}"
+    },
+    {
+      "name": "总览 1280 无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1280,\"clientWidth\":1280,\"scrollHeight\":720,\"clientHeight\":720}"
+    },
+    {
+      "name": "总览 1280 一屏无页面滚动",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1280,\"clientWidth\":1280,\"scrollHeight\":720,\"clientHeight\":720}"
+    },
+    {
+      "name": "总览 1440×900 零滚动",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1440,\"clientWidth\":1440,\"scrollHeight\":900,\"clientHeight\":900}"
+    },
+    {
+      "name": "总览 1920×1080 零滚动",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1920,\"clientWidth\":1920,\"scrollHeight\":1080,\"clientHeight\":1080}"
+    },
+    {
+      "name": "阅读器宿主无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1280,\"clientWidth\":1280,\"scrollHeight\":720,\"clientHeight\":720}"
+    },
+    {
+      "name": "阅读器宿主一屏无滚动",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1280,\"clientWidth\":1280,\"scrollHeight\":720,\"clientHeight\":720}"
+    },
+    {
+      "name": "页面 iframe 零滚动（1280×720）",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1254,\"clientWidth\":1254,\"scrollHeight\":638,\"clientHeight\":638}"
+    },
+    {
+      "name": "阅读器页面交互可执行（bisect step）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Fullscreen API 进入全屏并显示退出控件",
+      "ok": true,
+      "detail": "{\"active\":true,\"exitControl\":true}"
+    },
+    {
+      "name": "全屏下 AI 抽屉可见",
+      "ok": true,
+      "detail": "{\"x\":884,\"y\":0,\"width\":420,\"height\":720}"
+    },
+    {
+      "name": "Esc 退出全屏并恢复阅读器",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "选区桥接打开助手并带引用上下文",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "依据资料弹窗可打开",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "键盘 → 翻到第 2 页",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "阅读器重做弹窗可打开",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "深色阅读器无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1280,\"clientWidth\":1280,\"scrollHeight\":720,\"clientHeight\":720}"
+    },
+    {
+      "name": "构建中显示取消入口",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "取消构建确认弹窗说明保留已完成页面",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "失效 ?job= 不误判复习页不存在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "失效 ?job= 查询参数被清理",
+      "ok": true,
+      "detail": "http://localhost:5173/workspace/8/decks/4/build"
+    },
+    {
+      "name": "失败页面卡片提供重试入口",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "重新进入构建工作台可恢复最近任务与失败原因",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "草稿显示构建设置与开始入口",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "未配置服务时构建 fail-closed 提示中文原因",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "新建复习页后进入构建设置",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "空工作区显示复习页空态",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "移动端总览无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":390,\"clientWidth\":390,\"scrollHeight\":844,\"clientHeight\":844}"
+    },
+    {
+      "name": "移动端阅读器无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":390,\"clientWidth\":390,\"scrollHeight\":844,\"clientHeight\":844}"
+    },
+    {
+      "name": "375×667 总览无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":375,\"clientWidth\":375,\"scrollHeight\":667,\"clientHeight\":667}"
+    },
+    {
+      "name": "375×667 阅读器无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":375,\"clientWidth\":375,\"scrollHeight\":667,\"clientHeight\":667}"
+    },
+    {
+      "name": "768×1024 总览无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":768,\"clientWidth\":768,\"scrollHeight\":1024,\"clientHeight\":1024}"
+    },
+    {
+      "name": "768×1024 阅读器无横向溢出",
+      "ok": true,
+      "detail": "{\"scrollWidth\":768,\"clientWidth\":768,\"scrollHeight\":1024,\"clientHeight\":1024}"
+    },
+    {
+      "name": "reduced-motion 偏好传递到页面运行时",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "console_errors": [],
+  "passed": 34,
+  "failed": 0,
+  "screenshots": "E:\\AIWorkspace\\Qoder\\MockFinal\\docs\\pageref\\p5-screenshots"
+}

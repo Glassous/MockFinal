@@ -1,0 +1,6 @@
+# 仅开发/测试环境使用（PageRef 最小测试栈，P0 决策）
+-r requirements.txt
+
+pytest>=8
+pytest-asyncio>=0.24
+httpx>=0.28

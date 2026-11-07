@@ -69,7 +69,7 @@ async function confirmDelete() {
       <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-raised text-faint">
         <Inbox class="h-6 w-6" />
       </span>
-      <p class="mt-3 text-sm text-muted">还没有学习资料，上传后系统会自动解析并建立索引。</p>
+      <p class="mt-3 text-sm text-muted">还没有学习资料，上传后系统会自动解析并按章节分节。</p>
     </div>
 
     <ul v-else class="space-y-2">
@@ -92,7 +92,7 @@ async function confirmDelete() {
             <p class="mt-0.5 truncate text-xs text-muted">
               {{ formatBytes(m.size) }} · {{ formatRelative(m.created_at) }}
               <template v-if="m.status === 'indexed' && m.chunk_count > 0">
-                · {{ m.chunk_count }} 个分块
+                · {{ m.chunk_count }} 个分节
               </template>
             </p>
           </div>
@@ -140,7 +140,7 @@ async function confirmDelete() {
     <ConfirmModal
       :open="!!pendingDelete"
       title="删除资料"
-      :message="`确定删除「${pendingDelete?.filename ?? ''}」吗？相关的索引分块也会一并移除，此操作不可撤销。`"
+      :message="`确定删除「${pendingDelete?.filename ?? ''}」吗？相关的分节数据也会一并移除，此操作不可撤销。`"
       confirm-text="删除"
       cancel-text="取消"
       :loading="deleting"

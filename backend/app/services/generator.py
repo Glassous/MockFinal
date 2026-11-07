@@ -1,10 +1,11 @@
 """生成流水线（主代理编排，asyncio 后台任务执行）：
 
-(1) 从向量表按 workspace_id 取全部 chunks，按 material 分组；
+(1) 从 material_sections 按 workspace_id 取全部资料分节，按 material 分组；
 (2) 子代理层：每份资料一个摘要任务，Semaphore(4) 限流并行，stage 实时更新；
 (3) 成品层：复习代理 + 出卷代理并行，输入为全部摘要；
 (4) 两份 Markdown 写存储、artifacts 落库、job=done；任一成品失败 job=failed 记 error。
 
+去 Embedding 后不再做向量 RAG 补充；旧资料若无分节会在后台懒回填。
 后台任务使用独立 DB session，不复用请求 session。
 """
 import asyncio
@@ -17,7 +18,7 @@ from ..config import settings
 from ..database import SessionLocal
 from ..models import Artifact, GenerationJob, Material, Workspace
 from . import storage
-from .indexer import fetch_chunks_from_db, retrieve_workspace_chunks
+from .sectioner import backfill_missing_sections, fetch_sections_from_db
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,15 @@ def _msg_text(content) -> str:
                 parts.append(str(text_attr) if text_attr is not None else str(block))
         return "".join(parts)
     return str(content)
+
+
+def _render_section(section: dict) -> str:
+    """把分节渲染成带标题的正文，供摘要子代理使用。"""
+    heading = (section.get("heading") or "").strip()
+    body = (section.get("content") or "").strip()
+    if heading and not body.startswith(heading):
+        return f"## {heading}\n{body}"
+    return body
 
 
 def _split_segments(text: str, max_chars: int) -> list[str]:
@@ -134,20 +144,18 @@ async def _run(job_id: int) -> None:
             return
         user_id = workspace.user_id
         workspace_id = workspace.id
-        ws_name = workspace.name
-        ws_desc = workspace.description or ""
         job.status = "running"
         job.stage = prompts.STAGE_FETCHING
         await db.commit()
 
-    # ===== (1) 取块并按资料分组 =====
-    try:
-        grouped = await fetch_chunks_from_db(workspace_id)
-    except Exception as exc:  # noqa: BLE001 —— 向量表异常等
-        await _finish_failed(job_id, _friendly_error(exc))
-        return
+    # ===== (1) 取分节并按资料分组（旧资料先懒回填，状态不变）=====
+    failed_backfill = await backfill_missing_sections(workspace_id)
+    grouped = await fetch_sections_from_db(workspace_id)
     if not grouped:
-        await _finish_failed(job_id, "没有可用于生成的已索引资料，请先上传并等待资料索引完成")
+        detail = "没有可用于生成的已就绪资料，请先上传资料并等待解析完成"
+        if failed_backfill:
+            detail = f"以下资料尚未完成解析分节，无法生成：{'、'.join(failed_backfill)}"
+        await _finish_failed(job_id, detail)
         return
 
     async with SessionLocal() as db:
@@ -166,16 +174,23 @@ async def _run(job_id: int) -> None:
         async with semaphore:
             messages = [
                 ("system", prompts.SUMMARIZE_SYSTEM),
-                ("user", prompts.SUMMARIZE_USER.format(filename=label, content=text_block)),
+                (
+                    "user",
+                    prompts.SUMMARIZE_USER.format(
+                        filename=label,
+                        content=text_block,
+                        boundary=prompts.new_boundary("MATERIAL"),
+                    ),
+                ),
             ]
             result = await llm.ainvoke(messages)
         return _msg_text(result.content)
 
-    async def summarize_one(material_id: int, chunks: list[dict]) -> str:
+    async def summarize_one(material_id: int, sections: list[dict]) -> str:
         nonlocal done_count
         material = materials.get(material_id)
         filename = material.filename if material else f"资料#{material_id}"
-        content = "\n\n".join(c["content"] for c in chunks)
+        content = "\n\n".join(_render_section(section) for section in sections)
         segments = _split_segments(content, _MAX_CHARS_PER_MATERIAL)
         if len(segments) <= 1:
             summary = await _summarize_block(filename, content)
@@ -193,7 +208,9 @@ async def _run(job_id: int) -> None:
                     (
                         "user",
                         prompts.MERGE_SUMMARY_USER.format(
-                            filename=filename, segments="\n\n---\n\n".join(seg_summaries)
+                            filename=filename,
+                            segments="\n\n---\n\n".join(seg_summaries),
+                            boundary=prompts.new_boundary("SEGMENTS"),
                         ),
                     ),
                 ]
@@ -206,7 +223,7 @@ async def _run(job_id: int) -> None:
 
     await _set_stage(job_id, prompts.STAGE_SUMMARIZING.format(done=0, total=total))
     results = await asyncio.gather(
-        *(summarize_one(mid, chunks) for mid, chunks in grouped.items()),
+        *(summarize_one(mid, sections) for mid, sections in grouped.items()),
         return_exceptions=True,
     )
     summaries = [r for r in results if isinstance(r, str)]
@@ -232,29 +249,15 @@ async def _run(job_id: int) -> None:
     summaries_text = "\n\n---\n\n".join(summaries)
     writer_llm = _get_llm(temperature=0.5)
 
-    # RAG 补充上下文（#15）：以工作区名+描述为 query 检索向量库，激活 retrieve_workspace_chunks
-    context_block = ""
-    try:
-        query = f"{ws_name} {ws_desc}".strip() or "期末复习重点 核心概念 公式 考点"
-        grouped_docs = await retrieve_workspace_chunks(workspace_id, limit=8, query=query)
-        snippets: list[str] = []
-        for docs in grouped_docs.values():
-            for doc in docs:
-                snippet = (doc.page_content or "").strip()
-                if snippet:
-                    snippets.append(snippet)
-        if snippets:
-            context_block = prompts.SUPPLEMENT_CONTEXT.format(chunks="\n\n".join(snippets[:8]))
-    except Exception:  # noqa: BLE001 —— RAG 为增强项，失败不阻断生成
-        logger.warning("生成任务 %s：RAG 补充上下文检索失败（已忽略）", job_id, exc_info=True)
-
     async def write_review() -> str:
         messages = [
             ("system", prompts.REVIEW_SYSTEM),
             (
                 "user",
                 prompts.REVIEW_USER.format(
-                    context=context_block, n=len(summaries), summaries=summaries_text
+                    n=len(summaries),
+                    summaries=summaries_text,
+                    boundary=prompts.new_boundary("SUMMARIES"),
                 ),
             ),
         ]
@@ -266,7 +269,9 @@ async def _run(job_id: int) -> None:
             (
                 "user",
                 prompts.EXAM_USER.format(
-                    context=context_block, n=len(summaries), summaries=summaries_text
+                    n=len(summaries),
+                    summaries=summaries_text,
+                    boundary=prompts.new_boundary("SUMMARIES"),
                 ),
             ),
         ]

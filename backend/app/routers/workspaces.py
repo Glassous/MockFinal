@@ -15,7 +15,15 @@ from starlette.datastructures import UploadFile
 from ..config import settings
 from ..database import get_db
 from ..deps import get_current_user
-from ..models import Artifact, GenerationJob, Material, User, Workspace
+from ..models import (
+    Artifact,
+    DeckPage,
+    GenerationJob,
+    Material,
+    ReviewDeck,
+    User,
+    Workspace,
+)
 from ..schemas import (
     MaterialOut,
     MaterialRegisterOSS,
@@ -26,7 +34,7 @@ from ..schemas import (
     WorkspaceUpdate,
 )
 from ..services import storage
-from ..services.indexer import index_material_task
+from ..services.sectioner import section_material_task
 from ..services.sts import assume_upload_role
 from ..tasks import spawn
 
@@ -44,9 +52,17 @@ async def get_owned_workspace(workspace_id: int, user: User, db: AsyncSession) -
 
 
 def _validate_upload(filename: str, size: int) -> str:
-    """扩展名限 pdf/docx/pptx/md/txt，大小 ≤50MB；返回小写扩展名。"""
-    name = PurePosixPath(filename).name
-    if not name or name != filename.strip() or not filename.strip():
+    """校验并返回安全文件名；扩展名限 pdf/docx/pptx/md/txt，大小 ≤50MB。"""
+    # 反斜杠在 POSIX 下不是分隔符，必须先归一化，避免 Windows 风格穿越名落盘
+    raw = (filename or "").strip().replace("\\", "/")
+    name = PurePosixPath(raw).name
+    if (
+        not name
+        or name != raw
+        or name in {".", ".."}
+        or len(raw) > 200
+        or any(ord(char) < 32 for char in raw)
+    ):
         raise HTTPException(status_code=400, detail="文件名无效")
     ext = PurePosixPath(name).suffix.lower()
     if ext not in settings.allowed_extensions:
@@ -55,7 +71,7 @@ def _validate_upload(filename: str, size: int) -> str:
         raise HTTPException(status_code=400, detail="文件内容为空")
     if size > settings.max_upload_size:
         raise HTTPException(status_code=400, detail="文件大小超过 50MB 限制")
-    return ext
+    return name
 
 
 @router.get("", response_model=list[WorkspaceOut], status_code=200)
@@ -121,7 +137,7 @@ async def delete_workspace(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """级联删除：资料向量、存储对象、工件、任务、资料行、工作区行。"""
+    """级联删除：资料分节、存储对象、工件、任务、资料行、工作区行。"""
     workspace = await get_owned_workspace(workspace_id, user, db)
     materials = (
         await db.execute(select(Material).where(Material.workspace_id == workspace_id))
@@ -129,22 +145,20 @@ async def delete_workspace(
     artifacts = (
         await db.execute(select(Artifact).where(Artifact.workspace_id == workspace_id))
     ).scalars().all()
+    deck_ids = select(ReviewDeck.id).where(ReviewDeck.workspace_id == workspace_id)
+    deck_pages = (
+        await db.execute(select(DeckPage).where(DeckPage.deck_id.in_(deck_ids)))
+    ).scalars().all()
 
-    # 先清数据库行（同一事务），再 best-effort 清向量与存储对象
+    # 先清数据库行（同一事务，material_sections 由 FK cascade 清理），再 best-effort 清存储对象
     await db.execute(delete(Artifact).where(Artifact.workspace_id == workspace_id))
     await db.execute(delete(Material).where(Material.workspace_id == workspace_id))
     await db.execute(delete(GenerationJob).where(GenerationJob.workspace_id == workspace_id))
     await db.delete(workspace)
     await db.commit()
 
-    from ..services.indexer import delete_material_vectors
-
-    # 外部资源清理 best-effort：DB 行已删，向量/存储对象清理失败不应让整个删除 500（#11）
+    # 外部资源清理 best-effort：DB 行已删，存储对象清理失败不应让整个删除 500（#11）
     for material in materials:
-        try:
-            await delete_material_vectors(material.id)
-        except Exception:  # noqa: BLE001
-            logger.warning("删除资料 %s 向量失败（已忽略）", material.id, exc_info=True)
         try:
             await storage.delete(material.storage_key)
         except Exception:  # noqa: BLE001
@@ -154,6 +168,14 @@ async def delete_workspace(
             await storage.delete(artifact.storage_key)
         except Exception:  # noqa: BLE001
             logger.warning("删除工件 %s 存储对象失败（已忽略）", artifact.id, exc_info=True)
+    for page in deck_pages:
+        for key in (page.bundle_key, page.thumbnail_key):
+            if not key:
+                continue
+            try:
+                await storage.delete(key)
+            except Exception:  # noqa: BLE001
+                logger.warning("删除页面 %s 存储对象失败（已忽略）", page.id, exc_info=True)
     return None
 
 
@@ -185,10 +207,10 @@ async def get_upload_credentials(
     )
 
 
-async def _schedule_indexing(material: Material) -> MaterialOut:
+async def _schedule_sectioning(material: Material) -> MaterialOut:
     out = MaterialOut.model_validate(material)
     # fire-and-forget：spawn 持强引用，避免任务被 GC 提前回收（#6）
-    spawn(index_material_task(material.id))
+    spawn(section_material_task(material.id))
     return out
 
 
@@ -233,8 +255,7 @@ async def _create_material_oss(
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=400, detail="请求体必须是合法 JSON") from exc
 
-    filename = PurePosixPath(body.filename).name
-    _validate_upload(filename, body.size)
+    filename = _validate_upload(body.filename, body.size)
 
     expected_prefix = f"mockfinal/{user.id}/{workspace.id}/"
     key = body.storage_key
@@ -246,8 +267,8 @@ async def _create_material_oss(
     except FileNotFoundError as exc:
         raise HTTPException(status_code=400, detail="OSS 上未找到该文件，请确认直传已成功") from exc
     except Exception as exc:  # noqa: BLE001
-        logger.exception("head_object 失败：%s", key)
-        raise HTTPException(status_code=502, detail=f"校验 OSS 文件失败：{exc}") from exc
+        logger.exception("head_object 失败：workspace_id=%s", workspace.id)
+        raise HTTPException(status_code=502, detail="校验 OSS 文件失败，请稍后重试") from exc
     if actual_size != body.size:
         raise HTTPException(status_code=400, detail="文件大小与 OSS 实际对象不一致，请重新上传")
 
@@ -262,7 +283,7 @@ async def _create_material_oss(
     db.add(material)
     await db.commit()
     await db.refresh(material)
-    return await _schedule_indexing(material)
+    return await _schedule_sectioning(material)
 
 
 async def _create_material_local(
@@ -276,10 +297,7 @@ async def _create_material_local(
     upload = form.get("file")
     if not isinstance(upload, UploadFile):
         raise HTTPException(status_code=400, detail="缺少上传文件字段 file")
-    filename = PurePosixPath(upload.filename or "").name
-    if not filename:
-        raise HTTPException(status_code=400, detail="文件名无效")
-    _validate_upload(filename, 1)  # 先校验扩展名；大小在流式写入时校验
+    filename = _validate_upload(upload.filename or "", 1)  # 大小在流式写入时校验
 
     key = storage.build_key(user.id, workspace.id, filename)
     content_type = upload.content_type or "application/octet-stream"
@@ -311,4 +329,4 @@ async def _create_material_local(
     db.add(material)
     await db.commit()
     await db.refresh(material)
-    return await _schedule_indexing(material)
+    return await _schedule_sectioning(material)

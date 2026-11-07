@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Sparkles, Loader2, Trash2, Pencil, Check, Files, BookOpen, ClipboardList } from 'lucide-vue-next'
-import type { ArtifactKind, ArtifactMeta, Material, Workspace } from '@/types'
+import { Sparkles, Loader2, Trash2, Pencil, Check, Files, BookOpen, ClipboardList, Layers } from 'lucide-vue-next'
+import type { ArtifactKind, ArtifactMeta, Deck, Material, Workspace } from '@/types'
 import { getWorkspace } from '@/api/workspaces'
 import { listMaterials } from '@/api/materials'
 import { listArtifacts } from '@/api/artifacts'
+import { listDecks } from '@/api/decks'
 import { generate, getJob } from '@/api/generation'
 import { ApiError } from '@/api/client'
 import { useToastStore } from '@/stores/toast'
@@ -17,8 +18,10 @@ import ArtifactPanel from '@/components/ArtifactPanel.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import Modal from '@/components/Modal.vue'
 import AppInput from '@/components/AppInput.vue'
+import DeckList from '@/components/deck/DeckList.vue'
+import DeckCreateModal from '@/components/deck/DeckCreateModal.vue'
 
-type Tab = 'materials' | 'review' | 'exam'
+type Tab = 'materials' | 'decks' | 'review' | 'exam'
 
 const route = useRoute()
 const router = useRouter()
@@ -34,6 +37,9 @@ const notFound = ref(false)
 const tab = ref<Tab>('materials')
 const materials = ref<Material[]>([])
 const artifacts = ref<ArtifactMeta[]>([])
+const decks = ref<Deck[]>([])
+const decksLoading = ref(false)
+const createDeckOpen = ref(false)
 
 const generating = ref(false)
 const jobStage = ref('')
@@ -54,7 +60,8 @@ const examArtifacts = computed(() => artifacts.value.filter((a) => a.kind === 'e
 
 const tabs = computed(() => [
   { key: 'materials' as Tab, label: '学习资料', icon: Files, count: materials.value.length },
-  { key: 'review' as Tab, label: '终极复习', icon: BookOpen, count: reviewArtifacts.value.length },
+  { key: 'decks' as Tab, label: '复习页', icon: Layers, count: decks.value.length },
+  { key: 'review' as Tab, label: '旧版资料', icon: BookOpen, count: reviewArtifacts.value.length },
   { key: 'exam' as Tab, label: '模拟考试', icon: ClipboardList, count: examArtifacts.value.length },
 ])
 
@@ -75,6 +82,32 @@ async function refreshArtifacts() {
   }
 }
 
+async function refreshDecks() {
+  decksLoading.value = true
+  try {
+    decks.value = await listDecks(workspaceId.value)
+  } catch (error) {
+    if (error instanceof ApiError && error.status !== 401) toast.error(error.detail)
+  } finally {
+    decksLoading.value = false
+  }
+}
+
+function openDeck(deckId: number) {
+  void router.push({
+    name: 'deck-overview',
+    params: { id: workspaceId.value, deckId },
+  })
+}
+
+function onDeckCreated(deck: Deck) {
+  createDeckOpen.value = false
+  void router.push({
+    name: 'deck-build',
+    params: { id: workspaceId.value, deckId: deck.id },
+  })
+}
+
 async function loadAll(id: number) {
   stopMaterialPolling()
   stopJobPolling()
@@ -84,6 +117,7 @@ async function loadAll(id: number) {
   workspace.value = null
   materials.value = []
   artifacts.value = []
+  decks.value = []
   notFound.value = false
   tab.value = 'materials'
 
@@ -96,7 +130,7 @@ async function loadAll(id: number) {
   loadingWorkspace.value = true
   try {
     workspace.value = await getWorkspace(id)
-    await Promise.all([refreshMaterials(), refreshArtifacts()])
+    await Promise.all([refreshMaterials(), refreshArtifacts(), refreshDecks()])
     scheduleMaterialPolling()
   } catch (error) {
     if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
@@ -109,7 +143,7 @@ async function loadAll(id: number) {
   }
 }
 
-/* ------------------------- 资料索引轮询（2s） ------------------------- */
+/* ------------------------- 资料解析轮询（2s） ------------------------- */
 let materialTimer: number | null = null
 
 function hasPendingMaterials() {
@@ -182,7 +216,7 @@ async function onGenerate() {
   } catch (error) {
     if (error instanceof ApiError) {
       if (error.status === 400) {
-        toast.error(error.detail || '没有可用资料，请先上传并等待索引完成')
+        toast.error(error.detail || '没有可用资料，请先上传并等待解析完成')
       } else if (error.status === 409) {
         toast.error(error.detail || '已有正在进行的生成任务，请稍候')
       } else {
@@ -377,6 +411,13 @@ onBeforeUnmount(() => {
           <UploadZone :workspace-id="workspaceId" @uploaded="onUploaded" />
           <MaterialList :materials="materials" @changed="refreshMaterials" />
         </div>
+        <DeckList
+          v-else-if="tab === 'decks'"
+          :decks="decks"
+          :loading="decksLoading"
+          @create="createDeckOpen = true"
+          @open="openDeck"
+        />
         <ArtifactPanel
           v-else-if="tab === 'review'"
           key="review"
@@ -397,12 +438,19 @@ onBeforeUnmount(() => {
     <ConfirmModal
       :open="pendingDeleteWs"
       title="删除工作区"
-      :message="`确定删除工作区「${workspace?.name ?? ''}」吗？其中的资料、索引与生成的工件都会被永久删除，此操作不可撤销。`"
+      :message="`确定删除工作区「${workspace?.name ?? ''}」吗？其中的资料、分节与生成的工件都会被永久删除，此操作不可撤销。`"
       confirm-text="删除"
       cancel-text="取消"
       :loading="deletingWs"
       @close="pendingDeleteWs = false"
       @confirm="confirmDeleteWorkspace"
+    />
+
+    <DeckCreateModal
+      :open="createDeckOpen"
+      :workspace-id="workspaceId"
+      @close="createDeckOpen = false"
+      @created="onDeckCreated"
     />
 
     <!-- 编辑工作区弹窗 -->

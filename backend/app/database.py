@@ -1,7 +1,4 @@
-"""数据库：AsyncEngine + async_sessionmaker（psycopg3），全应用共享同一连接池。
-
-PGEngine.from_engine 会复用这里的 engine，避免出现两套连接池。
-"""
+"""数据库：AsyncEngine + async_sessionmaker（psycopg3），全应用共享同一连接池。"""
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (

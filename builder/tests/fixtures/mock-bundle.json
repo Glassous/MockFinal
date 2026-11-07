@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "runtime_version": "1.0.0",
+  "manifest": {
+    "schema_version": "1.0",
+    "page_id": "page_mock_001",
+    "title": "构建服务自检：二分查找",
+    "subtitle": "用于 Builder 离线联调的预置页面",
+    "knowledge_point_ids": ["kp_mock_001"],
+    "importance": "core",
+    "estimated_minutes": 5,
+    "layout": "focus",
+    "interactions": [
+      {
+        "id": "mock-step",
+        "type": "simulation",
+        "label": "点击推进一次二分比较",
+        "smoke": {
+          "action": "click",
+          "selector": "[data-mp-action='step']",
+          "expect": "[data-mp-state='hit']"
+        }
+      }
+    ],
+    "source_refs": [
+      { "material_id": 1, "section_id": 101, "quote": "二分查找在有序序列中每次排除一半。" }
+    ],
+    "assistant": {
+      "summary": "MOCK 模式预置页面，仅用于构建流程联调。",
+      "key_facts": ["每次排除一半", "O(log n)"],
+      "suggested_questions": ["为什么循环条件用 left <= right？"]
+    },
+    "a11y": { "reduced_motion": true }
+  },
+  "html": "<div class=\"mp-page\" data-mp-state=\"searching\"><h1>二分查找</h1><p>每次排除一半。</p><button type=\"button\" data-mp-action=\"step\">下一步</button></div>",
+  "css": ".mp-page { height: 100%; display: grid; place-content: center; gap: 12px; background: var(--mp-panel); color: var(--mp-ink); }",
+  "js": "const root = document.querySelector('.mp-page');\nconst button = root.querySelector('[data-mp-action=\"step\"]');\nbutton.addEventListener('click', () => { root.dataset.mpState = 'hit'; MockFinal.emit('interaction', { id: 'mock-step' }); });\nMockFinal.ready({ title: '构建服务自检' });\n"
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "runtime_version": "1.0.0",
+  "manifest": {
+    "schema_version": "1.0",
+    "page_id": "page_matrix_001",
+    "title": "矩阵变换：列、复合与顺序",
+    "subtitle": "两列就是基向量的像；先 R 后 S 是 SR，先 S 后 R 是 RS",
+    "knowledge_point_ids": [
+      "kp_golden_matrix"
+    ],
+    "importance": "core",
+    "estimated_minutes": 8,
+    "layout": "staged-derivation",
+    "interactions": [
+      {
+        "id": "matrix-step",
+        "type": "simulation",
+        "label": "下一步：逐条展开列观点、复合与计算",
+        "smoke": {
+          "action": "click",
+          "selector": "[data-mp-action='step']",
+          "expect": "[data-mp-state='columns']"
+        }
+      },
+      {
+        "id": "matrix-compare",
+        "type": "simulation",
+        "label": "对比顺序：直接看到 SR 与 RS 不同",
+        "smoke": {
+          "action": "click",
+          "selector": "[data-mp-action='compare']",
+          "expect": "[data-mp-state='compared']"
+        }
+      }
+    ],
+    "source_refs": [
+      {
+        "material_id": 0,
+        "section_id": 201,
+        "heading": "线性变换与矩阵的列观点",
+        "quote": "把这两个像向量作为列排成矩阵 A=[T(e1) T(e2)]，则任意向量 x=(x1,x2) 的像为 Ax=x1T(e1)+x2T(e2)。"
+      },
+      {
+        "material_id": 0,
+        "section_id": 202,
+        "heading": "复合变换与矩阵乘法",
+        "quote": "若先做变换 A，再做变换 B，复合变换为 B(Ax)=(BA)x，即复合矩阵是 B 左乘 A。"
+      }
+    ],
+    "assistant": {
+      "summary": "本页用网格图示与分步推导说明矩阵的列观点、复合顺序与不可交换性，公式以内联 HTML 排版呈现。",
+      "key_facts": [
+        "第一列是 e1 的像，第二列是 e2 的像",
+        "先 R 后 S 写作 SR",
+        "SR 与 RS 不同，矩阵乘法不满足交换律"
+      ],
+      "suggested_questions": [
+        "为什么复合矩阵要左乘？",
+        "SR 的第一列怎么算出来？",
+        "det 都是 1 说明什么？"
+      ]
+    },
+    "a11y": {
+      "reduced_motion": true
+    }
+  },
+  "html": "<div class=\"mp-page\" data-mp-state=\"idle\" data-mp-step=\"0\">\n  <header class=\"mp-head\">\n    <p class=\"mp-eyebrow\">线性代数 · 线性变换</p>\n    <h1 class=\"mp-title\">矩阵变换：列、复合与顺序</h1>\n    <p class=\"mp-sub\">矩阵的列是基向量的像；先 R 后 S 的复合写作 SR，交换顺序结果就变了。</p>\n  </header>\n\n  <main class=\"mp-body\">\n    <section class=\"mp-figure\" aria-label=\"基向量与复合变换的网格图示\">\n      <svg class=\"mp-grid\" viewBox=\"0 0 330 250\" role=\"img\" aria-label=\"标准基 e1、e2 与先旋转再剪切后的两个像向量\">\n        <g class=\"mp-grid-lines\">\n          <line x1=\"0\" y1=\"25\" x2=\"330\" y2=\"25\"></line>\n          <line x1=\"0\" y1=\"80\" x2=\"330\" y2=\"80\"></line>\n          <line x1=\"0\" y1=\"135\" x2=\"330\" y2=\"135\"></line>\n          <line x1=\"0\" y1=\"190\" x2=\"330\" y2=\"190\"></line>\n          <line x1=\"0\" y1=\"245\" x2=\"330\" y2=\"245\"></line>\n          <line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"250\"></line>\n          <line x1=\"55\" y1=\"0\" x2=\"55\" y2=\"250\"></line>\n          <line x1=\"110\" y1=\"0\" x2=\"110\" y2=\"250\"></line>\n          <line x1=\"165\" y1=\"0\" x2=\"165\" y2=\"250\"></line>\n          <line x1=\"220\" y1=\"0\" x2=\"220\" y2=\"250\"></line>\n          <line x1=\"275\" y1=\"0\" x2=\"275\" y2=\"250\"></line>\n        </g>\n        <g class=\"mp-axes\">\n          <line x1=\"0\" y1=\"190\" x2=\"330\" y2=\"190\"></line>\n          <line x1=\"110\" y1=\"245\" x2=\"110\" y2=\"10\"></line>\n        </g>\n        <polygon class=\"mp-unit\" points=\"110,190 165,190 165,135 110,135\"></polygon>\n        <g class=\"mp-image\" data-mp-layer=\"image\">\n          <polygon class=\"mp-image-fill\" points=\"110,190 165,135 110,135 55,190\"></polygon>\n          <line class=\"mp-vec-image\" x1=\"110\" y1=\"190\" x2=\"165\" y2=\"135\"></line>\n          <line class=\"mp-vec-image\" x1=\"110\" y1=\"190\" x2=\"55\" y2=\"190\"></line>\n          <text class=\"mp-svg-label\" x=\"170\" y=\"126\">S·R(e1)</text>\n          <text class=\"mp-svg-label\" x=\"18\" y=\"184\">S·R(e2)</text>\n        </g>\n        <g class=\"mp-vec-group\">\n          <line class=\"mp-vec\" x1=\"110\" y1=\"190\" x2=\"165\" y2=\"190\"></line>\n          <line class=\"mp-vec\" x1=\"110\" y1=\"190\" x2=\"110\" y2=\"135\"></line>\n          <text class=\"mp-svg-label\" x=\"168\" y=\"204\">e1</text>\n          <text class=\"mp-svg-label\" x=\"116\" y=\"128\">e2</text>\n        </g>\n        <text class=\"mp-svg-axis\" x=\"96\" y=\"205\">O</text>\n      </svg>\n      <p class=\"mp-caption\">虚线：单位正方形；实线：先旋转 R 再剪切 S 后的像，两列分别是 (1, 1) 与 (-1, 0)。</p>\n    </section>\n\n    <section class=\"mp-derive\" aria-label=\"分步推导\">\n      <p class=\"mp-hint-line\">点击「下一步」开始推导，每步只高亮当前结论。</p>\n      <ol class=\"mp-steps\" data-mp-role=\"steps\">\n        <li data-mp-step=\"1\" data-mp-state=\"pending\">\n          <span class=\"mp-step-no\">01</span>\n          <div>\n            <p class=\"mp-step-title\">列观点</p>\n            <p class=\"mp-step-body\">矩阵的两列就是基向量的像：第一列是 e1 的像，第二列是 e2 的像。</p>\n          </div>\n        </li>\n        <li data-mp-step=\"2\" data-mp-state=\"pending\">\n          <span class=\"mp-step-no\">02</span>\n          <div>\n            <p class=\"mp-step-title\">乘向量</p>\n            <p class=\"mp-step-body\">Ax = x1 乘第一列 + x2 乘第二列，即按坐标对列做线性组合。</p>\n          </div>\n        </li>\n        <li data-mp-step=\"3\" data-mp-state=\"pending\">\n          <span class=\"mp-step-no\">03</span>\n          <div>\n            <p class=\"mp-step-title\">复合顺序</p>\n            <p class=\"mp-step-body\">先 R 后 S 的复合是 S(Rx) = (SR)x，复合矩阵把 S 写在左边。</p>\n          </div>\n        </li>\n        <li data-mp-step=\"4\" data-mp-state=\"pending\">\n          <span class=\"mp-step-no\">04</span>\n          <div>\n            <p class=\"mp-step-title\">计算 SR</p>\n            <p class=\"mp-step-body\">第一列 S(0, 1) = (1, 1)，第二列 S(-1, 0) = (-1, 0)，得 SR 两列。</p>\n          </div>\n        </li>\n        <li data-mp-step=\"5\" data-mp-state=\"pending\">\n          <span class=\"mp-step-no\">05</span>\n          <div>\n            <p class=\"mp-step-title\">交换顺序</p>\n            <p class=\"mp-step-body\">先 S 后 R 得 RS，两矩阵不同；det 都为 1，面积不变但结果变了。</p>\n          </div>\n        </li>\n      </ol>\n\n      <div class=\"mp-compare\" data-mp-role=\"compare\">\n        <div class=\"mp-mat-block\">\n          <p class=\"mp-label\">SR · 先 R 后 S</p>\n          <span class=\"mp-mat\" role=\"img\" aria-label=\"矩阵 SR：第一行 1 与 -1，第二行 1 与 0\">\n            <b>1</b><b>-1</b><b>1</b><b>0</b>\n          </span>\n        </div>\n        <div class=\"mp-mat-block\" data-mp-layer=\"rs\">\n          <p class=\"mp-label\">RS · 先 S 后 R</p>\n          <span class=\"mp-mat\" role=\"img\" aria-label=\"矩阵 RS：第一行 0 与 -1，第二行 1 与 1\">\n            <b>0</b><b>-1</b><b>1</b><b>1</b>\n          </span>\n        </div>\n      </div>\n    </section>\n  </main>\n\n  <footer class=\"mp-foot\">\n    <p class=\"mp-source\">依据：资料 · 列观点（section 201）；复合变换与矩阵乘法（section 202）</p>\n    <div class=\"mp-controls\">\n      <button type=\"button\" class=\"mp-btn\" data-mp-action=\"prev\">上一步</button>\n      <button type=\"button\" class=\"mp-btn mp-btn-primary\" data-mp-action=\"step\">下一步</button>\n      <button type=\"button\" class=\"mp-btn\" data-mp-action=\"compare\">对比顺序</button>\n    </div>\n  </footer>\n</div>",
+  "css": ".mp-page {\n  height: 100dvh;\n  overflow: hidden;\n  display: grid;\n  grid-template-rows: auto minmax(0, 1fr) auto;\n  gap: clamp(10px, 1.5vh, 18px);\n  padding: clamp(18px, 2.4vw, 36px);\n  background: var(--mp-panel);\n  color: var(--mp-ink);\n  font-family: var(--mp-font-sans);\n  font-size: clamp(13px, 1vw, 16px);\n}\n.mp-page > * { min-width: 0; }\n.mp-head { display: grid; gap: 6px; }\n.mp-eyebrow { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .16em; color: var(--mp-faint); text-transform: uppercase; }\n.mp-title { margin: 0; font-size: clamp(24px, 2.7vw, 40px); line-height: 1.12; letter-spacing: -0.01em; font-weight: 700; }\n.mp-sub { margin: 0; max-width: 62ch; font-size: clamp(13px, 1.05vw, 16px); line-height: 1.6; color: var(--mp-muted); }\n\n.mp-body { min-height: 0; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 34px); }\n\n.mp-figure { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 8px; padding: clamp(12px, 1.4vw, 20px); border: 1px solid var(--mp-border); border-radius: 20px; background: var(--mp-raised); }\n.mp-grid { width: 100%; height: 100%; min-height: 0; }\n.mp-grid-lines line { stroke: var(--mp-border); stroke-width: 1; }\n.mp-axes line { stroke: var(--mp-border-strong); stroke-width: 1; }\n.mp-unit { fill: none; stroke: var(--mp-faint); stroke-width: 1; stroke-dasharray: 4 4; }\n.mp-image { opacity: 0; transition: opacity 200ms ease; }\n.mp-image-fill { fill: var(--mp-raised); stroke: var(--mp-border-strong); stroke-width: 1; }\n.mp-vec-image { stroke: var(--mp-ink); stroke-width: 2; }\n.mp-vec { stroke: var(--mp-ink); stroke-width: 2; }\n.mp-svg-label { fill: var(--mp-muted); font-family: var(--mp-font-mono); font-size: 12px; }\n.mp-svg-axis { fill: var(--mp-faint); font-family: var(--mp-font-mono); font-size: 12px; }\n.mp-caption { margin: 0; font-size: 12px; line-height: 1.6; color: var(--mp-muted); }\n\n.mp-derive { min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; }\n.mp-hint-line { margin: 0; font-size: 13px; line-height: 1.6; color: var(--mp-faint); }\n.mp-steps { margin: 0; padding: 0; list-style: none; display: grid; align-content: start; gap: 8px; overflow: hidden; }\n.mp-steps li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; padding: 9px 12px; border: 1px solid var(--mp-border); border-left: 2px solid var(--mp-border-strong); border-radius: 10px; background: var(--mp-panel); }\n.mp-steps li[data-mp-state=\"pending\"] { display: none; }\n.mp-step-no { font-family: var(--mp-font-mono); font-size: 12px; color: var(--mp-faint); padding-top: 2px; }\n.mp-step-title { margin: 0 0 2px; font-size: 13px; font-weight: 600; }\n.mp-step-body { margin: 0; font-size: 13px; line-height: 1.6; color: var(--mp-muted); }\n.mp-hint-line { display: none; }\n.mp-page[data-mp-step=\"0\"] .mp-hint-line { display: block; }\n\n.mp-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-top: 10px; border-top: 1px solid var(--mp-border); }\n.mp-mat-block { display: grid; gap: 4px; min-width: 0; }\n.mp-label { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .12em; color: var(--mp-faint); }\n.mp-mat { display: inline-grid; grid-template-columns: repeat(2, minmax(26px, auto)); gap: 2px 10px; justify-self: start; padding: 2px 8px; border-left: 1px solid var(--mp-ink); border-right: 1px solid var(--mp-ink); font-family: var(--mp-font-mono); font-size: clamp(13px, 1.1vw, 16px); line-height: 1.5; }\n.mp-mat b { font-weight: 600; text-align: center; }\n.mp-mat-block[data-mp-layer=\"rs\"] { opacity: 0; visibility: hidden; transition: opacity 200ms ease; }\n.mp-page[data-mp-step=\"5\"] .mp-mat-block[data-mp-layer=\"rs\"] { opacity: 1; visibility: visible; }\n.mp-page[data-mp-step=\"4\"] .mp-image,\n.mp-page[data-mp-step=\"5\"] .mp-image { opacity: 1; }\n\n.mp-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 16px; font-size: 12px; color: var(--mp-muted); }\n.mp-source { margin: 0; max-width: 58ch; }\n.mp-controls { display: flex; flex-wrap: wrap; gap: 8px; }\n.mp-btn { min-height: 40px; padding: 0 16px; border: 1px solid var(--mp-border-strong); border-radius: 12px; background: var(--mp-panel); color: var(--mp-ink); font: inherit; font-size: 14px; cursor: pointer; }\n.mp-btn:hover { border-color: var(--mp-ink); }\n.mp-btn-primary { background: var(--mp-invert); color: var(--mp-invert-ink); border-color: var(--mp-invert); }\n.mp-btn:focus-visible { outline: 2px solid var(--mp-ink); outline-offset: 2px; }\n\nhtml[data-mp-reduced-motion=\"true\"] .mp-page,\nhtml[data-mp-reduced-motion=\"true\"] .mp-page * { transition: none !important; animation: none !important; }\n@media (prefers-reduced-motion: reduce) {\n  .mp-page, .mp-page * { transition: none; animation: none; }\n}\n@media (max-width: 900px) {\n  .mp-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(120px, 0.7fr) minmax(0, 1fr); }\n  .mp-caption { display: none; }\n}",
+  "js": "(function () {\n  var STATES = ['idle', 'columns', 'combine', 'compose', 'compute', 'compared'];\n  var MAX = 5;\n  var root = document.querySelector('.mp-page');\n  if (!root) { return; }\n  var items = root.querySelectorAll('li[data-mp-step]');\n  var stepBtn = root.querySelector('[data-mp-action=\"step\"]');\n  var prevBtn = root.querySelector('[data-mp-action=\"prev\"]');\n  var compareBtn = root.querySelector('[data-mp-action=\"compare\"]');\n  var step = 0;\n\n  function render() {\n    root.dataset.mpStep = String(step);\n    root.dataset.mpState = STATES[step];\n    for (var i = 0; i < items.length; i += 1) {\n      var n = Number(items[i].getAttribute('data-mp-step'));\n      items[i].setAttribute('data-mp-state', n <= step ? 'shown' : 'pending');\n    }\n  }\n\n  function emit() {\n    window.MockFinal.emit('interaction', { id: 'matrix-derive', step: step, state: root.getAttribute('data-mp-state') });\n  }\n\n  if (stepBtn) {\n    stepBtn.addEventListener('click', function () {\n      if (step < MAX) {\n        step += 1;\n        render();\n        emit();\n      }\n    });\n  }\n  if (prevBtn) {\n    prevBtn.addEventListener('click', function () {\n      if (step > 0) {\n        step -= 1;\n        render();\n        emit();\n      }\n    });\n  }\n  if (compareBtn) {\n    compareBtn.addEventListener('click', function () {\n      if (step < MAX) {\n        step = MAX;\n        render();\n        emit();\n      }\n    });\n  }\n\n  if (typeof window.MockFinal.onHostMessage === 'function') {\n    window.MockFinal.onHostMessage(function (msg) {\n      if (msg && msg.type === 'theme') { render(); }\n    });\n  }\n\n  render();\n  window.MockFinal.ready({ title: '矩阵变换：列、复合与顺序' });\n})();"
+}

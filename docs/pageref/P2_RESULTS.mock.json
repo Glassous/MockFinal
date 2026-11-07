@@ -1,0 +1,264 @@
+{
+  "generated_at": "2026-11-07T06:16:36.952Z",
+  "started_at": "2026-11-07T06:16:30.835Z",
+  "base": "http://127.0.0.1:9100",
+  "mode": "mock",
+  "mock": true,
+  "note": "MOCK 模式结果，仅用于基础设施联调，不能作为 P2 门禁通过证据。",
+  "pages": [
+    {
+      "name": "bisect",
+      "page_id": "page_bisect_001",
+      "build_id": "golden_page_bisect_001_1794032190840",
+      "status": "succeeded",
+      "stage": "页面构建完成，已通过 Builder 侧最终校验",
+      "error": null,
+      "duration_ms": 2028,
+      "attempts": 1,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "duration_ms": 1536
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "screenshots": [],
+        "duration_ms": 1502
+      },
+      "events": [
+        {
+          "seq": 1,
+          "type": "stage",
+          "payload": {
+            "text": "已受理构建请求（page_bisect_001），并发上限 2"
+          },
+          "at": "2026-11-07T06:16:30.850Z"
+        },
+        {
+          "seq": 2,
+          "type": "stage",
+          "payload": {
+            "text": "MOCK 模式：跳过 Pi 会话，读取现成 bundle"
+          },
+          "at": "2026-11-07T06:16:30.851Z"
+        },
+        {
+          "seq": 3,
+          "type": "stage",
+          "payload": {
+            "text": "MOCK 模式，非真实 Pi 构建：跳过模型生成，直接校验预置 bundle。",
+            "mock": true
+          },
+          "at": "2026-11-07T06:16:30.851Z"
+        },
+        {
+          "seq": 4,
+          "type": "stage",
+          "payload": {
+            "text": "MOCK 模式：调用 Validator 做最终校验"
+          },
+          "at": "2026-11-07T06:16:30.859Z"
+        },
+        {
+          "seq": 5,
+          "type": "check",
+          "payload": {
+            "text": "MOCK 最终校验：passed，问题 0 条",
+            "status": "passed",
+            "issues": 0
+          },
+          "at": "2026-11-07T06:16:32.387Z"
+        },
+        {
+          "seq": 6,
+          "type": "page_done",
+          "payload": {
+            "text": "页面构建完成，已通过校验并生成 bundle。",
+            "files": [
+              "manifest.json",
+              "page.html",
+              "page.css",
+              "page.js"
+            ],
+            "validation_status": "passed"
+          },
+          "at": "2026-11-07T06:16:32.388Z"
+        }
+      ],
+      "bundle_http": 200,
+      "bundle_bytes": 14935
+    },
+    {
+      "name": "matrix",
+      "page_id": "page_matrix_001",
+      "build_id": "golden_page_matrix_001_1794032192876",
+      "status": "succeeded",
+      "stage": "页面构建完成，已通过 Builder 侧最终校验",
+      "error": null,
+      "duration_ms": 2031,
+      "attempts": 1,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "duration_ms": 1360
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "screenshots": [],
+        "duration_ms": 1349
+      },
+      "events": [
+        {
+          "seq": 1,
+          "type": "stage",
+          "payload": {
+            "text": "已受理构建请求（page_matrix_001），并发上限 2"
+          },
+          "at": "2026-11-07T06:16:32.879Z"
+        },
+        {
+          "seq": 2,
+          "type": "stage",
+          "payload": {
+            "text": "MOCK 模式：跳过 Pi 会话，读取现成 bundle"
+          },
+          "at": "2026-11-07T06:16:32.879Z"
+        },
+        {
+          "seq": 3,
+          "type": "stage",
+          "payload": {
+            "text": "MOCK 模式，非真实 Pi 构建：跳过模型生成，直接校验预置 bundle。",
+            "mock": true
+          },
+          "at": "2026-11-07T06:16:32.879Z"
+        },
+        {
+          "seq": 4,
+          "type": "stage",
+          "payload": {
+            "text": "MOCK 模式：调用 Validator 做最终校验"
+          },
+          "at": "2026-11-07T06:16:32.885Z"
+        },
+        {
+          "seq": 5,
+          "type": "check",
+          "payload": {
+            "text": "MOCK 最终校验：passed，问题 0 条",
+            "status": "passed",
+            "issues": 0
+          },
+          "at": "2026-11-07T06:16:34.239Z"
+        },
+        {
+          "seq": 6,
+          "type": "page_done",
+          "payload": {
+            "text": "页面构建完成，已通过校验并生成 bundle。",
+            "files": [
+              "manifest.json",
+              "page.html",
+              "page.css",
+              "page.js"
+            ],
+            "validation_status": "passed"
+          },
+          "at": "2026-11-07T06:16:34.239Z"
+        }
+      ],
+      "bundle_http": 200,
+      "bundle_bytes": 14432
+    },
+    {
+      "name": "timeline",
+      "page_id": "page_timeline_001",
+      "build_id": "golden_page_timeline_001_1794032194918",
+      "status": "succeeded",
+      "stage": "页面构建完成，已通过 Builder 侧最终校验",
+      "error": null,
+      "duration_ms": 2030,
+      "attempts": 1,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "duration_ms": 1518
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "screenshots": [],
+        "duration_ms": 1491
+      },
+      "events": [
+        {
+          "seq": 1,
+          "type": "stage",
+          "payload": {
+            "text": "已受理构建请求（page_timeline_001），并发上限 2"
+          },
+          "at": "2026-11-07T06:16:34.922Z"
+        },
+        {
+          "seq": 2,
+          "type": "stage",
+          "payload": {
+            "text": "MOCK 模式：跳过 Pi 会话，读取现成 bundle"
+          },
+          "at": "2026-11-07T06:16:34.922Z"
+        },
+        {
+          "seq": 3,
+          "type": "stage",
+          "payload": {
+            "text": "MOCK 模式，非真实 Pi 构建：跳过模型生成，直接校验预置 bundle。",
+            "mock": true
+          },
+          "at": "2026-11-07T06:16:34.922Z"
+        },
+        {
+          "seq": 4,
+          "type": "stage",
+          "payload": {
+            "text": "MOCK 模式：调用 Validator 做最终校验"
+          },
+          "at": "2026-11-07T06:16:34.945Z"
+        },
+        {
+          "seq": 5,
+          "type": "check",
+          "payload": {
+            "text": "MOCK 最终校验：passed，问题 0 条",
+            "status": "passed",
+            "issues": 0
+          },
+          "at": "2026-11-07T06:16:36.440Z"
+        },
+        {
+          "seq": 6,
+          "type": "page_done",
+          "payload": {
+            "text": "页面构建完成，已通过校验并生成 bundle。",
+            "files": [
+              "manifest.json",
+              "page.html",
+              "page.css",
+              "page.js"
+            ],
+            "validation_status": "passed"
+          },
+          "at": "2026-11-07T06:16:36.440Z"
+        }
+      ],
+      "bundle_http": 200,
+      "bundle_bytes": 16521
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "succeeded": 3,
+    "failed": 0
+  }
+}

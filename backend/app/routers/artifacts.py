@@ -1,4 +1,6 @@
 """工件路由：复习大纲 / 模拟试卷的列表、详情（含 Markdown 全文）、删除。"""
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +10,8 @@ from ..deps import get_current_user
 from ..models import Artifact, User, Workspace
 from ..schemas import ArtifactDetail, ArtifactOut
 from ..services import storage
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["artifacts"])
 
@@ -52,7 +56,8 @@ async def get_artifact(
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail="生成结果文件不存在或已被删除") from exc
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=502, detail=f"读取生成结果失败：{exc}") from exc
+        logger.exception("读取生成结果失败：artifact_id=%s", artifact.id)
+        raise HTTPException(status_code=502, detail="读取生成结果失败，请稍后重试") from exc
     content = data.decode("utf-8", errors="replace")
     return ArtifactDetail(
         id=artifact.id,

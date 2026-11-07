@@ -33,12 +33,6 @@ class Settings(BaseSettings):
     llm_api_key: str | None = None
     llm_model: str = "qwen-plus"
 
-    # Embedding（资料向量化）
-    embed_base_url: str | None = None
-    embed_api_key: str | None = None
-    embed_model: str = "text-embedding-v4"
-    embed_dim: int = 1024
-
     # 阿里云 OSS
     oss_region: str | None = None
     oss_endpoint: str | None = None
@@ -61,6 +55,36 @@ class Settings(BaseSettings):
     # LLM 调用参数（契约：request_timeout=180 max_retries=2）
     llm_request_timeout: int = 180
     llm_max_retries: int = 2
+    # 页面助手单次回答 token 上限（成本控制；生成管线不受影响）
+    page_chat_max_tokens: int = 900
+
+    # PageRef Deck 规划（P3）：页数区间与资料预算
+    deck_min_pages: int = 6
+    deck_max_pages: int = 16
+    # 送入大纲规划 prompt 的资料总字符预算（超出按资料顺序截断，并记录事件）
+    deck_max_material_chars: int = 200000
+    # 单页 bundle 字节上限（P4 保存与交付时校验）
+    deck_max_bundle_bytes: int = 2097152
+
+    # ===== PageRef P4：页面构建（Builder）与最终校验（Validator）内部服务 =====
+    # Builder 内部地址（如 http://page-builder:9100）；为空时构建/重建接口返回 503
+    page_builder_url: str | None = None
+    # Builder 共享密钥（HMAC-SHA256 签名），只在后端与 Builder 容器之间使用
+    page_builder_token: str | None = None
+    # 单次 Builder 请求超时（秒）；单页构建还会叠加总超时保护
+    page_builder_timeout_seconds: int = 480
+    # 页面并发构建数（MVP 默认 2）；仅进程内并发控制
+    page_builder_concurrency: int = 2
+    # Validator 内部地址（如 http://page-validator:9200）
+    page_validator_url: str | None = None
+    # Validator Bearer token
+    page_validator_token: str | None = None
+    # 单次最终校验超时（秒）
+    page_validator_timeout_seconds: int = 120
+    # 单页最多尝试次数（含首次）；最终校验失败时带问题摘要重试
+    deck_page_max_attempts: int = 2
+    # 整个构建任务总超时（秒）；超时取消 Builder 并把未完成页面落失败
+    deck_job_timeout_seconds: int = 1800
 
     # CORS 允许来源（#24）：env CORS_ORIGINS 逗号分隔，默认本地前端
     cors_origins: list[str] = ["http://localhost:5173"]
@@ -92,8 +116,14 @@ class Settings(BaseSettings):
         return bool(self.llm_api_key)
 
     @property
-    def embed_configured(self) -> bool:
-        return bool(self.embed_api_key)
+    def page_builder_configured(self) -> bool:
+        """Builder 地址与共享密钥齐全才算可用；缺失时构建接口 fail-closed。"""
+        return bool(self.page_builder_url and self.page_builder_token)
+
+    @property
+    def page_validator_configured(self) -> bool:
+        """Validator 地址与 token 齐全才算可用；缺失时不允许放行页面。"""
+        return bool(self.page_validator_url and self.page_validator_token)
 
 
 @lru_cache

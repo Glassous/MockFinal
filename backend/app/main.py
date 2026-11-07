@@ -2,22 +2,35 @@
 
 启动 lifespan：
 1. JWT_SECRET 默认占位值醒目告警（#17）；
-2. create_all 建业务表（幂等）；
-3. users.token_version 幂等补列（#21）+ 启动自愈遗留任务/资料（#4）+ 部分唯一索引 uq_job_active（#13）；
-4. PGEngine.ainit_vectorstore_table 建向量表 material_chunks（幂等，捕获 DuplicateTable/DuplicateObject）；
-5. 未配置 Embedding / 数据库暂不可达时仅告警，不阻断启动（优雅降级）。
+2. create_all 建业务表（幂等，含 material_sections 与 P3 Deck 表）；
+3. users.token_version 幂等补列（#21）+ deck_build_jobs.target_page_id/feedback 补列（P4）
+   + 启动自愈遗留任务/资料（#4）；
+4. 启动自愈遗留 Deck 规划/构建任务（P3/P4）+ 部分唯一索引 uq_job_active（#13）与
+   uq_deck_job_active；
+5. 数据库暂不可达时仅告警，不阻断启动（优雅降级）。
+
+去 Embedding 后不再初始化向量表；旧库中的 material_chunks 保留但不再读写。
 """
 import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text, update
+from sqlalchemy import case, func, select, text, update
 
 from .config import DEFAULT_JWT_SECRET, settings
 from .database import engine
-from .models import Base, GenerationJob, Material, utcnow
-from .routers import artifacts, auth, generation, materials, workspaces
+from .models import (
+    Base,
+    DeckBuildJob,
+    DeckPage,
+    GenerationJob,
+    Material,
+    PageChatMessage,
+    ReviewDeck,
+    utcnow,
+)
+from .routers import artifacts, auth, decks, generation, materials, workspaces
 from .schemas import HealthOut
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -33,6 +46,11 @@ async def lifespan(app: FastAPI):
             "JWT_SECRET 仍为默认占位值，任何人都可伪造登录令牌！\n"
             "生产环境请务必在 backend/.env 中设置强随机 JWT_SECRET。\n"
             "=================================================="
+        )
+    if settings.llm_api_key and not settings.llm_base_url:
+        logger.warning(
+            "LLM_BASE_URL 为空：LLM_API_KEY 将发往 OpenAI 默认地址 https://api.openai.com；"
+            "若使用其他网关，请显式配置 LLM_BASE_URL"
         )
 
     # 1. 业务表（幂等）
@@ -50,6 +68,13 @@ async def lifespan(app: FastAPI):
             await conn.execute(
                 text("ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 0")
             )
+            # 2a-2. P4 单页重建列：target_page_id / feedback（新库 create_all 已包含）
+            await conn.execute(
+                text("ALTER TABLE deck_build_jobs ADD COLUMN IF NOT EXISTS target_page_id INTEGER")
+            )
+            await conn.execute(
+                text("ALTER TABLE deck_build_jobs ADD COLUMN IF NOT EXISTS feedback TEXT")
+            )
             # 2b. 启动自愈：上次进程遗留的 pending/running 任务、indexing 资料置 failed（#4）
             await conn.execute(
                 update(GenerationJob)
@@ -63,7 +88,7 @@ async def lifespan(app: FastAPI):
             await conn.execute(
                 update(Material)
                 .where(Material.status == "indexing")
-                .values(status="failed", error="服务重启导致索引中断，请重新上传")
+                .values(status="failed", error="服务重启导致解析中断，请重新上传")
             )
             # 2c. 部分唯一索引：同一工作区同时只能有一个 pending/running 任务（#13）
             #     必须在自愈之后创建，否则遗留的多个活跃行会导致建索引失败
@@ -74,21 +99,79 @@ async def lifespan(app: FastAPI):
                     "WHERE status IN ('pending','running')"
                 )
             )
+            # 2d. Deck 启动自愈（P3/P4）：遗留任务置 failed，页面保留旧 bundle，Deck 按可用性收敛
+            await conn.execute(
+                update(DeckBuildJob)
+                .where(DeckBuildJob.status.in_(["pending", "planning", "building", "validating"]))
+                .values(
+                    status="failed",
+                    stage="服务重启，规划/构建任务已中断",
+                    error="服务重启导致规划/构建任务中断，请重新发起",
+                    finished_at=utcnow(),
+                )
+            )
+            # 重建中的页面若已有旧版本 bundle，保持可读（P4 旧版本保留语义）
+            await conn.execute(
+                update(DeckPage)
+                .where(
+                    DeckPage.status.in_(["building", "validating"]),
+                    DeckPage.bundle_key.is_not(None),
+                )
+                .values(status="ready")
+            )
+            await conn.execute(
+                update(DeckPage)
+                .where(
+                    DeckPage.status.in_(["building", "validating"]),
+                    DeckPage.bundle_key.is_(None),
+                )
+                .values(status="failed")
+            )
+            # 按自愈后的页面可用性收敛 Deck 状态：全部可用→ready，部分可用→partial
+            page_total = (
+                select(func.count(DeckPage.id))
+                .where(DeckPage.deck_id == ReviewDeck.id)
+                .scalar_subquery()
+            )
+            page_ready = (
+                select(func.count(DeckPage.id))
+                .where(
+                    DeckPage.deck_id == ReviewDeck.id,
+                    DeckPage.status == "ready",
+                    DeckPage.bundle_key.is_not(None),
+                )
+                .scalar_subquery()
+            )
+            await conn.execute(
+                update(ReviewDeck)
+                .where(ReviewDeck.status.in_(["planning", "building"]))
+                .values(
+                    status=case(
+                        (page_total == 0, "failed"),
+                        (page_ready == page_total, "ready"),
+                        (page_ready > 0, "partial"),
+                        else_="failed",
+                    )
+                )
+            )
+            # 2d-2. 页面助手流式回答随进程中断：标记 failed，用户消息保留
+            await conn.execute(
+                update(PageChatMessage)
+                .where(PageChatMessage.status == "streaming")
+                .values(status="failed")
+            )
+            # 2e. 同一 Deck 同时最多一个活跃 job（应用层 409 + DB 兜底）
+            #     同样必须在自愈之后创建；幂等 CREATE UNIQUE INDEX IF NOT EXISTS
+            await conn.execute(
+                text(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS uq_deck_job_active "
+                    "ON deck_build_jobs (deck_id) "
+                    "WHERE status IN ('pending','planning','building','validating')"
+                )
+            )
         logger.info("启动自愈与唯一索引/补列初始化完成")
     except Exception:  # noqa: BLE001
         logger.exception("启动自愈/约束初始化失败（数据库不可达？），服务仍将启动")
-
-    # 3. 向量表（幂等；未配置 Embedding 时跳过，索引/检索时再给出中文提示）
-    if settings.embed_configured:
-        from .services.indexer import VECTOR_TABLE, ensure_vector_table
-
-        try:
-            await ensure_vector_table()
-            logger.info("向量表 %s 就绪（vector_size=%d）", VECTOR_TABLE, settings.embed_dim)
-        except Exception:  # noqa: BLE001
-            logger.warning("向量表初始化失败，将在首次索引时重试", exc_info=True)
-    else:
-        logger.warning("未配置 EMBED_API_KEY，向量功能不可用：资料索引将标记为 failed，生成接口返回 400")
 
     yield
 
@@ -97,7 +180,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="MockFinal API",
-    description="MockFinal 期末复习助手后端：工作区 / 资料 / RAG 索引 / AI 生成复习大纲与模拟卷",
+    description="MockFinal 期末复习助手后端：工作区 / 资料解析分节 / AI 生成复习大纲与模拟卷",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -115,6 +198,7 @@ app.include_router(workspaces.router)
 app.include_router(materials.router)
 app.include_router(generation.router)
 app.include_router(artifacts.router)
+app.include_router(decks.router)
 
 
 @app.get("/api/health", response_model=HealthOut, status_code=200)

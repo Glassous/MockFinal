@@ -49,7 +49,7 @@ export interface RequestOptions {
   signal?: AbortSignal
 }
 
-async function parseError(res: Response): Promise<ApiError> {
+export async function parseErrorResponse(res: Response): Promise<ApiError> {
   let detail = `请求失败（HTTP ${res.status}）`
   try {
     const data = await res.json()
@@ -92,7 +92,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   const res = await fetch(`/api${path}`, { method, headers: finalHeaders, body: payload, signal })
 
   if (res.status === 401) handleUnauthorized()
-  if (!res.ok) throw await parseError(res)
+  if (!res.ok) throw await parseErrorResponse(res)
   if (res.status === 204) return undefined as T
   return (await res.json()) as T
 }
@@ -105,7 +105,7 @@ export async function requestBlob(path: string, signal?: AbortSignal): Promise<B
 
   const res = await fetch(`/api${path}`, { headers, signal })
   if (res.status === 401) handleUnauthorized()
-  if (!res.ok) throw await parseError(res)
+  if (!res.ok) throw await parseErrorResponse(res)
   return await res.blob()
 }
 

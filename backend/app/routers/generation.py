@@ -36,7 +36,7 @@ async def generate(
         .limit(1)
     )
     if indexed.first() is None:
-        raise HTTPException(status_code=400, detail="当前工作区没有已索引完成的资料，请先上传资料并等待索引完成")
+        raise HTTPException(status_code=400, detail="当前工作区没有已就绪的资料，请先上传资料并等待解析完成")
 
     running = await db.execute(
         select(GenerationJob)
