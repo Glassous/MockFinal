@@ -61,6 +61,9 @@ export interface Manifest {
   interactions: Interaction[];
   source_refs: SourceRef[];
   assistant?: AssistantContext;
+  design_system?: string;
+  renderer?: { kit?: string; version?: string; theme?: string };
+  teaching?: Record<string, unknown>;
   a11y: { reduced_motion: true };
 }
 
@@ -86,12 +89,20 @@ export interface Screenshot {
   data_uri: string;
 }
 
+/** 教学结构评分（仅 schema 1.1 页面返回）。 */
+export interface TeachingScore {
+  score: number;
+  criteria: Record<string, number>;
+  warnings: string[];
+}
+
 /** 校验报告（契约 §10.3 / INTERNAL_API §4.1）。 */
 export interface Report {
   status: ReportStatus;
   issues: Issue[];
   screenshots: Screenshot[];
   duration_ms: number;
+  teaching?: TeachingScore;
 }
 
 /** 静态检查结果：不执行页面代码，只产出 issues。 */
@@ -107,11 +118,15 @@ export const DEFAULT_VIEWPORTS: readonly Viewport[] = Object.freeze([
   Object.freeze({ width: 1920, height: 1080 })
 ]);
 
-/** 运行时版本；必须与 shared/page-runtime/runtime.js 顶部声明一致。 */
-export const RUNTIME_VERSION = '1.0.0';
+/** 运行时版本；当前版本必须与 shared/page-runtime/runtime.js 顶部声明一致。 */
+export const RUNTIME_VERSION = '1.1.0';
+/** Shell/Validator/前端同时兼容的 runtime 版本（1.0 旧页面继续可读）。 */
+export const RUNTIME_VERSIONS: readonly string[] = Object.freeze(['1.0.0', '1.1.0']);
 
-/** Bundle 结构版本。 */
-export const BUNDLE_SCHEMA_VERSION = '1.0';
+/** Bundle 结构版本（当前）。 */
+export const BUNDLE_SCHEMA_VERSION = '1.1';
+/** 同时兼容的 bundle schema 版本。 */
+export const BUNDLE_SCHEMA_VERSIONS: readonly string[] = Object.freeze(['1.0', '1.1']);
 
 /** Bundle 总字节数上限（2 MiB）。 */
 export const MAX_BUNDLE_BYTES = 2097152;

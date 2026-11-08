@@ -12,7 +12,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { timingSafeEqual } from 'node:crypto';
 
 import { browserCheck, BrowserUnavailableError } from './browser-check.js';
-import { staticCheck } from './static-check.js';
+import { staticCheck, teachingScore } from './static-check.js';
 import { loadShellModule } from './shared-shell.js';
 import {
   DEFAULT_VIEWPORTS,
@@ -27,7 +27,7 @@ import {
 } from './types.js';
 
 const VALIDATOR_API_VERSION = '0.1.0';
-const PORT = 9200;
+const PORT = Number(process.env.VALIDATOR_PORT ?? 9200);
 const HOST = '0.0.0.0';
 const MAX_VIEWPORTS = 6;
 const MIN_VIEWPORT_EDGE = 320;
@@ -182,6 +182,13 @@ async function validate(rawBody: unknown): Promise<ValidateOutcome> {
   const staticResult = staticCheck(rawBody.bundle);
   const issues: Issue[] = [...staticResult.issues];
   const screenshots: Screenshot[] = [];
+  // 教学页额外执行 390×844 移动端检查：允许纵向滚动，禁止横向溢出与滚动锁死
+  if (
+    staticResult.bundle?.manifest.schema_version === '1.1' &&
+    !viewports.some((item) => item.width === 390 && item.height === 844)
+  ) {
+    viewports.push({ width: 390, height: 844 });
+  }
 
   if (staticResult.bundle) {
     const browserResult = await withTimeout(
@@ -196,12 +203,22 @@ async function validate(rawBody: unknown): Promise<ValidateOutcome> {
     screenshots.push(...browserResult.screenshots);
   }
 
+  const teaching = staticResult.bundle ? teachingScore(staticResult.bundle.manifest) : null;
+  if (teaching && teaching.score < 70) {
+    issues.push({
+      severity: 'warning',
+      code: 'TEACHING_SCORE_LOW',
+      message: `教学评分 ${teaching.score}/100，建议补充：${teaching.warnings.join('；') || '讲解链与检查'}`
+    });
+  }
+
   return {
     report: {
       status: statusOf(issues),
       issues,
       screenshots,
-      duration_ms: Date.now() - started
+      duration_ms: Date.now() - started,
+      teaching: teaching ?? undefined
     },
     bundle: staticResult.bundle
   };

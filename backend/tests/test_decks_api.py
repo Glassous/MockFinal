@@ -197,6 +197,14 @@ class FakeBuilder:
                 "attempts": 1,
                 "error": "页面构建失败：交互冒烟未通过" if status == "failed" else None,
                 "events_cursor": len(state["events"]),
+                "usage": {
+                    "input_tokens": 1000,
+                    "output_tokens": 500,
+                    "cache_read_tokens": 200,
+                    "cache_write_tokens": 100,
+                    "cost": 0.01,
+                    "duration_ms": 1200,
+                },
             },
         )
 
@@ -534,6 +542,19 @@ if os.getenv("P4_INTEGRATION") == "1":
                 )
                 assert first_build["page_brief"]["constraints"]["no_network"] is True
                 assert first_build["page_brief"]["page_id"] == f"page_{first_page['id']}"
+
+                # P8：Builder 用量按 build_id 并入 job.usage
+                from app.database import SessionLocal
+                from app.models import DeckBuildJob
+
+                async with SessionLocal() as db:
+                    job_row = await db.get(DeckBuildJob, job_id)
+                    assert job_row is not None
+                    assert job_row.usage, "job.usage 应记录每次 Builder 尝试的用量"
+                    entry = next(iter(job_row.usage.values()))
+                    assert entry["input_tokens"] == 1000
+                    assert entry["cache_read_tokens"] == 200
+                    assert entry["cost"] == 0.01
 
                 # bundle / thumbnail API
                 bundle_response = await client.get(

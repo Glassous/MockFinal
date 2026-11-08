@@ -1,0 +1,627 @@
+{
+  "generated_at": "2026-11-08T06:22:10.101381+00:00",
+  "api": "http://127.0.0.1:8000",
+  "deck_id": 18,
+  "title": "图论与网络算法 · 真实门禁 E2E",
+  "job": {
+    "id": 12,
+    "status": "done",
+    "total_pages": 14,
+    "ready_pages": 14,
+    "failed_pages": 0,
+    "error": null,
+    "duration_s": 940.8
+  },
+  "before": {
+    "status": "ready",
+    "total_pages": 14,
+    "ready_pages": 14,
+    "failed_pages": 0
+  },
+  "after": {
+    "status": "ready",
+    "total_pages": 14,
+    "ready_pages": 14,
+    "failed_pages": 0
+  },
+  "pages": [
+    {
+      "id": 10,
+      "ordinal": 0,
+      "title": "闭区间循环不变式",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "mechanism",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 6,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_10",
+        "css_bytes": 3289,
+        "html_bytes": 4902,
+        "js_bytes": 3771,
+        "source_refs": 1,
+        "teaching": {
+          "role": "mechanism",
+          "objectives": 2,
+          "chain": 4,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 11,
+      "ordinal": 1,
+      "title": "复杂度、边界与常见错误",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "concept",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 6,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_11",
+        "css_bytes": 3315,
+        "html_bytes": 4105,
+        "js_bytes": 4654,
+        "source_refs": 1,
+        "teaching": {
+          "role": "concept",
+          "objectives": 2,
+          "chain": 3,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 12,
+      "ordinal": 2,
+      "title": "邻接矩阵与邻接表怎么选",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "mechanism",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 6,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_12",
+        "css_bytes": 4082,
+        "html_bytes": 3447,
+        "js_bytes": 4559,
+        "source_refs": 3,
+        "teaching": {
+          "role": "mechanism",
+          "objectives": 2,
+          "chain": 4,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 13,
+      "ordinal": 3,
+      "title": "BFS：首次访问即最短路",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "mechanism",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 7,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_13",
+        "css_bytes": 3774,
+        "html_bytes": 5620,
+        "js_bytes": 6096,
+        "source_refs": 3,
+        "teaching": {
+          "role": "mechanism",
+          "objectives": 3,
+          "chain": 4,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 14,
+      "ordinal": 4,
+      "title": "DFS 上的 Tarjan：桥与割点",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "mechanism",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 8,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_14",
+        "css_bytes": 3595,
+        "html_bytes": 5708,
+        "js_bytes": 6016,
+        "source_refs": 3,
+        "teaching": {
+          "role": "mechanism",
+          "objectives": 2,
+          "chain": 4,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 15,
+      "ordinal": 5,
+      "title": "Kahn 算法：入度归零，顺序浮现",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "mechanism",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 7,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_15",
+        "css_bytes": 3415,
+        "html_bytes": 4962,
+        "js_bytes": 5285,
+        "source_refs": 2,
+        "teaching": {
+          "role": "mechanism",
+          "objectives": 3,
+          "chain": 4,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 16,
+      "ordinal": 6,
+      "title": "Dijkstra 与堆优化",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "mechanism",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 6,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_16",
+        "css_bytes": 3636,
+        "html_bytes": 3635,
+        "js_bytes": 4696,
+        "source_refs": 1,
+        "teaching": {
+          "role": "mechanism",
+          "objectives": 2,
+          "chain": 5,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 17,
+      "ordinal": 7,
+      "title": "Bellman-Ford、负环与 Johnson 重赋权",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "mechanism",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 7,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_17",
+        "css_bytes": 3184,
+        "html_bytes": 3627,
+        "js_bytes": 4596,
+        "source_refs": 1,
+        "teaching": {
+          "role": "mechanism",
+          "objectives": 2,
+          "chain": 5,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 18,
+      "ordinal": 8,
+      "title": "Floyd-Warshall 与负环判断",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "mechanism",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 7,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_18",
+        "css_bytes": 3037,
+        "html_bytes": 3205,
+        "js_bytes": 5110,
+        "source_refs": 2,
+        "teaching": {
+          "role": "mechanism",
+          "objectives": 2,
+          "chain": 5,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 19,
+      "ordinal": 9,
+      "title": "Kruskal 与并查集",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "mechanism",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 7,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_19",
+        "css_bytes": 4037,
+        "html_bytes": 5779,
+        "js_bytes": 5987,
+        "source_refs": 2,
+        "teaching": {
+          "role": "mechanism",
+          "objectives": 2,
+          "chain": 3,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 20,
+      "ordinal": 10,
+      "title": "Prim 及与 Dijkstra 的区别",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "concept",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 7,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_20",
+        "css_bytes": 3533,
+        "html_bytes": 5875,
+        "js_bytes": 6701,
+        "source_refs": 2,
+        "teaching": {
+          "role": "concept",
+          "objectives": 2,
+          "chain": 3,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 21,
+      "ordinal": 11,
+      "title": "最大流最小割与增广路",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "concept",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 7,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_21",
+        "css_bytes": 3382,
+        "html_bytes": 5200,
+        "js_bytes": 3728,
+        "source_refs": 1,
+        "teaching": {
+          "role": "concept",
+          "objectives": 2,
+          "chain": 4,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 22,
+      "ordinal": 12,
+      "title": "二分图匹配与匈牙利算法",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "concept",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 7,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_22",
+        "css_bytes": 3521,
+        "html_bytes": 4976,
+        "js_bytes": 4360,
+        "source_refs": 1,
+        "teaching": {
+          "role": "concept",
+          "objectives": 2,
+          "chain": 4,
+          "checks": 1
+        }
+      }
+    },
+    {
+      "id": 23,
+      "ordinal": 13,
+      "title": "工程实践与调试检查表",
+      "status": "ready",
+      "validation_status": "passed",
+      "validation_issue_count": 0,
+      "teaching_role": "concept",
+      "teaching_score": 80,
+      "check_count": 1,
+      "estimated_minutes": 7,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "design_system": "1.0",
+        "page_id": "page_23",
+        "css_bytes": 3140,
+        "html_bytes": 4515,
+        "js_bytes": 4100,
+        "source_refs": 1,
+        "teaching": {
+          "role": "concept",
+          "objectives": 2,
+          "chain": 4,
+          "checks": 1
+        }
+      }
+    }
+  ],
+  "snapshots": [],
+  "usage": {
+    "attempts": 14,
+    "pages": 14,
+    "input_tokens": 246317,
+    "output_tokens": 274052,
+    "cache_read_tokens": 9589504,
+    "cache_write_tokens": 0,
+    "duration_ms": 1534812,
+    "cache_hit_ratio": 0.975,
+    "per_page": [
+      {
+        "page_id": 10,
+        "attempt": 3,
+        "input_tokens": 22053,
+        "output_tokens": 18176,
+        "cache_read_tokens": 565760,
+        "duration_ms": 110738
+      },
+      {
+        "page_id": 11,
+        "attempt": 3,
+        "input_tokens": 6415,
+        "output_tokens": 8208,
+        "cache_read_tokens": 455424,
+        "duration_ms": 46813
+      },
+      {
+        "page_id": 12,
+        "attempt": 3,
+        "input_tokens": 30730,
+        "output_tokens": 20407,
+        "cache_read_tokens": 498560,
+        "duration_ms": 117348
+      },
+      {
+        "page_id": 13,
+        "attempt": 3,
+        "input_tokens": 5522,
+        "output_tokens": 16437,
+        "cache_read_tokens": 666496,
+        "duration_ms": 84418
+      },
+      {
+        "page_id": 14,
+        "attempt": 3,
+        "input_tokens": 4186,
+        "output_tokens": 13852,
+        "cache_read_tokens": 669312,
+        "duration_ms": 67116
+      },
+      {
+        "page_id": 15,
+        "attempt": 3,
+        "input_tokens": 31174,
+        "output_tokens": 21401,
+        "cache_read_tokens": 601344,
+        "duration_ms": 123477
+      },
+      {
+        "page_id": 16,
+        "attempt": 3,
+        "input_tokens": 40566,
+        "output_tokens": 37209,
+        "cache_read_tokens": 1089920,
+        "duration_ms": 203946
+      },
+      {
+        "page_id": 17,
+        "attempt": 3,
+        "input_tokens": 5882,
+        "output_tokens": 11033,
+        "cache_read_tokens": 752256,
+        "duration_ms": 59952
+      },
+      {
+        "page_id": 18,
+        "attempt": 3,
+        "input_tokens": 21863,
+        "output_tokens": 18113,
+        "cache_read_tokens": 480128,
+        "duration_ms": 104945
+      },
+      {
+        "page_id": 19,
+        "attempt": 3,
+        "input_tokens": 34831,
+        "output_tokens": 40954,
+        "cache_read_tokens": 868224,
+        "duration_ms": 225822
+      },
+      {
+        "page_id": 20,
+        "attempt": 3,
+        "input_tokens": 6800,
+        "output_tokens": 24896,
+        "cache_read_tokens": 1256192,
+        "duration_ms": 133385
+      },
+      {
+        "page_id": 21,
+        "attempt": 3,
+        "input_tokens": 26824,
+        "output_tokens": 22594,
+        "cache_read_tokens": 511872,
+        "duration_ms": 129814
+      },
+      {
+        "page_id": 22,
+        "attempt": 3,
+        "input_tokens": 5825,
+        "output_tokens": 11786,
+        "cache_read_tokens": 588800,
+        "duration_ms": 70327
+      },
+      {
+        "page_id": 23,
+        "attempt": 3,
+        "input_tokens": 3646,
+        "output_tokens": 8986,
+        "cache_read_tokens": 585216,
+        "duration_ms": 56711
+      }
+    ]
+  },
+  "usage_source": "builder_snapshots",
+  "events": {
+    "total": 200,
+    "rebuilt_pages": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "retry_pages": [],
+    "first_pass_pages": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "first_pass_rate": 1.0,
+    "first_pass_source": "builder_snapshots"
+  },
+  "checks": {
+    "job_reported_all_ready": true,
+    "all_pages_rebuilt": true,
+    "all_pages_ready": true,
+    "no_failed_pages": true,
+    "all_teaching": true,
+    "all_schema_1_1": true,
+    "min_teaching_score": 80,
+    "teaching_score_gate": true,
+    "unique_page_ids": true,
+    "css_under_4k": true,
+    "usage_observed": true
+  },
+  "cost": {
+    "currency": "CNY",
+    "balance_before": 114.06,
+    "balance_after": 112.43,
+    "spend": 1.63,
+    "e2e_spend": 1.53,
+    "verification_spend": 0.1,
+    "budget": 2.0,
+    "within_budget": true,
+    "total_p8_p13_spend": 3.76,
+    "total_budget": 6.0,
+    "total_p8_p13_spend_note": "116.19 - 112.43；含 P11 报告 1.96 与 P11 结束至 P13 开始的 0.17 未归属余额差"
+  },
+  "regression": {
+    "backend_unit": "101 passed",
+    "backend_integration_linux": "6 passed",
+    "frontend_tests": "20 passed",
+    "frontend_typecheck": "ok",
+    "frontend_build": "ok",
+    "builder": "31 passed",
+    "validator": "50 passed",
+    "red_team": "16/16 blocked",
+    "p5_acceptance": "41/41（P12 运行，前端未变更）",
+    "legacy_1_0_shell": "3/3 built"
+  },
+  "notes": [
+    "本 job 的 job.usage 因成功路径漏传 build_id/usage 而为空，P13 已修复并用单页 job 14 验证落库；本文件 usage 由 Builder 快照回退恢复。",
+    "后端事件镜像上限 200 条，first_pass 统计在超出时回退到 Builder 快照（每页 1 次构建、attempts=1）。"
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "generated_at": "2026-11-08T05:17:13.286Z",
+  "base": "http://127.0.0.1:9100",
+  "mode": "page",
+  "roles": [
+    "mechanism",
+    "practice"
+  ],
+  "chapter": 1,
+  "session_key": null,
+  "healthz": {
+    "status": "ok",
+    "version": "0.2.0",
+    "mode": "pi",
+    "pi_version": "1.5.0",
+    "harness_version": "0.1.0",
+    "model_configured": true,
+    "validator_configured": true,
+    "session_mode": "deck",
+    "sessions": 0,
+    "queue": {
+      "running": 0,
+      "pending": 0,
+      "concurrency": 2
+    }
+  },
+  "pages": [
+    {
+      "role": "mechanism",
+      "build_id": "ab_page_mechanism_1794115033291",
+      "status": "succeeded",
+      "error": null,
+      "session_key": null,
+      "lane": null,
+      "usage": {
+        "input_tokens": 41558,
+        "output_tokens": 23493,
+        "cache_read_tokens": 832000,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 138919
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "teaching": {
+          "score": 80,
+          "criteria": {
+            "objectives": 20,
+            "chain": 20,
+            "example": 0,
+            "misconceptions": 15,
+            "check": 15,
+            "sources": 10
+          },
+          "warnings": []
+        }
+      },
+      "duration_ms": 140689,
+      "bundle_http": 200,
+      "bundle_bytes": 13038,
+      "css_bytes": 3104
+    },
+    {
+      "role": "practice",
+      "build_id": "ab_page_practice_1794115173985",
+      "status": "succeeded",
+      "error": null,
+      "session_key": null,
+      "lane": null,
+      "usage": {
+        "input_tokens": 28075,
+        "output_tokens": 17946,
+        "cache_read_tokens": 414976,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 104034
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "teaching": {
+          "score": 80,
+          "criteria": {
+            "objectives": 20,
+            "chain": 20,
+            "example": 0,
+            "misconceptions": 15,
+            "check": 15,
+            "sources": 10
+          },
+          "warnings": []
+        }
+      },
+      "duration_ms": 104479,
+      "bundle_http": 200,
+      "bundle_bytes": 11774,
+      "css_bytes": 2297
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "succeeded": 2
+  }
+}

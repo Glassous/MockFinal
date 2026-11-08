@@ -9,7 +9,11 @@ import { verifyRequestSignature } from "./hmac.js";
 import { isValidBuildId, MemoryTaskStore, type BuildTask, type TaskStore } from "./task-store.js";
 import {
   BuildAbortedError,
+  closeAllPooledSessions,
+  closePooledSession,
   isModelReady,
+  pooledSessionCount,
+  pruneSessionPool,
   runMockBuild,
   runPiBuild,
   type BuildDeps,
@@ -19,6 +23,8 @@ import type { CreateBuildRequest, ValidationReport } from "./types.js";
 import { ValidatorClient, summarizeValidation } from "./validator-client.js";
 
 export const BUILDER_VERSION = "0.2.0";
+
+const SESSION_KEY_PATTERN = /^[A-Za-z0-9_-]{1,120}$/;
 
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8" } as const;
 
@@ -157,10 +163,63 @@ function validateCreateRequest(body: unknown): { request: CreateBuildRequest } |
     if (typeof feedback !== "string") return { error: "feedback 必须是字符串。" };
     if (feedback.length > 2000) return { error: "feedback 超过 2000 字上限。" };
   }
+  let session: CreateBuildRequest["session"];
+  if (record.session !== undefined) {
+    const rawSession = record.session;
+    if (!rawSession || typeof rawSession !== "object" || Array.isArray(rawSession)) {
+      return { error: "session 必须是对象。" };
+    }
+    const sessionRecord = rawSession as Record<string, unknown>;
+    if (typeof sessionRecord.key !== "string" || !SESSION_KEY_PATTERN.test(sessionRecord.key)) {
+      return { error: "session.key 缺失或格式不合法（字母、数字、下划线、短横线，长度 1-120）。" };
+    }
+    if (
+      sessionRecord.lane !== undefined &&
+      (typeof sessionRecord.lane !== "number" ||
+        !Number.isInteger(sessionRecord.lane) ||
+        sessionRecord.lane < 0)
+    ) {
+      return { error: "session.lane 必须是非负整数。" };
+    }
+    if (
+      sessionRecord.page_index !== undefined &&
+      (typeof sessionRecord.page_index !== "number" ||
+        !Number.isInteger(sessionRecord.page_index) ||
+        sessionRecord.page_index < 0)
+    ) {
+      return { error: "session.page_index 必须是非负整数。" };
+    }
+    if (
+      sessionRecord.page_total !== undefined &&
+      (typeof sessionRecord.page_total !== "number" ||
+        !Number.isInteger(sessionRecord.page_total) ||
+        sessionRecord.page_total < 1)
+    ) {
+      return { error: "session.page_total 必须是正整数。" };
+    }
+    if (
+      typeof sessionRecord.page_index === "number" &&
+      typeof sessionRecord.page_total === "number" &&
+      sessionRecord.page_index >= sessionRecord.page_total
+    ) {
+      return { error: "session.page_index 必须小于 page_total。" };
+    }
+    if (sessionRecord.first !== undefined && typeof sessionRecord.first !== "boolean") {
+      return { error: "session.first 必须是布尔值。" };
+    }
+    session = {
+      key: sessionRecord.key,
+      lane: sessionRecord.lane as number | undefined,
+      page_index: sessionRecord.page_index as number | undefined,
+      page_total: sessionRecord.page_total as number | undefined,
+      first: sessionRecord.first as boolean | undefined,
+    };
+  }
   return {
     request: {
       build_id: record.build_id,
       page_brief: brief as CreateBuildRequest["page_brief"],
+      session,
       feedback: typeof feedback === "string" ? feedback : null,
       deadline_seconds:
         typeof record.deadline_seconds === "number" ? record.deadline_seconds : undefined,
@@ -194,6 +253,10 @@ export function createBuilderApp(config: BuilderConfig, options: BuilderAppOptio
   const mode = config.mock.enabled ? "mock" : "pi";
 
   const cleanupBuildDir = async (task: BuildTask): Promise<void> => {
+    if (task.request.session && mode !== "mock") {
+      // Deck 会话的页面目录由 SessionPool 统一清理，保留已完成页面供后续参考
+      return;
+    }
     try {
       await fs.rm(task.buildDir, { recursive: true, force: true });
     } catch {
@@ -226,8 +289,15 @@ export function createBuilderApp(config: BuilderConfig, options: BuilderAppOptio
         task.succeed(result.bundle, result.validation);
         log("info", "构建成功", {
           build_id: buildId,
+          page_id: task.pageId,
           mode,
+          thinking_level: config.llm.thinkingLevel,
           validation: result.validation.status,
+          input_tokens: result.usage.input_tokens,
+          output_tokens: result.usage.output_tokens,
+          cache_read_tokens: result.usage.cache_read_tokens,
+          cache_write_tokens: result.usage.cache_write_tokens,
+          cost: result.usage.cost,
           duration_ms: result.usage.duration_ms,
         });
       } else {
@@ -278,6 +348,8 @@ export function createBuilderApp(config: BuilderConfig, options: BuilderAppOptio
           harness_version: config.harnessVersion,
           model_configured: config.mock.enabled ? true : llmConfigured(config),
           validator_configured: validatorConfigured(config),
+          session_mode: config.session.mode,
+          sessions: pooledSessionCount(),
           queue: queue.stats,
         }),
       );
@@ -385,6 +457,23 @@ export function createBuilderApp(config: BuilderConfig, options: BuilderAppOptio
       return;
     }
 
+    const sessionMatch = /^\/v1\/sessions\/([^/]+)$/.exec(pathname);
+    if (sessionMatch) {
+      if (req.method !== "DELETE") {
+        send(res, errorResponse(405, "METHOD_NOT_ALLOWED", "会话清理只支持 DELETE。"));
+        return;
+      }
+      const key = decodeURIComponent(sessionMatch[1] ?? "");
+      if (!SESSION_KEY_PATTERN.test(key)) {
+        send(res, errorResponse(400, "INVALID_SESSION_KEY", "session key 格式不合法。"));
+        return;
+      }
+      const closed = await closePooledSession(key);
+      log("info", "清理 Deck 会话", { session_key: key, closed });
+      send(res, json(202, { key, status: closed ? "closed" : "not_found" }));
+      return;
+    }
+
     const buildMatch = /^\/v1\/builds\/([^/]+)(\/events|\/bundle|\/cancel)?$/.exec(pathname);
     if (!buildMatch) {
       send(res, errorResponse(404, "NOT_FOUND", "接口不存在。"));
@@ -465,6 +554,15 @@ export function createBuilderApp(config: BuilderConfig, options: BuilderAppOptio
   const pruneTimer = setInterval(() => {
     const removed = store.prune();
     if (removed > 0) log("debug", "清理过期构建任务", { removed });
+    void pruneSessionPool(config.session.ttlSeconds)
+      .then((closed) => {
+        if (closed > 0) log("debug", "清理空闲 Deck 会话", { closed });
+      })
+      .catch((error: unknown) => {
+        log("warn", "清理 Deck 会话失败", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
   }, 60_000);
   pruneTimer.unref?.();
 
@@ -487,6 +585,7 @@ export function createBuilderApp(config: BuilderConfig, options: BuilderAppOptio
     },
     stop: async () => {
       clearInterval(pruneTimer);
+      await closeAllPooledSessions();
       await new Promise<void>((resolve) => server.close(() => resolve()));
     },
   };

@@ -27,6 +27,9 @@
   --color-invert-ink: var(--invert-ink);
   --color-overlay: var(--overlay);
   --color-code-bg: var(--code-bg);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
 
   --radius-card: 1.5rem;
 }
@@ -47,6 +50,9 @@
   --invert-ink: #ffffff;
   --overlay: rgba(10, 10, 12, 0.45);
   --code-bg: #f4f4f5;
+  --danger: #b42318;
+  --danger-soft: #fef3f2;
+  --success: #067647;
 
   --shadow-sm: 0 1px 2px rgba(16, 16, 20, 0.04), 0 1px 3px rgba(16, 16, 20, 0.06);
   --shadow-md: 0 4px 16px rgba(16, 16, 20, 0.06), 0 2px 6px rgba(16, 16, 20, 0.04);
@@ -68,6 +74,9 @@
   --invert-ink: #09090b;
   --overlay: rgba(0, 0, 0, 0.68);
   --code-bg: #0e0e11;
+  --danger: #f97066;
+  --danger-soft: #2a1412;
+  --success: #47cd89;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
@@ -145,6 +154,26 @@
 }
 @utility shadow-pop {
   box-shadow: var(--shadow-lg);
+}
+
+/* 统一浮层层级：选择浮标 < 学习面板 < AI 抽屉 < Modal < Toast */
+@utility z-selection {
+  z-index: 40;
+}
+@utility z-panel {
+  z-index: 60;
+}
+@utility z-drawer {
+  z-index: 70;
+}
+@utility z-nav {
+  z-index: 80;
+}
+@utility z-modal {
+  z-index: 90;
+}
+@utility z-toast {
+  z-index: 100;
 }
 
 .grain::before {

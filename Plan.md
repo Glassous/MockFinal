@@ -1,712 +1,1222 @@
-# PageRef · 动态复习页与 Pi Agent 构建流水线
+# PageRef v2 · 教学化高密度页面与体验精修
 
-> 本文是 `feat/pageref` 分支的方案调研、架构决策与开发路线图。
-> 状态：**方案已确认（2026-11-07）；P0–P7 已完成；真实 Pi 门禁与真实 14 页 E2E 均已通过（DeepSeek Flash，总成本 ¥1.83）；人工发布审阅待办**。
-> 基线：`main` @ `cea3a1f`（2026-11-07）。
-> 目标读者：项目维护者、后端/前端开发者、Agent 开发者。
-
-> **实施进度（2026-11-07）**
-> - P0 已完成：页面契约、内部接口契约、黄金 brief、最小测试栈、Builder/Validator 骨架（`docs/pageref/`）。
-> - P1 已完成：`material_sections` + 解析分节 + 去 Embedding；pytest 6 项、接口上传/分节、旧资料懒回填均实测通过。
-> - P2 已完成（Gate **Go**）：共享运行时/Shell、Validator、Builder（Pi 1.5.0 适配 + Guard Extension）、Harness 与黄金示例；真实 Pi 3 页门禁通过（DeepSeek 官方 `deepseek-flash`，3/3 首轮校验、p90 157.2s、成本 ¥0.14），红队 16/16，详见 `docs/pageref/P2_REPORT.md` 与 `POC_ACCEPTANCE.md`。
-> - P3 已完成：Deck 六表、大纲规划/页面计划/Page Brief、事件与取消；隔离库集成测试 49 项通过，详见 `docs/pageref/P3_REPORT.md`。
-> - P4 已完成：Builder HMAC 客户端、主 API 最终校验门禁、bundle/缩略图存储与版本切换、并发/重试/超时/取消/自愈；默认 69 项、P4 集成 3 项（P7 扩至 6 项）通过。**真实 Pi 14 页 E2E 通过**：14/14 ready、0 failed、全部 Validator passed、0 issues，耗时 15m11s，成本 ¥1.69，详见 `docs/pageref/P4_REPORT.md` 与 `P4_REAL_E2E.json`。
-> - P5 已完成：复习页入口/总览路线图/工作台、构建设置与实时工作台、全屏阅读器、选区桥接与依据资料、深色/响应式/reduced-motion；前端 16 项、浏览器验收 34 项全部通过（0 控制台错误，含 Fullscreen API、全屏 AI 抽屉与失效 job 恢复），详见 `docs/pageref/P5_REPORT.md`。页面 AI 助手当时为 P6 占位。
-> - P6 已完成：页面助手 SSE、上下文预算、来源引用、20 次/分限流、消息持久化/断线自愈、侧栏流式 UI 与 XSS 清洗；前端 20 项、后端默认 74 项、隔离库集成 4 项、浏览器验收 24 项全部通过（0 控制台错误），P5 回归 29/29；真实模型质量因无 LLM 凭据未评估，详见 `docs/pageref/P6_REPORT.md`。
-> - P7 已完成：三路安全审计与修复（上传路径/错误泄露/Validator 门禁/阅读器视口/提示词随机边界/Shell 标签（含 meta/base）/JS 外链/助手硬预算/启动自愈 select 缺失/单页重试状态收敛/HMAC method+path 绑定/阅读器与工作台竞态/全屏浮层）、结构化日志、迁移/发布/回滚手册；后端 87、集成 6（含 12 页断线恢复与启动自愈）、前端 20、Validator 44、红队 16/16、Builder 22、P5 34/34、P6 24/24，详见 `docs/pageref/P7_REPORT.md` 与 `P7_RELEASE.md`。
-> - 下一步：人类维护者审阅 P2/P4/P7 证据与截图后决定合并（不自行 push/merge）；模型密钥仅存于被忽略的 `backend/.env`。
+> 本文件已**覆盖**旧版 `Plan.md`。旧版 P0–P7（去 Embedding、Pi Builder、Deck 领域、构建集成、阅读器、AI 助手、加固）已完成，历史证据保留在 `docs/pageref/P2_REPORT.md`、`P3_REPORT.md`、`P4_REPORT.md`、`P5_REPORT.md`、`P6_REPORT.md`、`P7_REPORT.md` 与对应截图/结果 JSON 中；本文件只保留继续生效的安全与工程不变量，不再重复旧路线。
+>
+> **状态**：方案调研完成（2026-11-08），待维护者确认后实施。**本轮不修改代码、不触发真实模型构建。**
+>
+> **基线**：`main` + `feat/pageref` P0–P7；真实 Pi 14 页 E2E 为 15m11s / ¥1.69 / 14 页全部 ready（DeepSeek Flash，见 `P4_REAL_E2E.json`）。
+>
+> **目标读者**：项目维护者、后端/前端开发者、Builder/Validator 维护者。
 
 ---
 
 ## 0. 结论摘要
 
-**总体可行性：可行，但必须先通过一个 Pi 页面构建 PoC 门禁。**
+### 0.1 问题诊断
 
-- **去 Embedding：低风险、高确定性。** 当前向量库只服务于「资料取块」与一次 RAG 补充；课程资料是工作区内的封闭语料，知识点与资料段落可以通过结构化分节 + 显式 `section_id` 引用稳定绑定，不需要语义向量。移除后反而减少一个外部依赖、一类配置与一条失败链路。
-- **模拟考试保留：** 已确认继续提供旧模拟卷的生成与展示，仅改为 sections 驱动；复习 Markdown 由 Deck 取代，旧工件迁移期只读。
-- **动态页面：中等偏高风险，但可控。** 页面不是固定 JSON 模板，而是由 Pi 生成 `HTML/CSS/JS` 代码包，在严格沙箱 iframe 中运行；通过「页面契约 + 运行时 API + Playwright 校验器 + 最多 2 轮修复」把不可控的代码生成收敛为可验收的产物。
-- **Pi 容器化：高确定性。** Pi 1.5.0（MIT）提供 SDK、RPC、JSON 事件流、Skills、Prompt Templates、Extensions、自定义 Provider，官方文档给出了 Docker 隔离方式。主项目通过内部 HTTP 接口与 builder 容器通信，符合需求中的三阶段设计。
-- **最重要的产品决策：** 总览页由 Vue 原生实现（稳定、可访问、可做路线图）；只有具体复习页交给 Pi 生成。这样「工作台/路线图」不依赖代码生成质量，风险集中在可控的页面层。
-- **关键门禁：** Phase 2 用 3 个代表性知识点（二分查找动画、公式推导、时间线叙事）跑通 Pi 构建、校验与修复闭环。若首轮通过率/零滚动率/交互可用性达不到阈值，退回 Plan B（受控组件 DSL + 自定义 CSS/JS 插槽），不把风险带入完整产品开发。
+单页信息密度低，不是模型“不会写”，而是三处结构性约束共同造成的：
 
-### 0.1 可行性矩阵
+1. **页面契约把“演示”写成了硬预算**：每页 1 个核心观点、3–5 个内容块、1 个主交互、正文 ≤250 中文字符（`builder/pi-harness/skills/mockfinal-page-builder/references/design-language.md:57-71`）。这套预算能保证桌面零滚动，但结构上排斥讲解链、例题、检查题和章节小结。
+2. **每页一个 Pi 会话**：`builder/src/session.ts:639-714` 每页重新创建 ModelRuntime、ResourceLoader、Session；每页重读约 56KB 的 Skill/References/Templates；`SessionManager.inMemory(task.buildDir)` 使页与页之间没有上下文。P2 实测每页输入 20.7k–22.4k tokens、输出 13.1k–26.5k tokens（`docs/pageref/P2_REPORT.md`），且 `usageFromSession` 丢弃 `cacheRead/cacheWrite`（`builder/src/session.ts:612-623`），无法证明缓存收益。
+3. **宿主没有教学层**：大纲里的 `objectives/key_points/formulas/misconceptions` 已进入 Page Brief（`backend/app/services/deck_planner.py:708-718`），但阅读器只展示页面 iframe、依据资料和 AI 助手；目标、要点、易错、公式、检查题均未呈现。阅读器还在停留 3 秒后自动把页面标为“已读”（`frontend/src/views/DeckReaderView.vue:208-227`），这不是学习完成。
 
-| 需求 | 可行性 | 依据 | 主要风险 |
-| --- | --- | --- | --- |
-| 移除 Embedding | 高 | 向量仅用于取块与一次 RAG；课程资料封闭；可改为分节 + 显式引用 | 失去语义检索；用结构化来源与后续关键词检索补偿 |
-| 按章节/知识点生成 | 高 | 现有 LLM + 摘要流水线可改造成结构化大纲；Pydantic 校验成熟 | 大纲质量依赖资料质量；需要 source_refs 约束 |
-| Pi 容器化 | 高 | Pi 1.5.0 提供 SDK/RPC、事件流、Skills、Templates、Extensions、Docker 指南 | 版本 API 变化；需锁定与适配层 |
-| 生成动态页面 | 中高 | Pi 是编码 Agent，可写 HTML/CSS/JS；沙箱 iframe + Validator 可约束 | 页面质量/零滚动/交互一致性；需 PoC Gate |
-| 每页全屏一屏 | 中高 | 固定 stage + clamp + Playwright 多视口测量 + 修复闭环 | 真实字体/缩放边界；需内容预算与拆页 |
-| 侧边 AI 助手 | 高 | 现有 LLM + MarkdownView + SSE；选区经 postMessage 桥接 | 上下文裁剪、引用准确性、断线语义 |
-| 构建过程可见 | 高 | Pi 事件流 + DB 事件表 + 轮询/重连；符合长任务规范 | 事件过多/敏感信息；需白名单与截断 |
-| 渐进交付/单页重做 | 高 | 页面独立构建、独立版本、独立存储；Deck 聚合状态 | 编排复杂度；需失败隔离与幂等 |
+结论：需要同时改**页面形态、构建框架、宿主呈现**，只加字数或只换模型都不会得到“有密度且有教学感”的页面。
 
-### 0.2 推荐实现顺序
-
-去 Embedding → Pi Builder PoC → Deck 领域模型 → 构建集成 → 阅读器/工作台 → AI 助手 → 加固发布。
-
----
-
-## 1. 现状调查
-
-### 1.1 当前主链路
+### 0.2 选定方案：2.5 层教学页
 
 ```text
-上传资料（OSS 直传 / 本地 multipart）
-  → 后台解析（pdfplumber / python-docx / python-pptx / 文本）
-  → 分块 1000 / overlap 200
-  → Embedding → pgvector(material_chunks)
-  → 生成任务：取向量块 → 每份资料摘要子代理（Semaphore 4）
-  → RAG 补充（工作区名+描述检索 top-8）
-  → 复习代理 + 出卷代理并行
-  → 两份 Markdown 写入存储 → artifacts 落库
-  → 前端 ArtifactPanel 用 MarkdownView 展示
+第 0.5 层：宿主教学工作台（Vue）
+  └─ 本页目标 / 讲解路线 / 公式 / 易错点 / 随堂检查 / 依据 / AI
+第 1 层：页面主舞台（Pi 生成；桌面零滚动，移动端可滚动）
+  └─ 一个核心论点 + 一个主视觉/交互 + 3–5 个支撑块
+第 2 层：页内分层揭示（Pi 生成）
+  └─ 步骤器 / 标签页 / 折叠答案 / 预测-观察-解释
 ```
 
-### 1.2 Embedding 耦合点（必须全部拆除）
+- **主舞台**负责“讲清楚 + 看得见 + 动手做”，保持一个认知焦点。
+- **分层揭示**让同一屏承载完整讲解链，但任一时刻只显示一层，避免视觉拥挤。
+- **宿主教学工作台**承担元学习信息（目标、要点、公式、易错、检查、来源），并让 AI 助手围绕本页教学上下文回答。
+- **角色化页面**把“一页一个知识点”升级为“一页一个教学环节”：概念、机制、例题、练习、对比、小结；复杂知识点允许拆 2–3 页，而不是把所有内容硬塞进一页。
 
-| 位置 | 现状 | 处理方向 |
+### 0.3 关键决策
+
+| # | 决策 | 结论 | 主要理由 |
+| --- | --- | --- | --- |
+| D1 | 单页密度方案 | **分层揭示 + 宿主教学工作台 + 角色化页面**；不为增密缩小字号或恢复桌面页面滚动（移动端允许纵向滚动） | 保持桌面零滚动与可读性，同时把整页教学内容从约 250 字提升到最多 700 字（约 3 倍） |
+| D2 | 教学契约 | `manifest.teaching` 成为新页面的必填结构；缺失/不完整由 Validator 与 Builder 双重拦截 | 让“教学”可验证，而不是靠提示词祈祷 |
+| D3 | 页面设计系统 | 由宿主 Shell 注入版本化 `DECK_KIT_CSS`，Bundle 只写语义结构与局部样式 | 统一视觉、降低输出 token、避免每页重复造轮子；Validator 与阅读器共用同一份 |
+| D4 | Pi 会话 | **Deck 级 lane 会话**（默认 2 条 lane，按章节分配页面，lane 内串行），页级失败隔离与轮换 | 复用稳定前缀与上下文缓存，降低费用；保留并发与失败隔离 |
+| D5 | Prompt 结构 | 稳定前缀 + 每页短任务卡 + 模板起步 + “只改必要文件”；合并三份重复硬约束 | 降低输入 token，减少长篇复述与整页重写 |
+| D6 | 思考档位 | 接线 `PAGE_BUILDER_THINKING`；默认 `low`/`minimal`，复杂机制页可升 `medium`，练习/小结可 `off` | 模板与 Validator 足够强时，思考成本可以显著下降 |
+| D7 | 教学校验 | 结构完整性为 error；教学质量指标先 warning，校准后升级为门禁 | 先保证“教学生成得了”，再保证“教得好” |
+| D8 | 前端呈现 | 统一右侧“学习面板”（本页/检查/依据/AI），显式“学完本页”；不再 3 秒自动完成 | 减少浮层割裂，建立真实学习闭环 |
+| D9 | 兼容与发布 | 新旧 Bundle/Runtime 并存；Feature Flag 可回退到逐页会话 | 不破坏已生成页面，允许逐步放量 |
+| D10 | 真实模型验证预算 | 本轮方案实施阶段的真实模型验证总预算 **≤ ¥6**，超出前暂停并汇报 | 遵守维护者的付费 API 预算约束 |
+
+### 0.4 预期结果
+
+| 维度 | 当前 | 目标 |
 | --- | --- | --- |
-| `backend/app/config.py` | `EMBED_BASE_URL / EMBED_API_KEY / EMBED_MODEL / EMBED_DIM`、`embed_configured` | 删除 |
-| `backend/app/services/indexer.py` | `PGEngine` / `PGVectorStore` / `material_chunks` / 向量检索 / 向量清理 | 替换为「解析分节」服务 |
-| `backend/app/services/generator.py` | `fetch_chunks_from_db()` 取块；`retrieve_workspace_chunks()` 做 RAG | 改为取 `material_sections`；删除 RAG 补充 |
-| `backend/app/main.py` | 启动时建向量表、Embedding 未配置告警 | 删除向量初始化 |
-| `backend/app/routers/workspaces.py` | 删除工作区时 best-effort 清向量 | 仅删分节与存储 |
-| `backend/app/routers/materials.py` | 删除资料时清向量 | 仅删分节与存储 |
-| `backend/requirements.txt` | `langchain-postgres==0.0.19`、`pgvector<0.4` | 删除；保留 chat LLM 与文本分节依赖 |
-| `docker-initdb.d/01-init.sql` | `CREATE EXTENSION vector` | 新库不再启用；旧库保留但不再使用 |
-| `docker-compose.yml` | `pgvector/pgvector:pg17` | 可在清理阶段换回 `postgres:17` |
-| `README.md / AGENT.md / backend/.env.example` | Embedding 环境变量与向量说明 | 同步移除/改写成「解析分节」 |
-| 前端 `MaterialStatus` | `indexing / indexed` 文案「索引中 / 已就绪」 | **保留枚举**，只改用户文案为「解析中 / 已就绪」 |
-
-### 1.3 当前生成链路与产品瓶颈
-
-1. **输出是长 Markdown**：信息密度高，但不可交互、不可分页，无法承载「一屏一个知识点」的节奏。
-2. **生成粒度是「整份文档」**：一次生成两份长文，无法按知识点增量交付，也无法只重做某一页。
-3. **展示方式是被动阅读**：没有动画、没有可操作示例、没有针对单个知识点的即时问答。
-4. **Embedding 带来不必要的运维面**：维度、模型、向量表、外部网关、删库重建等问题，与当前课程资料的封闭范围不匹配。
-5. **长任务已有基础**：现有 `GenerationJob + tasks.spawn() + 2s 轮询` 与 RULE.md §3.7 的长任务约束可以直接复用为 Deck 构建任务模型。
-
-### 1.4 结论
-
-- 删除 Embedding 是**净简化**，可以在第一阶段独立完成并验证。
-- 新复习页需要一个新的领域模型（Deck / KnowledgePoint / Page / BuildJob / BuildEvent），而不是继续堆在 `Artifact` 上。
-- Pi 的产物不应是「一段 Markdown」，而应是**受契约约束的页面代码包**；主项目负责编排、校验、存储与展示。
+| 单页教学信息量 | 约 250 字 / 3–5 块 / 1 交互 | 页内总正文 450–700 字 / 5–8 块（分层）/ 1 主交互 + 1 检查；宿主教学层再承载 300–600 字 |
+| 可见视觉密度 | 低，演示感强 | 单层建议 450–500 字、可见块 3–6；用渐进式披露控制单屏节奏，整页有完整讲解链与检查 |
+| Deck 构建成本 | 14 页约 ¥1.69 | 同规模 ≤ ¥1.0–1.2（目标 -30%～-40%） |
+| 单页输入 token | 20.7k–22.4k | 首屏后 ≤8k，缓存命中率可观测且 ≥40% |
+| 首轮校验通过率 | 3/3（P2 小样本） | 黄金集 ≥75%，修复 1 轮后 ≥95% |
+| 教学结构完整率 | 未度量 | 新页面 100% 具备角色、目标、讲解链、检查 |
+| 桌面零滚动 | 100% | 100%（1280/1440/1920 + 阅读器内容视口）；移动端允许纵向滚动、禁止横向溢出 |
+| 安全 | P7 基线 | 不放宽任何 CSP/沙箱/外链/HTML 禁用规则 |
 
 ---
 
-## 2. 目标与非目标
+## 1. 现状审计（代码事实）
 
-### 2.1 目标
+### 1.1 页面形态：为“演示”优化，而非“教学”
 
-1. **彻底移除 Embedding 依赖**：无 `EMBED_*` 配置、无 pgvector 运行时依赖、无向量表读写；资料解析后以结构化分节持久化。
-2. **以知识点为中心生成复习资料**：章节/知识点划分 → 页面规划 → 每个知识点 1–3 页 → 逐页构建与放行。
-3. **新的复习体验**：总览页（路线图 + 工作台）+ 若干全屏复习页；桌面全屏下每页一屏展示，不出现页面滚动。
-4. **深度个性化**：用户选择风格、内容偏好并填写自定义提示词；页面根据具体知识点生成定制动画、示例、图示与交互。
-5. **Pi Agent 容器化**：Pi 运行在独立 builder 容器中，通过内部接口接收资料与页面 brief，返回页面产物；主项目负责最终格式校验与放行。
-6. **构建过程可见**：构建工作台实时展示阶段、Pi 输出摘要、页面完成进度与校验结果；离开页面不影响任务。
-7. **页面 AI 助手**：选中文本 + 上下文发送给侧边助手，流式回答，带来源引用。
-8. **保留模拟考试**：继续提供现有模拟卷的生成与阅读，仅将资料取用改为分节驱动；本期不将其纳入 Deck 页面化改造。
+- 契约规定的页面预算是“一屏一个论点 + 3–5 块 + 1 个主交互 + ≤250 字正文”（`design-language.md:57-71`；`docs/pageref/PAGE_CONTRACT.md` §9）。这适合做“动态 PPT 的一页”，不适合承载“目标 → 讲解 → 例题 → 检查 → 小结”的完整教学闭环。
+- 页面骨架只有 `mp-head / mp-body / mp-foot`，模板的侧栏最多放 3 条速查信息（`builder/pi-harness/templates/page-base/page.html`）。没有“例题步骤”“检查题”“讲解链”的语义位置。
+- 黄金示例的正文约 356–511 字符、1 个主交互；学习目标、检查题、答案均未进入页面或宿主（`builder/fixtures/golden/*/bundle.json`）。
+- 当前的“动态性”主要是单个演示的状态切换；没有“先预测、再观察、再解释”的教学交互，也没有把交互结果反馈到学习判断。
 
-### 2.2 非目标（本期不做）
+### 1.2 构建成本：每页从零开始
 
-- 不做多人协作、分享链接、评论、云端同步（仍为单用户工作区）。
-- 不做 PDF/PPT 导出（可作为后续独立任务）。
-- 不重做模拟试卷的产品形态；**模拟考试保留**，继续以旧 Markdown 视图呈现并改造为 sections 驱动；旧复习 Markdown 工件在迁移期保持可读。
-- 不做多租户/多副本构建队列；MVP 为单 builder 实例 + 进程内并发控制。
-- 不做页面内自由联网、外部 npm 包、CDN、Web Font；页面必须是自包含产物。
-- 不做可视化编辑器；用户通过预设 + 自定义提示词影响生成，通过反馈重做单页。
+- `runPiBuild` 每页执行：准备独立 cwd → 渲染完整 build-page prompt → 新建 ModelRuntime → 新建 ResourceLoader → `createAgentSession` → prompt → 修复（`builder/src/session.ts:639-714`）。
+- 每页被要求读 `SKILL.md`、`page-contract.md`、`design-language.md`，按需读 `layouts.md`、`animation-recipes.md`、`validation.md` 和 4 个模板文件（`builder/pi-harness/skills/mockfinal-page-builder/SKILL.md:25,38-45`）。合计约 56KB，约 1–2 万 token，每页重复读入。
+- Model 配置写死 `reasoning: false`、`cost` 全 0、`contextWindow: 128000`、`maxTokens: 16384`（`builder/src/session.ts:282-290`）；`PAGE_BUILDER_THINKING` 虽在配置里（`builder/src/config.ts:100`），但从未传给 `createAgentSession`，实际无效。
+- `usageFromSession` 只取 input/output，丢弃 `cacheRead/cacheWrite` 与 `cost`（`builder/src/session.ts:612-623`），无法验证会话复用与缓存收益。
+- 修复策略要求整页文件重写，而非局部 `edit`；输出 token 高（13.1k–26.5k/页），bundle 却只有约 15–17KB。
+- 主 API 每页一个 `POST /v1/builds`，并发 2；Builder 队列同样并发 2（`builder/src/server.ts:77-113,318-385`）。没有 Deck 级会话概念。
 
-### 2.3 成功指标（在 Phase 2 门禁后校准）
+### 1.3 教学信息：数据已有，呈现缺失
 
-| 维度 | 目标 |
-| --- | --- |
-| 页面构建 | 12 页标准 Deck 的 p90 完成时间 ≤ 25 分钟 |
-| 页面质量 | 首轮校验通过率 ≥ 70%；最多 1 轮修复后 ≥ 90% |
-| 布局 | 1280×720 / 1440×900 / 1920×1080 下零纵向滚动通过率 100% |
-| 交互 | 每个非纯总结页至少 1 个可操作的交互/动画，且冒烟操作通过 |
-| 稳定性 | 单页最终失败率 < 5%；单页失败不影响其他页交付 |
-| 安全 | 校验器拦截 100% 外链/外部请求；沙箱逃逸红队用例 0 通过 |
-| 助手 | 选中文本后首 token < 3s；回答必须引用页面/资料上下文 |
-| 迁移 | 旧资料无需重新上传即可完成分节回填；旧复习 Markdown 只读可读；模拟考试继续可用 |
+- 大纲结构已包含 `objectives / key_points / formulas / misconceptions / interaction_idea / page_count`（`backend/app/services/deck_planner.py:61-81`），Page Brief 也已完整传入（`:708-718`）。
+- 但页面计划只按“知识点 × 密度”分配页数（`:503-588`），没有角色、先修、讲解链、例题、检查的概念；`kind` 仅在 `interactive/concept/summary` 三值间映射（`:492-500`）。
+- 合并知识点时只把额外 KP 放进 `kp_indices`，Brief 仍只取 primary KP（`backend/app/services/deck_builder.py:1484-1495`），被合并的知识点内容会丢失。
+- 前端 `DeckPageSummary` 虽有 `manifest_title/title/kind`，但没有角色、目标、检查、教学完整度；阅读器也没有展示 `objectives/key_points/formulas/misconceptions`。
+- 阅读器的“已读”由停留 3 秒触发（`frontend/src/views/DeckReaderView.vue:208-227`）；`PageFrame` 丢弃 `progress` 事件（`frontend/src/components/deck/PageFrame.vue:137-143`）；runtime 只允许 `interaction/complete/error` 等少数事件。
+
+### 1.4 前端体验：Deck 与主应用是两套语言
+
+- `DESIGN.md` 尚无 Deck 阅读器/总览/构建台专章；Deck 使用了大量 `text-[10px]`（`DeckRoadmap.vue`、`DeckWorkbench.vue`、`BuildTimeline.vue`、`DeckAssistantDrawer.vue`、`DeckReaderView.vue`），低于 DESIGN.md 的 11px 下限。
+- `DeckAssistantDrawer.vue` 使用不存在的 `border-danger/40 bg-danger-soft` token，失败气泡实际无样式。
+- 阅读器 header 为 `h-14`，Deck 其他顶栏为 `py-3`；标题字号、容器宽度、图标按钮圆角/尺寸不统一；Deck 不套 `AppLayout`，没有主题切换、移动菜单与统一品牌区。
+- 阅读器切换页面时整页 iframe 重建、bundle 置空，出现白底 loading 闪烁；没有方向感或淡入过渡；没有相邻页内容预取之外的阅读体验优化。
+- 总览页 1440 宽度与全局 `max-w-5xl` 不一致；非 404 错误只 toast，正文空白；状态“已就绪/已阅读”混用；`PageFrame` 8s 超时短于 Validator 的 10s。
+- 上传/生成/资料页与 Deck 页的按钮、卡片、空态、间距各自实现；缺少统一的 icon button、空态、错误态与页面容器规范。
+
+### 1.5 Validator 与契约：只保证“不溢出”，不保证“教会”
+
+- 静态检查禁止 `overflow:auto|scroll` 的正则会命中隐藏面板、媒体查询甚至注释（`validator/src/static-check.ts:131`）；浏览器零滚动只测 `documentElement` 与 `#mp-root`，在 `ready` 后两帧就测量（`validator/src/browser-check.ts:352-408`），入场动画中间态可能误报。
+- 内部滚动检查只对“可见且实际溢出”的元素生效，`display:none` 会被排除；这给分层揭示留下了实现空间，但也意味着隐藏内容不会被完整校验。
+- 交互冒烟只等待 `expect` 元素 `state:'attached'`（`validator/src/browser-check.ts:165`），隐藏标签页内容也可能算通过；冒烟只在第一个视口执行，分步展开后的高密度布局不会复测。
+- a11y 仅检查 h1 与无名称交互，且为 warning（`:410-427`）；没有检查最小字号、内容裁剪、教学结构、目标与交互绑定。
+- `shared/page-shell/shell.mjs` 只注入 reset 与 token（`:28-61`），没有组件基线；每个页面重复写 13–17KB CSS。
+- 现有测试对 shell 的 `</style>`/`</script>` 数量、runtime 版本、schema 版本有硬断言；改契约必须同步测试与 Golden fixtures。
+
+### 1.6 结论
+
+- **页面层**：需要从“单点演示”升级为“分层教学单元”，但必须保持单层可见内容克制，否则桌面零滚动和可读性都会崩。
+- **构建层**：需要 Deck 级会话复用、共享资料包、模板/设计系统、Prompt 压缩与 thinking 控制；否则教学化带来的内容增长会直接放大成本。
+- **呈现层**：需要宿主教学工作台与显式学习完成，否则页面再密也只是“会动的 PPT”。
+
+---
+
+## 2. 调研：单页如何平衡效果与信息密度
+
+### 2.1 先区分三种密度
+
+| 密度 | 定义 | 当前问题 | 目标 |
+| --- | --- | --- | --- |
+| 视觉密度 | 同一时刻屏幕上可见的字数、块数、图形密度 | 低；页面像一张演示卡 | 保持中等：单层建议 450–500 字、可见块 3–6，留白不被挤掉 |
+| 教学密度 | 一页承载的学习结构：目标、讲解链、例题、误区、检查、小结 | 很低；只有演示与少量侧注 | 约 3 倍（250→700 字）：角色化页面 + 分层揭示 + 宿主教学层 |
+| 交互密度 | 有学习目的的操作与反馈状态 | 1 个演示交互，缺少预测/检查 | 1 个主交互（3–5 状态）+ 1 个检索检查；不为装饰加交互 |
+
+核心原则：**同一时刻只保留一个认知焦点，但整页可以承载一个完整教学闭环。** 增密靠“层”和“结构”，不靠缩小字号或恢复桌面滚动；移动端允许纵向滚动，作为阅读模式的补充。
+
+### 2.2 候选方案对比
+
+| 方案 | 做法 | 信息密度 | 动态性 | 零滚动风险 | 成本 | 结论 |
+| --- | --- | --- | --- | --- | --- | --- |
+| A. 单屏增密 | 直接增加文字/块，缩小字号与间距 | 高 | 低 | 高 | 低 | **不采用**；违反可读性与 DESIGN.md，容易变成“塞满的网页” |
+| B. 分层揭示 | 步骤器、标签页、折叠答案、预测-观察-解释；一次只显示一层 | 高（总量） | 高 | 低 | 中 | **采用**；是页内增密的主手段 |
+| C. 舞台 + 教学侧栏 | iframe 负责讲解/视觉/操作，宿主侧栏负责目标/要点/公式/易错/检查/来源 | 高（整页） | 中 | 低（侧栏 overlay，不改变 stage） | 中 | **采用**；补足元学习信息，降低 Pi 输出负担 |
+| D. 微课拆页 | 一个知识点拆成概念→例题→练习 2–3 页 | 中（单页） | 中 | 低 | 高（页数与构建成本） | **选择性采用**；只给 core/难知识点，不默认全局拆页 |
+| E. 宿主设计系统 | Shell 注入统一 CSS 组件基线，Bundle 只写语义结构 | 不直接增密 | 中 | 低 | 降低输出 token | **采用**；作为 B/C/D 的实现基础 |
+
+**选定：B + C + 选择性 D，加上 E 作为工程底座；A 只保留“在不缩小字号前提下的排版压缩”。**
+
+### 2.3 2.5 层教学页模型
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ 宿主阅读器                                                   │
+│  ┌──────────────────────────────┐  ┌──────────────────────┐ │
+│  │ 页面主舞台（iframe）          │  │ 学习面板（overlay）   │ │
+│  │  标题 / 一句论点              │  │ 本页目标             │ │
+│  │  主视觉或主交互               │  │ 讲解路线             │ │
+│  │  3–5 个支撑块（分层显示）     │  │ 公式 / 易错          │ │
+│  │  例题步骤 / 检查入口          │  │ 随堂检查             │ │
+│  │  来源与操作                   │  │ 依据 / AI            │ │
+│  └──────────────────────────────┘  └──────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+- **页内**：一个主舞台 + 一个主交互 + 3–5 个支撑块；支撑块通过步骤器/标签页/折叠答案分层出现。
+- **页外**：宿主学习面板承载“目标、讲解路线、公式、易错、检查、来源、AI”，不占用 iframe 内容视口，因此不破坏桌面零滚动校验；移动端允许页面纵向滚动。
+- **页面之间**：页 Brief 带上一页“已学什么”和下一页“将学什么”，页面用一句话承接；Deck 计划保证章节内有教学顺序。
+- **复杂知识点**：允许拆成 `mechanism → worked_example → practice` 三页；但每页仍然遵守单层预算，而不是把三页内容压成一页。
+
+### 2.4 密度预算（新契约）
+
+> 计数口径：正文汉字数，不含标题、标签、公式、图注、按钮文案、答案解释。Validator 做近似统计，预算主要用于 warning 与提示词约束；桌面零滚动仍是硬门禁，移动端允许纵向滚动但禁止横向溢出。
+
+| 项 | 硬上限/目标 | 说明 |
+| --- | --- | --- |
+| 单层可见正文 | 建议 450–500 汉字（非硬上限） | 超过时用渐进式披露；零滚动/内容裁剪仍由 Validator 硬门禁兜底 |
+| 单页总正文（所有层） | **≤ 700 汉字（硬上限）** | 概念/机制/对比 450–600；例题/练习 500–700；小结 350–500；超过 700 必须拆页 |
+| 可见内容块 | 3–6 个 | 不含标题与页脚；超过 6 个必须分层 |
+| 页内总块数 | 5–8 个 | 含隐藏层；超过 8 个提示拆页 |
+| 主交互 | 1 个 | 3–5 个学习状态；可带重置/上一步 |
+| 检查/揭示交互 | ≤1 个 | 随堂检查或答案揭示；可与主交互合并 |
+| 可见公式 | ≤3 个 | 总公式 ≤6 个；长公式必须换行/缩放 |
+| 宿主教学层 | 300–600 字 | 目标 1–3 条、要点 3–6 条、易错 1–3 条、检查 1–2 题 |
+| 最小字号 | 12px | 正文建议 14–16px；标签 11–12px |
+| 视觉层级 | ≤3 层 | 一页一个“重”元素（反转块/主视觉） |
+
+**关键：** 700 字是**整页总预算**，不是要求一次铺满。单层建议控制在 450–500 字；超过时用步骤器、标签页、折叠答案等渐进式披露拆分。Validator 以整页 700 字为硬上限、单层 500 字为 warning，零滚动与内容裁剪继续兜底。
+
+### 2.5 教学页契约
+
+新增 `manifest.teaching`（新页面必填；旧页面可选）：
+
+```json
+{
+  "version": "1.0",
+  "role": "mechanism",
+  "objectives": [
+    "能说出二分查找的循环不变量",
+    "能解释为什么每次排除一半"
+  ],
+  "prerequisites": ["数组有序", "区间概念"],
+  "hook": "如果每次只能排除一个元素，10 亿个数要试多久？",
+  "chain": [
+    { "id": "c1", "title": "维护搜索区间", "block_id": "b1" },
+    { "id": "c2", "title": "比较中点", "block_id": "b2" },
+    { "id": "c3", "title": "排除一半", "block_id": "b3" }
+  ],
+  "worked_example": {
+    "problem": "在 [1,3,5,7,9,11] 中查找 7",
+    "steps": [
+      { "id": "s1", "title": "确定区间", "body": "left=0, right=5" },
+      { "id": "s2", "title": "取中点", "body": "mid=2，值为 5" },
+      { "id": "s3", "title": "缩小右半区", "body": "left=3" }
+    ],
+    "answer": "第 4 个元素（下标 3）",
+    "common_error": "把 mid 向下取整写成向上取整，导致死循环"
+  },
+  "check": [
+    {
+      "id": "q1",
+      "objective_id": "o2",
+      "question": "为什么 mid 要向下取整？",
+      "options": ["保证区间收缩", "让结果更快", "避免数组越界", "没有原因"],
+      "answer_index": 0,
+      "explanation": "向下取整保证 left/right 至少移动一格，区间必然收缩。"
+    }
+  ],
+  "summary": {
+    "key_points": ["区间不变量", "每次排除一半", "O(log n)"],
+    "misconceptions": ["mid 向上取整导致死循环"],
+    "next": "下一节：二分查找的边界写法"
+  }
+}
+```
+
+按角色要求：
+
+| 角色 | 页面目的 | 必含 | 可选 | 主交互 | 典型页数 |
+| --- | --- | --- | --- | --- | --- |
+| `concept` | 建立正确概念 | 目标、3–4 步讲解链、1 个误区、1 个检查 | 对比、公式 | 分步揭示/对比切换 | 1 |
+| `mechanism` | 理解过程/机制 | 目标、3–5 步链、动态可视化、预测问题、1 个检查 | 例题 | 模拟/步进/参数调节 | 1 |
+| `worked_example` | 会做一类题 | 题目、3–5 步解、答案、常见错误、1 个检查 | 变式 | 步骤控制 + 答案揭示 | 1 |
+| `practice` | 检索练习 | 2–4 题、答案、解析、目标映射 | 提示 | 作答/揭示/重试 | 1 |
+| `compare` | 辨析/选择 | 2–3 个对象、比较维度、结论、1 个误区 | 表 | 切换/对照 | 1 |
+| `summary` | 记忆与串联 | 要点、公式、误区、下一页预告 | 检查 | 展开/速查 | 1 |
+
+**角色不是标题装饰**：它决定页面计划、Brief 字段、模板选择、Validator 必填项与前端徽章。
+
+### 2.6 教学交互分类
+
+| 交互类型 | 学习目的 | 允许的形态 | 必需反馈 |
+| --- | --- | --- | --- |
+| `predict_observe` | 先预测再观察，制造认知冲突 | 选一个预测 → 播放/推进 → 显示结果 | 预测与结果对照、解释 |
+| `step_through` | 降低推导/算法步骤的认知负荷 | 上一步/下一步/直达结论 | 当前步骤、已完成、总步数 |
+| `simulate` | 观察参数或输入变化 | 滑块/预设案例/点击节点 | 状态变化 + 读出的结论 |
+| `compare` | 辨析易混概念 | A/B 切换或并排 | 差异结论 + 易错提醒 |
+| `retrieve` | 检索练习 | 选项/填空/判断/揭示答案 | 正确性 + 解析 + 目标映射 |
+| `summarize` | 组织与记忆 | 展开/折叠速查卡 | 要点/公式/口诀 |
+
+规则：
+
+- 每页只有一个“主交互”；检查/揭示是辅助交互，不与主交互争夺视觉权重。
+- 交互必须绑定 `objective_id`，至少绑定 1 个学习目标；没有目标映射的交互视为装饰。
+- 冒烟必须验证“状态发生可观察变化”，不能只验证元素挂载。
+- 不用自动轮播、无限循环、打字机、随机动画作为教学交互。
+- reduced-motion 下状态仍立即生效，动画只是过渡。
+
+### 2.7 反模式
+
+- 用 `overflow:auto/scroll` 或更小字号把 900 字塞进一屏。
+- 一页放 3 个同等重要的交互，用户不知道先点哪个。
+- 把讲解链全部铺开，再用淡入动画“装饰”。
+- 只有演示、没有问题；或只有题目、没有讲解。
+- 检查题答案与解析缺失，或答案与题目不在同一目标上。
+- 为了“看起来密度高”堆卡片、标签、图标，实际没有增加教学信息。
+- 页面之间没有承接，每页都像独立 demo。
 
 ---
 
 ## 3. 产品设计
 
-### 3.1 用户旅程
+### 3.1 一页一个学习闭环
+
+每页按角色组合以下环节，至少 4 个环节可见/可展开：
 
 ```text
-工作区（已有资料）
-  → 点击「生成复习页」
-  → 构建设置：风格预设 + 内容偏好 + 页面密度 + 自定义提示词
-  → 启动构建（后台任务）
-  → 构建工作台：大纲形成 → 页面逐页出现 → 实时输出/校验
-  → 总览页：知识点路线图 + 工作台（可开始阅读已就绪页面）
-  → 复习页：全屏动态页面，键盘/点击翻页
-  → 选中文本 → 侧边 AI 助手问答
-  → 对某页不满意 → 带反馈重做该页
+先问（hook） → 讲清（chain） → 看见（visual/simulate）
+→ 跟着做（worked example/step） → 自己试（check） → 记住（summary/misconception）
 ```
 
-### 3.2 信息架构
+- `concept/mechanism`：先问 → 讲清 → 看见 → 自己试 → 记住。
+- `worked_example`：题目 → 步骤 → 答案 → 易错 → 变式检查。
+- `practice`：题目 → 作答 → 解析 → 目标回指。
+- `compare`：对象 → 维度 → 差异 → 易错 → 判断。
+- `summary`：要点 → 公式 → 误区 → 下一页预告。
+
+宿主学习面板负责“先问/记住/自己试”的元信息与检查；页面主舞台负责“讲清/看见/跟着做”。这样既不牺牲页面专注度，也不让教学结构消失。
+
+### 3.2 阅读器布局
+
+桌面保持现有零滚动 stage 尺寸，不新增加高行；移动端进入可滚动阅读模式：
 
 ```text
-/workspace/:id
-  ├─ 学习资料（保留）
-  ├─ 复习页（新主入口）
-  │    ├─ /decks/:deckId            总览页（路线图 + 工作台）
-  │    ├─ /decks/:deckId/build      构建工作台（进行中/失败重试）
-  │    └─ /decks/:deckId/pages/:pageId  全屏复习页
-  ├─ 模拟考试（保留，继续使用旧 Markdown 视图）
-  └─ 旧版资料（旧复习 Markdown，迁移期只读）
+┌──────────────────────────────────────────────────────────────┐
+│ 返回   Deck 标题 / 页面标题      ‹ 3/12 ›   [本页] [AI] [⛶] │ 56px
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌──────────────────────────────────────────────────────┐   │
+│   │ iframe stage（桌面零滚动；移动端可纵向滚动）          │   │
+│   │                                                      │   │
+│   └──────────────────────────────────────────────────────┘   │
+│                                                              │
+│                              [学习面板 overlay 380–420px]     │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-### 3.3 总览页（原生 Vue，不交给 Pi）
+- **顶部栏统一**：复用 `DeckTopBar` 的视觉语言，56px 高；左侧返回 + 标题；中间页码/已学；右侧“本页”“AI”“主题”“全屏”“更多（重做/返回总览）”。
+- **不新增常驻导读条**：那会压缩 stage 高度并破坏已验证的桌面零滚动视口。改为标题旁的“角色徽章 + 检查数”小标签，点击打开学习面板。
+- **学习面板 overlay**：不改变 iframe 尺寸；桌面右侧滑入，移动端底部全屏 sheet；打开时保留页面可读背景，Esc 关闭，焦点管理完善。
+- **页面切换**：相邻页预取 + 180ms 淡入/6px 方向位移；加载时显示与 stage 同尺寸骨架，不白屏；reduced-motion 直接切换。
+- **移动端滚动**：`<768px` 时页面进入阅读模式，允许 iframe 文档纵向滚动，宿主顶栏固定；禁止横向溢出，不承诺单屏。学习面板改为全屏 sheet，避免与页面滚动竞争手势。
+- **全屏**：保持现有 Fullscreen API；在全屏下学习面板仍可用。
+- **来源**：从独立 Modal 移入学习面板的“依据”标签，减少浮层种类。
 
-总览页承担两个角色：
+### 3.3 学习面板（Study Panel）
 
-1. **知识点路线图**：按章节分组的节点图；节点大小/描边表达重要度，连线表达先修/递进关系；节点状态（未开始/进行中/已就绪/构建中/失败）用图标 + 文案 + 反转/描边表达，不靠颜色。
-2. **工作台**：继续上次、总进度、页面清单、资料覆盖情况、风格摘要、重建入口、失败页重试。
+一个面板，四个标签：
 
-约束：
-
-- 桌面端一屏内完成，不滚动；最多 5 章 × 3 个知识点、16 页，超出时采用紧凑布局/缩放控制。
-- 移动端允许纵向滚动（明确例外），但不得横向溢出。
-- 路线图数据来自后端 `knowledge_points`，不在前端推断。
-
-### 3.4 复习页（Pi 生成）
-
-- **一页一个主知识点**；复杂知识点可拆 1–3 页；非重要知识点可合并到一页。
-- **动态 PPT 形态**：大标题 + 少量内容块 + 一个主要视觉/交互；页面内部可以有步骤、动画、拖拽、滑块、折叠、SVG/Canvas 演示。
-- **桌面全屏一屏展示**：页面只使用 `100dvh` 内的网格布局，禁止 `window.scrollTo` 与纵向滚动容器。
-- **非纯文字**：至少一个与知识点相关的视觉化/交互元素；例如二分查找的区间收缩动画、矩阵变换的网格、时间线的逐步展开、公式的推导步骤。
-- **内容来源可追溯**：manifest 中带 `source_refs`，页面底部/侧边可查看「依据资料」摘要。
-- **可重做**：阅读页提供「这一页需要调整」入口，附带用户反馈重建单页；旧版本在新版本就绪前仍可阅读。
-
-### 3.5 构建工作台
-
-构建设置（开始前）：
-
-- 风格预设：`讲义 / 图解 / 冲刺 / 叙事`（均为单色体系，详见 §9.6）。
-- 内容偏好（多选）：概念定义、公式推导、例题、易错点、记忆口诀、对比表、练习。
-- 页面密度：精简（6–9 页）/ 标准（10–14 页）/ 深入（14–16 页）。
-- 自定义提示词（≤ 500 字）：例如「多用生活类比」「公式推导要一步步来」。
-- 预计页数、预计耗时、当前使用模型（只读）。
-
-构建中工作台：
-
-- 阶段时间线：`整理资料 → 规划知识点 → 生成页面 brief → 构建页面 → 校验 → 完成`。
-- 实时输出：Pi 的**可见文本增量**、工具动作摘要（如「正在编写第 3 页的动画」「正在自检布局」），不展示隐藏推理、不展示原始 bash 输出（本方案禁用 bash）。
-- 进度：真实页级计数 + 当前页状态；禁止伪造百分比。
-- 页面卡片：每页完成后即时出现缩略图/标题/状态，可提前阅读。
-- 可离开：关闭页面/刷新不影响后台构建；重新进入按 `job_id` 恢复。
-- 失败处理：显示中文原因、失败页列表、重试单页/取消任务。
-
-### 3.6 风格与个性化
-
-MVP 的风格差异通过**排版、网格、密度、动效、交互隐喻**实现，不引入彩色渐变、AI 光晕、玻璃拟态等与 DESIGN.md 冲突的元素。
-
-| 预设 | 气质 | 典型布局 | 动效 |
-| --- | --- | --- | --- |
-| 讲义 Editorial | 安静、纸感、适合长读 | 大标题 + 边注 + 单栏 | 段落淡入、重点下划线 |
-| 图解 Blueprint | 结构、网格、推演 | 网格/坐标/分步图示 | 线条绘制、步骤高亮 |
-| 冲刺 Drill | 高密度、考点导向 | 卡片 + 公式 + 速查 | 快速切换、强调反转 |
-| 叙事 Story | 场景、类比、时间线 | 横向时间线/场景块 | 逐步揭示、路径移动 |
-
-- 预设与本项目 DESIGN.md 的语义 token 对齐；页面只使用 `ink/muted/faint/panel/raised/border` 等语义色。
-- 若未来需要彩色主题，必须在 `DESIGN.md` 先增加「Deck 视觉扩展」并通过设计评审；本期不做。
-- 用户自定义提示词的优先级低于页面契约、安全约束与设计硬规则；它只能影响内容与表达，不得要求外链、联网、eval、绕过校验。
-
-### 3.7 页面 AI 助手
-
-- 侧边抽屉（overlay，不改变页面布局，避免页面重排导致溢出）。
-- 选中文本后出现「问 AI」动作；打开助手时自动引用选中文本 + 所在块上下文。
-- 快捷动作：解释这段 / 举个例子 / 帮我记 / 考考我 / 和上一页有什么关系。
-- 回答流式输出；使用 MarkdownView（`html:false` + DOMPurify）渲染。
-- 回答必须优先依据当前页面 manifest 摘要、选中上下文与 `source_refs` 对应的资料段落；找不到依据时明确说「资料中未覆盖」。
-- 每个页面对应一个会话线程；刷新后可恢复历史（持久化到后端）。
-
-### 3.8 全屏与响应式
-
-| 视口 | 行为 |
-| --- | --- |
-| ≥ 1280×720 桌面全屏 | **必须零滚动**；页面 stage 16:9 适配 |
-| 1024–1279 宽 | 允许页面 stage 等比缩放；仍以零滚动为目标 |
-| 768–1023 宽 | 阅读器缩放/紧凑布局；零滚动为建议目标 |
-| < 768 宽 | 明确降级为「阅读模式」：允许纵向滚动，隐藏全屏翻页手势；不做零滚动承诺 |
-
-- 使用 Fullscreen API 隐藏浏览器 chrome；Esc 退出。
-- 页面 iframe 监听宿主 resize，runtime 提供当前视口尺寸；页面用 `clamp()`/`minmax()`/容器查询适配，不依赖固定 px。
-- 顶部仅保留：返回、Deck 标题、页码/进度、全屏、AI 助手。
-- 键盘：←/→/空格翻页，Esc 退出全屏/关闭助手；焦点可见。
-
----
-
-## 4. 总体架构
-
-### 4.1 组件图
-
-```mermaid
-flowchart LR
-    subgraph Browser["浏览器（Vue 3）"]
-        UI["工作区 / 总览 / 构建工作台"]
-        Reader["全屏阅读器"]
-        Frame["沙箱 iframe<br/>页面运行时"]
-        Assistant["AI 助手侧栏"]
-        UI --> Reader
-        Reader --> Frame
-        Reader --> Assistant
-    end
-
-    subgraph Backend["FastAPI + PostgreSQL"]
-        API["API / 鉴权 / 归属校验"]
-        Planner["大纲与 Page Brief 规划"]
-        Orches["Deck 构建编排"]
-        Chat["AI 助手上下文与流式接口"]
-        API --> Planner
-        API --> Orches
-        API --> Chat
-    end
-
-    subgraph Builder["Pi Builder 容器（Node 24）"]
-        BHTTP["内部 HTTP 接口"]
-        SDK["Pi SDK Session"]
-        Guard["MockFinal Harness<br/>Skill / Template / Extension"]
-        BHTTP --> SDK --> Guard
-    end
-
-    subgraph Validator["Page Validator 容器（Playwright）"]
-        VHTTP["内部 HTTP 接口"]
-        Headless["Headless Chromium<br/>布局 / 交互 / 网络 / 控制台"]
-        VHTTP --> Headless
-    end
-
-    DB[("PostgreSQL<br/>materials / sections<br/>decks / pages / jobs / events")]
-    Store[("OSS / 本地存储<br/>页面 bundle / 缩略图")]
-    LLM["LLM 网关<br/>OpenAI 兼容"]
-
-    UI -->|REST + SSE| API
-    Reader -->|REST| API
-    Assistant -->|SSE| API
-    API --> DB
-    API --> Store
-    Orches -->|HMAC 内部 HTTP| BHTTP
-    BHTTP -->|Pi events| Orches
-    Orches -->|最终校验| VHTTP
-    SDK -->|页面自检| VHTTP
-    Planner --> LLM
-    Chat --> LLM
-    SDK --> LLM
-    Store -->|bundle JSON| Reader
-```
-
-### 4.2 组件职责
-
-| 组件 | 负责 | 不负责 |
+| 标签 | 内容 | 数据来源 |
 | --- | --- | --- |
-| FastAPI API | 鉴权、资源归属、Deck 领域、编排、最终校验门禁、存储、聊天上下文 | 生成页面代码、运行生成代码 |
-| Pi Builder | 接收 brief/资料包；驱动 Pi 会话；文件约束；页面自检；打包 bundle | 访问业务库、OSS、用户 token、主项目密钥 |
-| Page Validator | 在隔离 Chromium 中加载页面；零滚动/交互/网络/控制台/截图检查 | 生成内容、持有业务数据 |
-| 前端阅读器 | 组装沙箱 shell；iframe 生命周期；翻页；选区桥；全屏 | 生成页面、执行未校验代码 |
-| 页面运行时 | iframe 内的 API、选区/错误/尺寸上报、主题注入 | 访问网络、访问父页面 DOM |
+| 本页 | 角色、预计分钟、学习目标、讲解路线、要点、公式、易错、小结、上一页/下一页 | `manifest.teaching` + 后端合并的知识点 |
+| 检查 | 1–2 道随堂题；选项/揭示/解析；目标回指；立即反馈 | `manifest.teaching.check` |
+| 依据 | 页面摘要、来源分节标题与引用、待核对标记 | `manifest.assistant` + `source_refs` |
+| AI | 现有页面助手；快捷动作改为教学导向 | `DeckAssistantDrawer` 复用 |
 
-### 4.3 三阶段时序
+交互细节：
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant API as FastAPI 编排
-    participant B as Pi Builder
-    participant P as Pi Session
-    participant V as Page Validator
+- “讲解路线”节点可点击：宿主通过 `postMessage` 发送 `focus_block`，页面高亮对应块；不要求页面滚动。
+- 检查题默认不显示答案；选择后显示正误与解析；“再做一次”重置；不做自动跳页。
+- 本页目标用 1–3 条 checkbox 样式（仅展示，不强制勾选）；完成检查后提示“可以标记学完”。
+- 公式使用 KaTeX 渲染，但 `html:false` + 文本清洗；不把 manifest 当 HTML。
+- 旧页面没有 `teaching` 时，面板降级为“依据 + AI”，并提示“这是旧版页面，暂无教学目标”；不伪造目标。
 
-    Note over API: 阶段一：获取资料
-    API->>API: 取 material_sections + 知识点 + 风格 spec
-    API->>API: 组装 source_pack / page_brief / 约束
+### 3.4 进度与“学完”
 
-    Note over API,B: 阶段二：页面构建
-    API->>B: POST /v1/builds（brief + 资料 + 约束 + HMAC）
-    B->>P: createAgentSession + /build-page
-    P->>P: 读取资料与 runtime 文档
-    P->>P: write page.html / page.css / page.js / manifest.json
-    P->>V: check_page 工具（经 Builder 调用）
-    V-->>P: 结构化问题列表
-    P->>P: 最多 2 轮修复
-    P-->>B: agent_settled
-    B->>V: 最终校验（layout / interaction / network / console）
-    V-->>B: validation_report
-    B-->>API: bundle + report + usage
+- **移除 3 秒自动完成**。停留时长不等于学习完成。
+- 页面 runtime 上报 `progress({step,total})`；宿主显示本页步骤进度。
+- 当页面 `emit('complete')` 或用户完成随堂检查时，顶部出现“学完本页”主按钮；点击后才写入 `completed_page_ids`。
+- 顶部进度区分“已构建（ready）”与“已学完（learned）”；总览工作台同样区分。
+- 可选“需复习”标记（P12 拉伸项）：需要后端新增 `review_page_ids` 或 `progress` JSONB；MVP 先不做，避免扩大契约。
 
-    Note over API: 阶段三：页面交付
-    API->>V: 独立最终门禁（不信任 Builder 报告）
-    V-->>API: pass / fail
-    API->>API: 保存 bundle + thumbnail + page_ready
-    API-->>API: 推进 Deck 进度，事件落库
-```
+### 3.5 总览与工作台
 
-### 4.4 关键设计决策
+- **路线图**：章节列 + 节点；节点显示角色（概念/机制/例题/练习/对比/小结）、核心标记、页数、检查数、构建状态与学习状态；已构建≠已学完，用不同图标/文案而不是颜色。
+- **工作台**：
+  - 主进度：“已学完 / 总页数”（不是“就绪进度”冒充学习进度）；
+  - 继续学习：定位到第一个“ready 且未学完”的页面；
+  - 统计：已构建、失败、已学完、随堂检查数；
+  - 资料覆盖与教学完整度（来自 Validator 报告摘要）；
+  - 重建/重新规划/查看最近构建。
+- **页面卡片**：角色徽章、预计分钟、检查数、教学完整度、状态、缩略图（懒加载）。
+- **构建工作台**：
+  - 设置面板解释密度差异：精简=每页一个闭环；标准=核心知识点加例题；深入=更多例题/练习；
+  - 预计页数与角色分布预览；
+  - 时间线：整理资料 → 规划教学结构 → 规划页面 → 构建页面 → 校验教学完整性 → 完成；
+  - 控制台按页面分组，不展示原始 prompt/终端；展示校验问题摘要与教学评分；
+  - 页面卡片完成后即可阅读；失败卡片给“重试”“拆页/降密度”建议；
+  - 构建统计：页数、耗时、ready/failed；成本仅内部记录，不向普通用户展示。
 
-| 编号 | 决策 | 理由 | 备选/后果 |
-| --- | --- | --- | --- |
-| D1 | 删除 Embedding，改为 `material_sections` + 显式引用 | 课程资料封闭、知识点可结构化；减少依赖与运维 | 失去语义检索；用分节元数据、标题匹配、Postgres 全文/trigram（后续可选）弥补 |
-| D2 | Deck 取代「期末终极复习」Markdown；旧 review/exam 工件迁移期只读 | 新产品形态需要分页与增量交付 | 旧生成接口保留一个迁移期；后续单独下线 |
-| D3 | 总览页原生 Vue；复习页由 Pi 生成 | 路线图/工作台必须稳定可访问；把生成风险限制在页面层 | 总览风格与页面风格需共享 token；不追求完全由 Agent 生成 |
-| D4 | 页面产物是 `manifest + html + css + js` 代码包，不是固定 JSON 字段 | 满足自定义动画/交互；JSON DSL 无法覆盖深度定制 | 需要严格沙箱、静态检查、Playwright 校验与修复闭环 |
-| D5 | 页面在 `sandbox="allow-scripts"` iframe 中运行，`srcdoc` 注入，CSP 禁止网络 | 生成代码视为不可信；隔离父页面、cookie、存储与网络 | 页面不能请求外部资源；复杂第三方库不可用 |
-| D6 | Pi 使用 SDK 在 Builder 容器内运行；禁用 bash；仅 `read/write/edit + 自定义工具` | Node 进程内事件与自定义工具最直接；无 bash 即无代码执行面 | Pi 版本升级需适配；Builder 与 Pi 共享容器，但页面代码不在其中执行 |
-| D7 | 独立 Validator 容器作为最终门禁 | 主项目不信任 Builder 自检；Playwright 能真实测布局 | 多一个服务；Validator 不可用时构建 fail-closed |
-| D8 | 页面渐进交付，单页失败不拖垮整册 | 12 页构建时间长；用户可以先读已完成页 | Deck 状态可能为 `partial`；需要失败重试 UI |
-| D9 | MVP 保持单色纸感，风格差异靠排版/网格/动效 | 与 DESIGN.md 一致，避免品牌漂移 | 彩色主题需设计评审后另开 |
-| D10 | 大纲与资料 brief 由 Python LLM 生成；Pi 只做页面构建 | 结构化规划更适合主后端；减少 Pi 上下文与不确定性 | 两个模型配置；需要保证 brief 质量 |
-| D11 | 构建事件落库，前端轮询/重连；任务不绑定连接 | 符合 RULE.md §3.7；刷新不丢任务 | 事件表需要保留策略；MVP 不做跨进程消息队列 |
-| D12 | 页面 bundle 存 JSON（含 data URI 资源），不存多文件目录 | 单文件交付、易校验、易签名/存储、无路径穿越 | 单页大小上限 2MB；超大资产需压缩或拆页 |
+### 3.6 全局视觉统一
 
----
+这一轮不只修 Deck，还要统一主应用与 Deck 的“同一套语言”。
 
-## 5. 去 Embedding 方案
+**可复用组件**
 
-### 5.1 目标模型：资料分节
+- `AppIconButton.vue`：统一 32/36/40px、圆角、ghost/secondary、`aria-label`/`title`；替换阅读器、TopBar、卡片里的手写 icon button。
+- `DeckTopBar.vue`：统一 Deck 总览/构建/阅读器顶栏高度、内边距、标题层级、返回与操作区。
+- `EmptyState.vue`、`ErrorState.vue`：统一空态/错误态（图标底、标题、说明、下一步 CTA）。
+- `LoadingSkeleton.vue`：与真实行同高的骨架，不用 spinner 占满页面。
+- `PageContainer.vue`（或统一 class 规范）：明确 `max-w-5xl` 与 Deck 总览 `max-w-[1440px]` 的例外，避免每页各写一套。
 
-新增表 `material_sections`（`create_all` 自动建表，无需迁移工具）：
+**具体修复清单**
 
-| 字段 | 类型 | 说明 |
+- 所有 `text-[10px]` → 最小 11px；正文/说明按 DESIGN.md 重新分级。
+- 删除不存在的 `danger` token 用法，统一用 `border-border-strong`、`text-ink`、反转表达风险。
+- 统一图标按钮圆角（`rounded-2xl` 或 `rounded-full` 二选一，按场景规则）与 hover/focus。
+- Deck 阅读器接入主题切换、移动端菜单/返回；Deck 与 AppLayout 的顶栏高度/品牌区对齐。
+- 统一页面切换过渡与 `aria-live` 页面标题播报；修复白屏 loading。
+- 总览非 404 错误改为内联错误卡 + 重试，不只 toast。
+- `PageFrame` 超时与 Validator 对齐（10s），并显示可重试错误卡。
+- 缩略图懒加载 + 数量限制；bundle 缓存设上限（LRU），避免长会话内存膨胀。
+- 移动端：阅读器标题/进度不消失；学习面板全屏 sheet；导航、全屏、重做可发现；**允许页面纵向滚动**，但禁止横向溢出，不承诺单屏。
+- 可访问性：进度条 `role="progressbar"`；面板焦点陷阱/返回焦点；弹窗/抽屉 `aria-modal`；禁用节点仍可读状态；图标按钮 aria。
+- 统一文案：`已就绪`（构建完成）/`已学完`（学习完成）/`需复习`（后续）；`重做本页` vs `重建整册`；`本页导读`。
+
+**Home / Workspace / Auth**
+
+- Home：引导卡与工作区列表保持现有结构，统一标题、间距、空态与按钮；补充“复习页”在产品流程中的一句话说明。
+- Workspace：Deck 列表卡片与资料/工件列表统一边框、圆角、hover、状态徽章；Tab 计数与空态统一。
+- Auth：只做间距、焦点与文案一致性修正，不扩展功能。
+- `DESIGN.md` 新增 Deck 章节（阅读器、总览、构建台、学习面板、页面角色、密度规则、过渡），并记录 Deck 总览宽度的有意例外。
+
+### 3.7 动效与视觉效果
+
+遵守 DESIGN.md 的单色纸感，不引入彩色、渐变、玻璃拟态、循环装饰。新增动效只用于解释状态变化：
+
+| 场景 | 效果 | 时长 |
 | --- | --- | --- |
-| `id` | bigint PK | 稳定引用 ID |
-| `material_id` | FK materials cascade | 所属资料 |
-| `workspace_id` | FK workspaces cascade | 便于按工作区查询 |
-| `ordinal` | int | 资料内顺序 |
-| `heading` | varchar(255) | 章节/页/幻灯片标题 |
-| `content` | text | 分节正文 |
-| `char_count` | int | 字符数 |
-| `page` | int nullable | PDF 页码 / PPTX 幻灯片序号 |
-| `meta` | jsonb | 来源、标题层级、解析器信息 |
-| `created_at` | timestamptz | UTC |
+| 页面切换 | 淡入 + 6px 方向位移 | 180ms |
+| 学习面板 | 右侧滑入 / 移动端底部 sheet | 220ms |
+| 检查题反馈 | 边框加强 + 解析展开 | 150–200ms |
+| 构建页面卡片出现 | 淡入 + 轻微上移 | 240ms |
+| 骨架/构建中 | 呼吸/脉冲 | 1.3–1.4s，仅加载 |
+| hover/focus | 边框/底色/反转 | 150ms |
 
-唯一约束：`(material_id, ordinal)`；索引：`(workspace_id)`、`(material_id)`。
+- 页面内部由设计系统提供统一的步骤/揭示过渡；reduced-motion 下全部立即切换。
+- 禁止页面切换时整屏白闪；禁止骨架屏伪装成内容；禁止自动播放的装饰动画。
+- 视觉层级继续靠字号、字重、留白、1px 边框；一个视图一个主按钮。
 
-分节策略：
+### 3.8 文案与呈现
 
-- 解析器保持现有 PDF/DOCX/PPTX/MD/TXT 支持，但增强标题提取：
-  - PDF：优先按页；首行短文本作为 heading 候选；
-  - DOCX：读取段落 `style.name`（Heading 1/2/3）生成层级；表格保留；
-  - PPTX：幻灯片标题作为 heading；
-  - MD：按 `#`/`##` 标题切分，再按长度细分；
-  - TXT：按空行/编号标题启发式切分。
-- 单节目标 800–1500 字符，保留 100 字符重叠；不跨页合并。
-- 每节生成稳定 `section_id`；后续大纲、页面 brief、AI 助手均引用它。
-
-**契约兼容：** 保留 `Material.status` 的 `uploaded / indexing / indexed / failed` 枚举，避免破坏前端类型与旧接口；语义改为「文本解析与分节」。`chunk_count` 复用为「分节数」，文档注明。用户文案改为「解析中 / 已就绪」。
-
-### 5.2 生成链路改造
-
-```text
-材料上传 → 后台解析 → 分节 → material_sections 落库 → material.indexed
-  → 旧版生成：按工作区取 sections → 摘要 map-reduce → review/exam（不再检索向量）
-  → 新版 Deck：按工作区取 sections → 大纲规划 → 知识点 source_refs → Page Brief
-```
-
-- 删除 `fetch_chunks_from_db` 与 `retrieve_workspace_chunks`；新增 `fetch_sections_from_db(workspace_id)`。
-- 旧版生成中的 RAG 补充段落删除；摘要与成品提示词保留，作为迁移期兼容能力。
-- 资料删除/工作区删除：`material_sections` 通过 FK cascade 自动清理；不再有向量清理。
-- 懒回填：取分节时，如果某资料 `indexed` 但无分节，自动触发一次解析回填（每资料幂等，状态不变）；避免要求用户重新上传。
-
-### 5.3 删除清单
-
-- `backend/app/config.py`：`embed_*` 字段与 `embed_configured`。
-- `backend/app/services/indexer.py`：整个向量实现；重命名/替换为 `sectioner.py`（或保留文件名但内部改为分节，减少导入改动；建议重命名为 `sectioner.py` 并更新导入）。
-- `backend/app/services/generator.py`：向量取块/RAG。
-- `backend/app/main.py`：向量表初始化与未配置告警；启动自愈中的 `indexing` 语义保留。
-- `workspaces.py` / `materials.py`：向量清理调用。
-- `requirements.txt`：`langchain-postgres`、`pgvector`；`langchain-core`/`langchain-text-splitters` 仍可用于 chat 与分节。
-- `docker-initdb.d/01-init.sql`：新库不再 `CREATE EXTENSION vector`；旧库保留，不自动 DROP。
-- `.env.example` / README / AGENT：移除 Embedding 环境变量表与说明。
-
-### 5.4 迁移与回填
-
-1. 先新增 `material_sections` 表与分节逻辑，旧向量链路暂时保留（代码可运行）。
-2. 切换生成链路到 sections，验证旧 review/exam 生成仍可用。
-3. 删除向量代码/配置/依赖；启动日志不再有 Embedding 告警。
-4. 旧资料懒回填或后台批量回填（建议提供一次性管理任务/脚本，不在请求中做全量扫描）。
-5. 至少保留一个发布周期的 `material_chunks` 表作为回滚数据；确认无回滚需求后，再由维护者手动执行：
-   ```sql
-   DROP TABLE IF EXISTS material_chunks;
-   DROP EXTENSION IF EXISTS vector;
-   ```
-   不把 DROP 放进应用启动流程。
-
-### 5.5 取舍
-
-- **失去：** 语义相似检索、按 query 找跨资料片段的能力。
-- **获得：** 更少依赖、更稳定的构建、可解释的知识点来源映射、页面 brief 的确定性上下文。
-- **补偿：** 大纲阶段强制 LLM 引用 `section_id`；页面 brief 只带被引用的段落；AI 助手按页面/知识点引用取资料。若后续确实需要检索，可加 PostgreSQL 全文/`pg_trgm` 或独立的轻量关键词索引，不恢复 Embedding。
+- 面向用户使用“复习页”“本页导读”“随堂检查”“学完本页”“需复习”等教学语言，不出现“session/lane/token/缓存”等内部术语。
+- 构建设置解释“密度”对学习的影响，而不只是页数。
+- 页面角色用中文短标签：概念、机制、例题、练习、对比、小结。
+- 错误文案必须可行动：例如“本页校验未通过：内容超出单屏，请拆成两页或减少一个例子”，而不是“VALIDATION_FAILED”。
 
 ---
 
-## 6. Pi Agent 方案
+## 4. 技术方案
 
-### 6.1 可行性依据
+### 4.1 页面契约 v1.1
 
-- Pi 1.5.0 以 `@earendil-works/pi-coding-agent` 发布（MIT），要求 Node ≥ 22.19；支持：
-  - **SDK**：`createAgentSession()`、`session.prompt()`、`session.subscribe()`、`SessionManager.inMemory()`、`DefaultResourceLoader`、自定义 tools；
-  - **RPC/JSON 模式**：JSONL 事件流，适合容器/子进程集成；
-  - **Skills**：`SKILL.md` + `references/` + `assets/` + `scripts/`，按需加载；
-  - **Prompt Templates**：`/build-page` 等可复用命令；
-  - **Extensions**：`tool_call`/`tool_result`/`agent_end` 等钩子、`registerTool()`、自定义渲染；
-  - **自定义 Provider**：OpenAI 兼容网关（DashScope 等）；
-  - **官方 Docker 隔离指南**。
-- 因此「容器 + 接口 + 定制 Harness」不需要 fork Pi；用官方 SDK + 扩展即可实现。
+**版本策略**
 
-### 6.2 运行形态
+- 新页面：`bundle.schema_version = "1.1"`，`runtime_version = "1.1.0"`。
+- 旧页面：`1.0` / `1.0.0` 继续可读；Shell、Validator、前端同时支持两代。
+- 新页面要求 `manifest.teaching`；旧页面缺失时走 `TEACHING_LEGACY` 降级。
+- 新增 `manifest.design_system = "1.0"`，表示页面使用宿主设计系统基线。
 
-```text
-FastAPI API
-  └─ 内部 HTTP（HMAC）
-       └─ page-builder 容器（Node 24）
-            ├─ HTTP 接口：POST /v1/builds、GET /v1/builds/{id}、/events、/bundle、/cancel
-            ├─ 每个 build 一个 Pi SDK Session
-            │    ├─ cwd = /tmp/builds/{build_id}（隔离工作区）
-            │    ├─ SessionManager.inMemory()
-            │    ├─ 只启用 read / write / edit + 自定义工具
-            │    ├─ 加载 MockFinal Skill / Prompt Template / Extension
-            │    └─ 订阅事件 → 转为构建事件
-            └─ 调用 page-validator 做页面自检
-```
+**Runtime 1.1.0 增量**
 
-**为什么用 SDK 而不是 RPC：** Builder 本身就是 Node，SDK 可直接获得事件、工具注册、资源加载与 In-memory session；RPC 更适合非 Node 客户端。将 SDK 封装在 builder 内部，主后端仍通过语言无关 HTTP 接口通信，保留将来替换为 RPC/远程沙箱的空间。
+- 保留现有 7 个 API：`ready/emit/next/prev/requestAssistant/getTheme/onHostMessage`。
+- `emit` 增加 `progress`（`{step,total,label?}`），宿主据此显示本页进度；`complete` 语义不变。
+- `onHostMessage` 增加 `focus_block`（`{block_id}`），用于学习面板“讲解路线”定位/高亮。
+- 不新增网络、存储、父窗口、eval 能力；CSP 与 sandbox 完全不变。
 
-### 6.3 Harness 定制（Pi 特化方向）
-
-> 需求中的「Expand」按 Pi 的正式术语理解为 **Extensions（扩展）**；它负责运行时钩子、自定义工具与权限约束，Skill/Prompt Template 负责“怎么做页面”，Template/Scaffold 负责“从什么骨架开始”。
-
-建议目录：
-
-```text
-builder/
-├─ package.json                 # 锁定 @earendil-works/pi-coding-agent@1.5.0
-├─ src/
-│  ├─ server.ts                 # 内部 HTTP + HMAC + 任务队列
-│  ├─ session.ts                # Pi SDK 会话、事件映射、超时
-│  ├─ validator-client.ts       # 调用 page-validator
-│  └─ bundle.ts                 # 文件收集、大小/路径校验、打包
-├─ pi-harness/
-│  ├─ agent/
-│  │  ├─ settings.json          # 工具白名单、默认模型、无 bash
-│  │  ├─ prompts/build-page.md  # /build-page 提示词模板
-│  │  ├─ templates/page-base/   # 页面脚手架：manifest/html/css/js 空壳 + 注释
-│  │  ├─ skills/mockfinal-page-builder/
-│  │  │  ├─ SKILL.md
-│  │  │  ├─ references/
-│  │  │  │  ├─ page-contract.md      # bundle/manifest/runtime API
-│  │  │  │  ├─ design-language.md    # 单色纸感、布局、字号、动效
-│  │  │  │  ├─ layouts.md            # 12 种页面布局范式
-│  │  │  │  ├─ animation-recipes.md  # 二分、矩阵、时间线等配方
-│  │  │  │  └─ validation.md         # 校验规则与常见失败
-│  │  │  ├─ assets/
-│  │  │  │  ├─ runtime.js            # 与前端共享版本
-│  │  │  │  ├─ base.css
-│  │  │  │  └─ example-binary-search.html
-│  │  │  └─ scripts/
-│  │  │     └─ check-contract.mjs    # 轻量静态检查（与 Validator 同规则）
-│  │  └─ extensions/mockfinal-guard/
-│  │     ├─ package.json
-│  │     └─ index.ts
-│  └─ models.json / provider.ts      # OpenAI 兼容网关配置
-```
-
-**Prompt Template `/build-page`** 的工作流（写进模板，不靠模型即兴发挥）：
-
-1. 强制加载页面构建技能：优先由 Builder 发送 `/skill:mockfinal-page-builder`，或在模板首段明确要求 `read <harness>/skills/mockfinal-page-builder/SKILL.md` 并遵循；不能假设模型会自动加载 Skill。
-2. 读取 `briefs/{page_id}.json` 与 `materials/` 中的来源段落。
-3. 先写 `manifest.json`（标题、知识点、交互声明、来源引用、冒烟选择器）。
-4. 写 `page.html`（body 片段，不含 `<script>`/`<style>`/外链）。
-5. 写 `page.css`（只使用运行时 CSS 变量与允许的属性）。
-6. 写 `page.js`（`MockFinal` API；无网络、无 eval、无父页面访问）。
-7. 调用 `check_page`；根据返回问题修复；至少调用一次并在通过后结束。
-8. 不输出 Markdown 说明，只写文件。
-
-**Skill 必须覆盖：**
-
-- 页面骨架与文件契约；
-- 设计语言与 token；
-- 单屏布局、字号、留白、密度上限；
-- 动画/交互配方（含 reduced-motion 分支）；
-- 内容来源引用规则；
-- 常见校验失败与修复示例；
-- 两个以上完整黄金示例（可复制、可对照）。
-
-**Extension `mockfinal-guard`：**
-
-- `before_agent_start`：追加页面契约、禁止事项、必须调用 `check_page` 的系统提示；
-- `tool_call`：
-  - 只允许 `read` / `write` / `edit` / `check_page` / `report_progress`；
-  - 拦截 `bash` 及所有未注册工具；
-  - `write`/`edit` 路径必须解析后位于 build cwd；
-  - 禁止符号链接、路径穿越、超大文件、非允许扩展名；
-  - `read` 只允许 build cwd 与只读 harness 资源目录；
-- `registerTool("check_page")`：调用 Validator 的静态/浏览器检查，返回结构化问题；可在会话中反复调用；
-- `registerTool("report_progress")`：向 Builder 发送结构化阶段（可选，事件主要从 Pi 事件流映射）；
-- `agent_end`：记录最终文件清单与校验摘要，供 Builder 决定是否需要修复；
-- 错误处理：扩展异常不得吞掉；记录到构建事件，Builder 统一失败。
-
-### 6.4 SDK 会话配置
-
-```ts
-const { session } = await createAgentSession({
-  cwd: buildDir,
-  sessionManager: SessionManager.inMemory(),
-  settingsManager: /* in-memory */,
-  resourceLoader: /* DefaultResourceLoader，加载 harness 资源 */,
-  tools: ["read", "write", "edit", "check_page", "report_progress"], // 不含 bash
-});
-```
-
-要点：
-
-- `cwd` 每页独立，`/tmp/builds/{build_id}`，构建结束后清理；
-- 使用 `DefaultResourceLoader` **显式加载只读 harness 路径**（Skill/Template/Extension/示例），不依赖项目 `/trust`，也不读取宿主 `~/.pi/agent` 的个人配置；具体字段以锁定的 SDK 类型声明为准，Builder 内做一层薄适配；
-- `PI_CODING_AGENT_DIR` 指向镜像内的只读 harness 目录；模型凭据只通过环境变量注入；
-- `SessionManager.inMemory()` 不落磁盘会话，避免跨用户残留；
-- `session.subscribe()` 在 `prompt()` 前注册，映射 `message_update` 的文本增量、`tool_execution_*`、`agent_settled`；
-- 只展示可见文本增量与工具摘要；不展示 `thinking_*`；不展示原始命令（无 bash）；
-- 每页设置硬超时（默认 8 分钟）与会话级 token/文件大小预算；
-- 修复轮次在同一会话中 `prompt()` 继续，或新会话带上次文件 + 报告；最多 2 轮；超过由 Builder 返回失败。
-
-### 6.5 模型与 Provider
-
-- 使用 Pi 的自定义 Provider / `models.json` 指向现有 OpenAI 兼容网关。
-- 建议单独配置 `PAGE_BUILDER_MODEL`（优先选择工具调用稳定、长上下文、代码能力强的模型；例如可用的 Qwen Coder 系列；实际以环境为准）。
-- 启动时做一次「工具调用 + 结构化输出」健康探测；探测失败则 Builder 启动失败，主 API 在健康检查中标记 `page_builder: unavailable`。
-- Pi 的模型上下文预算：页面 brief + skill 参考 + 代码迭代应控制在 64k–128k；超出时压缩/减少 source pack，不静默截断。
-- 不把主 LLM 的 API Key 下发前端；Builder 与主 API 各自持有所需密钥；Builder 不持有 OSS/DB/JWT 密钥。
-
-### 6.6 容器与隔离
-
-Builder 容器：
-
-- 非 root 用户；`read_only: true`；`/tmp` tmpfs；`/tmp/builds` 独立 tmpfs；
-- `cap_drop: [ALL]`；`security_opt: [no-new-privileges:true]`；CPU/内存/PID 限制；
-- 不挂载 Docker socket、不挂载宿主目录、不挂载 `backend/data`；
-- 仅暴露内部端口（compose 不映射宿主端口）；
-- 网络：内部网络供 API/Validator 通信；另接 egress 网络用于访问 LLM 网关；生产建议加 HTTP 代理白名单；
-- 页面代码**不在 Builder 中执行**：Pi 只写文件，`check_page` 由 Validator 执行；因此即使生成恶意代码，也不会在 Builder 内落地执行。
-
-Validator 容器：
-
-- Playwright + Chromium 官方镜像/自建镜像；非 root；无业务密钥；仅内部网络；
-- 页面加载时拦截所有非 `data:`/`blob:` 请求；禁止外网；
-- 每次校验使用新的 browser context；超时、内存/CPU 限制；
-- 接收 bundle JSON，返回报告 + 截图；不持久化用户资料。
-
-主 API：
-
-- 不把 Builder/Validator 暴露公网；使用共享 token + HMAC + 时间戳；
-- Builder/Validator 不可用时 Deck 构建返回 503/中文提示；不降级为「跳过校验」。
-
-### 6.7 构建事件与用户可见输出
-
-| Pi 事件 | 转换后的构建事件 | 用户可见 |
-| --- | --- | --- |
-| `agent_start` / `turn_start` | `page_started` | 「开始构建第 N 页」 |
-| `tool_execution_start` (write/edit) | `page_writing` | 「正在编写页面结构与样式」 |
-| `tool_execution_start` (check_page) | `page_checking` | 「正在自检布局与交互」 |
-| `message_update` text delta | `agent_text` | 构建控制台的可见输出（截断/限流） |
-| `tool_execution_end` (isError) | `page_check_issue` | 校验问题摘要 |
-| `agent_settled` | `page_agent_done` | 「生成完成，等待最终校验」 |
-| Validator report | `page_validated` / `page_failed` | 「已通过」/「发现 N 个问题」 |
-| error/retry | `page_retry` | 「第 1/2 轮修复」 |
-
-- 只存储用户可见事件与必要诊断；不存储隐藏推理。
-- 单事件文本上限 4KB；每页事件总量上限 200 条；超出折叠。
-- 事件落 `deck_build_events`，前端按 `after_id` 增量获取；断线重连不丢进度。
-
-### 6.8 PoC 门禁（Phase 2 必须通过）
-
-用 3 个页面 brief 构建：
-
-1. **算法动画**：二分查找区间收缩（要求可点击/拖动、步进、区间高亮）。
-2. **公式推导**：矩阵变换/线性代数（要求分步推导、图示、KaTeX）。
-3. **叙事/时间线**：历史事件或概念演进（要求逐步揭示、时间线交互）。
-
-评估：
-
-- 首轮校验通过率、修复 1 轮后通过率；
-- 1280×720/1440×900/1920×1080 零滚动；
-- 交互冒烟动作是否可执行、状态是否变化；
-- 控制台错误、外部请求、静态违规数量；
-- 构建耗时与 token 使用；
-- 人工视觉评审（是否像「动态 PPT」而非「网页作业」）。
-
-**通过门槛：**
-
-- 首轮 ≥ 2/3，修复 1 轮后 3/3；
-- 零滚动 3/3；
-- 交互冒烟 3/3；
-- 外部请求/静态安全违规 0；
-- 单页 p90 ≤ 6 分钟（本地模型网关条件下可放宽，但需记录）。
-
-未通过则启动 Plan B，不进入 Phase 3 全量开发。
-
-### 6.9 Plan B（门禁失败时）
-
-- 用受控组件 DSL（`manifest` 声明 `layout` + 预置组件参数）替代自由 HTML/CSS/JS；
-- 保留「自定义 CSS/JS 插槽」作为受限逃生口，但只允许经过审核的片段；
-- 页面质量更稳定，但定制能力下降；需重新评估是否满足「二分动画」等需求；
-- 决策记录在 `Plan.md` 的 ADR 附录，不在代码中夹带未完成的双实现。
-
----
-
-## 7. 页面契约与运行时
-
-### 7.1 Bundle 契约
-
-Builder 交付一个 JSON bundle（单文件、无目录、无外部资源）：
+**Manifest 新增字段**
 
 ```json
 {
-  "schema_version": "1.0",
-  "runtime_version": "1.0.0",
-  "manifest": {},
-  "html": "<div class=\"mp-page\">…</div>",
-  "css": ".mp-page { … }",
-  "js": "const root = document.querySelector('.mp-page'); …"
+  "schema_version": "1.1",
+  "design_system": "1.0",
+  "teaching": {
+    "version": "1.0",
+    "role": "mechanism",
+    "objectives": ["..."],
+    "prerequisites": ["..."],
+    "hook": "...",
+    "chain": [{ "id": "c1", "title": "...", "block_id": "b1" }],
+    "worked_example": { "problem": "...", "steps": [], "answer": "...", "common_error": "..." },
+    "check": [{ "id": "q1", "objective_id": "o1", "question": "...", "options": [], "answer_index": 0, "explanation": "..." }],
+    "summary": { "key_points": [], "misconceptions": [], "next": "..." }
+  }
 }
 ```
 
-约束：
+- 字符串长度、数组长度、`answer_index` 范围由 schema 校验。
+- `chain[].block_id` 必须对应 HTML 中的 `data-mp-block`；不允许编造。
+- `source_refs` 仍来自资料；教学目标、公式、易错可由后端用知识点权威数据补全/校正。
 
-- `html` 只能是 body 片段；不得包含 `<html>/<head>/<body>/<script>/<style>/<link>/<base>/<iframe>/<object>/<embed>`。
-- `css` 不得使用 `@import`、外链 `url(http…)`、外部字体；图片/图标用内联 SVG 或 data URI。
-- `js` 不得使用 `fetch/XMLHttpRequest/WebSocket/EventSource`、`eval/new Function`、`document.cookie/localStorage/sessionStorage`、`window.parent/top/opener`（除 `MockFinal` runtime 封装）。
-- 所有资源内联；单文件总大小 ≤ 2MB（可配置）。
-- 运行时脚本由宿主注入，不包含在 bundle 中；bundle 只依赖 `window.MockFinal` API。
+**兼容与安全**
 
-### 7.2 Manifest
+- 不放宽 CSP、`sandbox="allow-scripts"`、无外链、无网络、无存储、无 `eval`、无父窗口、2MB bundle 上限。
+- 教学文本、检查题、解析一律按不可信文本渲染；宿主不 `v-html`，公式走 KaTeX + DOMPurify。
+- 旧 Bundle 不重新校验；新构建缺失教学结构直接失败（Builder 侧 `TEACHING_INCOMPLETE`，Validator 返回 error）。
+
+### 4.2 宿主页面设计系统（DECK_KIT）
+
+**为什么放 Shell，而不是每页 Bundle**
+
+- 阅读器与 Validator 共用 `shared/page-shell/shell.mjs`，设计系统只有一份，避免“校验时通过、真实渲染漂移”。
+- 统一字号、间距、网格、卡片、步骤器、检查、公式/图表容器，减少每页重复 CSS。
+- 降低 Pi 输出：页面只写结构与局部布局，CSS 从 13–17KB 降到目标 ≤6KB。
+- 安全边界不变：纯内联 CSS，无外部字体/图片/脚本。
+
+**注入方式**
+
+- `SHELL` 中新增版本化 `DECK_KIT_CSS`，并入现有 `<style>`（不新增 `<style>` 标签，避免破坏 shell 测试的标签计数）。
+- 仅当 `manifest.design_system` 存在且版本受支持时注入；旧页面渲染完全不变。
+- 移动端滚动规则属于 Shell 基础层（所有页面生效）：`@media (max-width: 767px)` 下把 `html/body/#mp-root` 与页面根改为可纵向滚动，覆盖页面固定的 `100dvh/overflow:hidden`；桌面零滚动规则不变。页面不得用内联样式阻断该移动规则。
+- `shared-shell.ts` 导出 `DECK_KIT_VERSION`，Validator 检查；前端通过 `?raw` 复用同一份源码。
+
+**Kit 内容（建议）**
+
+- 布局：`.mp-page`、`.mp-head`、`.mp-body`、`.mp-foot`、`.mp-layout-focus/split/steps/cards/compare`。
+- 排版：`.mp-title`、`.mp-sub`、`.mp-section-title`、`.mp-text`、`.mp-caption`、`.mp-label`、`.mp-formula`。
+- 组件：`.mp-card`、`.mp-callout`、`.mp-quote`、`.mp-figure`、`.mp-legend`、`.mp-badge`、`.mp-stepper`、`.mp-step`、`.mp-tabs`、`.mp-panel`、`.mp-check`、`.mp-option`、`.mp-btn`。
+- 状态：`[data-mp-state="idle|active|done|hidden"]`、`[data-mp-block]`、`[aria-current]`、`[hidden]`。
+- 响应式：`max-width: 900px` 单列；可选侧栏折叠；桌面不引入页面滚动，移动端允许纵向滚动（由 Shell 移动规则接管）。
+- reduced-motion：统一关闭过渡/动画，状态立即生效。
+- 不包含外部资源、字体、图标库；图标仍用内联 SVG。
+
+**页面模板**
+
+- `templates/roles/concept|mechanism|worked-example|practice|compare|summary/`：每种角色一套语义 HTML + Kit class + 最小 JS + manifest 骨架。
+- Builder 在 prompt 前把对应模板复制到 `pages/{page_id}/`；Prompt 要求“在模板上 `edit`，不要整页重写”。
+- 模板含教学骨架（目标占位、链、例题/检查区域），但不含虚构内容；Pi 填真实资料。
+- 旧的 `templates/page-base` 保留给 legacy/mock 测试。
+
+### 4.3 大纲、页面计划与 Page Brief
+
+**大纲（`deck_planner.py`）**
+
+- `OutlineKnowledgePoint` 增加（均可选、限长）：
+  - `prerequisites: list[str]`
+  - `teaching_role_hint: Literal["concept","mechanism","worked_example","practice","compare","summary"]`
+  - `hook: str`
+  - `worked_example_idea: str`
+  - `check_idea: str`
+- 大纲 Prompt 要求：
+  - 每个知识点标注“最适合的教学角色”，并给出一个具体检查点；
+  - 章节内至少为 core 知识点规划一个例题/练习方向；
+  - 仍然只依据资料，不编造引用。
+- 保持 3–6 章、6–16 知识点、每 KP ≤3 页的硬约束。
+
+**页面计划（`plan_pages`）**
+
+- 由“按重要度轮转加页”升级为“按教学角色序列”：
+  - core + 有交互建议 → `mechanism`；额外页 → `worked_example` 或 `practice`；
+  - core 无交互建议 → `concept`；额外页 → `worked_example`；
+  - normal → `concept` 或 `compare`；minor → `summary` 或合并；
+  - 页数允许时，每章最后一页优先 `summary`；否则全册最后一页 `summary`。
+- 返回字段新增 `role`（与 `kind` 对齐；`kind` 继续供前端兼容）。
+- 合并知识点时，Brief 必须覆盖全部 `kp_indices`；不能只取 primary。`knowledge_point` 保留主 KP，新增 `merged_knowledge_points[]`。
+- 页数区间保持 `concise 6–9 / standard 10–14 / deep 14–16`；不靠扩容页数解决密度，而靠角色与分层。
+
+**Page Brief 新增**
 
 ```json
 {
-  "schema_version": "1.0",
-  "page_id": "page_003",
+  "page_id": "page_12",
+  "deck_title": "...",
+  "chapter_title": "...",
+  "role": "mechanism",
+  "teaching_contract": {
+    "objectives": ["..."],
+    "prerequisites": ["..."],
+    "required": ["hook", "chain", "worked_example", "check", "misconception"],
+    "density": {
+      "visible_layer_chars": 450,
+      "total_page_chars": 700,
+      "visible_blocks": 6,
+      "total_blocks": 8,
+      "primary_interactions": 1,
+      "checks": 2
+    }
+  },
+  "knowledge_point": { "...": "..." },
+  "merged_knowledge_points": [],
+  "source_excerpts": [],
+  "source_meta": {},
+  "style": {},
+  "deck_context": {
+    "previous_learning": "上一页已经讲清区间不变量",
+    "next_hook": "下一页做一道边界题",
+    "chapter_index": 2,
+    "chapter_total": 4
+  },
+  "constraints": {}
+}
+```
+
+- `source_excerpts` 在会话模式下可缩短为“引用摘要 + section_id”，完整资料放共享 `materials/`；非会话模式保持现有 12k 预算。
+- `teaching_contract` 是硬约束，用户 `custom_prompt` 只能影响表达，不得覆盖教学结构或安全规则。
+
+**后端补全**
+
+- 构建成功后，后端用 KP 的权威 `objectives/misconceptions/formulas` 校正 `manifest.teaching` 中缺失或空白的字段；不覆盖页面实际讲解。
+- 合并 KP 的教学目标去重后进入 `teaching.objectives`，保证被合并知识点不会消失。
+- `DeckPageSummary` 增加：`teaching_role`、`estimated_minutes`、`check_count`、`teaching_score`（来自校验报告）；用于总览/工作台，不必加载 bundle。
+
+### 4.4 Validator 演进
+
+**静态检查新增**
+
+- `manifest.teaching` 结构校验：角色枚举、目标 1–3、链 3–5、检查 1–3、答案/解析必填、`chain[].block_id` 在 HTML 中存在且唯一。
+- `design_system` 版本校验；Kit 版本受支持。
+- 页面 CSS/JS/HTML 大小预算 warning（如 CSS >6KB、JS >10KB、HTML >16KB），硬上限仍为 2MB。
+- 修复 `overflow:auto|scroll` 正则误伤：改为对 CSS 规则块做定向解析，只禁止桌面“可见、可滚动且会溢出”的声明；隐藏面板/`display:none` 层与移动端（`max-width: 767px`）纵向滚动允许。
+- 冒烟 `expect` 必须初始不存在或状态不同；禁止恒真选择器。
+
+**浏览器检查新增**
+
+- 教学结构：每个 `chain[].block_id` 对应元素存在；目标/检查/例题的 required 项存在（角色相关）。
+- 内容裁剪：所有 `[data-mp-block]` 的 `scrollHeight/scrollWidth` 不得超过自身 `clientHeight/clientWidth`（即使 `overflow:hidden` 也算裁剪）。
+- 最小字号：可见文本 computed font-size <12px → warning；<11px → error（安全下限）。
+- 内容预算：按 `data-mp-text` 或主内容容器统计，整页正文 >700 汉字 → error `CONTENT_BUDGET_EXCEEDED`；单层可见 >500 汉字或可见块 >6 → warning（提示渐进式披露/拆页）；页内总块数 >8 → warning。
+- 冒烟覆盖：对主交互执行 smoke 后，桌面重新测量零滚动与内容裁剪；移动端检查纵向可滚动与无横向溢出；分步展开后的最终状态也要检查。
+- 等待策略：`ready` 后等待动画稳定（例如两个 rAF + 最长 400ms），避免中间态误报。
+- a11y：检查检查题的标签、按钮名称、焦点可见、reduced-motion。
+- 教学评分（0–100）：
+  - 目标清晰度 20；
+  - 讲解链完整性 20；
+  - 例题/应用 20；
+  - 误区 15；
+  - 检查/检索 15；
+  - 来源与页间承接 10。
+  - 缺失结构项 → error；质量不足 → warning。
+- 报告新增 `teaching: { score, criteria, metrics, warnings }`，不影响现有 `status` 语义；后端可据此设置门禁阈值。
+- 移动端校验：新增 390×844 视口，允许 `scrollHeight > clientHeight`，但要求 `scrollWidth <= clientWidth + 1`；若页面根 `overflow:hidden` 导致内容被裁剪，返回 `MOBILE_SCROLL_BLOCKED`。
+
+**阶段策略**
+
+1. P9–P10：结构必填项为 error，质量评分为 warning；先把“教学生成出来”。
+2. P11 黄金集校准后：`teaching.score < 70` 可作为 Builder 重试条件；连续失败则页面 `failed`，并在工作台显示原因。
+3. 不把主观“讲得好不好”直接做成 error；用结构 + 启发式评分 + 人工抽检。
+
+### 4.5 Builder：Deck 级会话复用
+
+#### 目标
+
+- 同一 Deck 的连续页面共享 Pi 会话，利用稳定前缀与上下文缓存，降低输入 token。
+- 保持页级任务、页级事件、页级校验、页级失败隔离与主 API 状态机不变。
+- 不在页面之间泄漏事实、布局或错误上下文；必要时轮换会话。
+
+#### 方案对比
+
+| 方案 | 缓存收益 | 上下文污染风险 | 并发/延迟 | 失败隔离 | 结论 |
+| --- | --- | --- | --- | --- | --- |
+| 每页独立会话（现状） | 无 | 无 | 好 | 好 | 保留为回退模式 |
+| 整个 Deck 一个会话 | 最高 | 高（14 页累积、错误/取消毁整册） | 串行，延迟高 | 差 | 不采用 |
+| **Deck 分 lane 会话** | 高 | 低（lane 内有限、可轮换） | 2 lane 并行，lane 内串行 | 较好 | **采用** |
+| 章节一会话 | 高 | 中 | 取决于章节大小 | 中 | 作为 lane 的分配依据 |
+
+#### 布局
+
+```text
+主 API Deck job
+  ├─ lane 0 → 第 1 章页面 → page_1 → page_4 → page_7 ...
+  └─ lane 1 → 第 2 章页面 → page_2 → page_5 → page_8 ...
+```
+
+- 默认 `lane_count = min(PAGE_BUILDER_CONCURRENCY, 2)`；按章节分组并平衡页数，lane 内按 `ordinal` 顺序构建。
+- 同一 lane 的页面共享一个 Pi 会话；不同 lane 并行。
+- 单页重建使用独立的 repair 会话（或空闲 lane 会话），不打断正在构建的 lane。
+
+#### 工作目录
+
+```text
+/tmp/mockfinal-sessions/{deck_id}/
+├── deck/
+│   ├── context.json          # 大纲、style、页面序列、教学约定
+│   └── handoff-lane-0.md     # 会话轮换时的交接摘要
+├── materials/
+│   ├── index.md
+│   └── {section_id}-{slug}.md
+├── pages/
+│   └── page_12/
+│       ├── brief.json
+│       ├── manifest.json
+│       ├── page.html
+│       ├── page.css
+│       └── page.js
+└── scaffold/                 # 角色模板副本（只读参考）
+```
+
+- Pi 会话 `cwd = deck 根目录`，所有页面通过 `pages/{page_id}/` 子目录隔离。
+- `materials/` 在整个 Deck 内共享，只写一次；页面 brief 只引用 `section_id` 与短引用。
+- `deck/context.json` 包含章节、style、页面序列、上一页/下一页摘要、教学约定；lane 首次启动时读取。
+
+#### Guard 改造
+
+当前 guard 把写权限锁死在“cwd 根下 4 个文件”（`builder/pi-harness/extensions/mockfinal-guard/index.ts:96-122`），需要改为：
+
+- Guard binding 以 **deck 根** 为 key，绑定当前 `active_page_id`。
+- `write/edit` 只允许 `pages/{active_page_id}/{manifest.json,page.html,page.css,page.js}`；禁止写其他页面、共享 materials、deck context。
+- `read` 允许 deck 根、`materials/`、`harness/`、已完成的页面目录（用于风格参考）；禁止越过 deck 根。
+- `check_page` 增加可选 `page_id`；必须等于 active page，调用页面目录的 bundle 收集。
+- `agent_end` 记录当前页文件清单，不扫描整个 deck。
+- 保留符号链接、路径穿越、大小、扩展名检查；不因会话复用放宽。
+
+#### Builder 请求/状态
+
+- `CreateBuildRequest` 增加可选：
+
+```json
+{
+  "build_id": "bld_page_12_v1_xxx",
+  "page_brief": { "page_id": "page_12", "...": "..." },
+  "session": {
+    "key": "deck_9_lane_0",
+    "lane": 0,
+    "page_index": 2,
+    "page_total": 7,
+    "first": false
+  },
+  "deck_context": { "...": "..." },
+  "feedback": null
+}
+```
+
+- 无 `session` 字段时走旧的每页模式（兼容测试/回退）。
+- Builder `SessionPool`：
+  - key → `{session, model, loader, settings, cwd, activePageId, pagesBuilt, contextUsage}`；
+  - 同一 key 的页面任务串行（进程内 mutex/队列）；
+  - `first=true` 时创建会话并写入 deck context/materials；
+  - 每次页面任务前更新 guard 的 active page；
+  - 页面完成/失败后记录摘要；超过轮换条件则关闭会话，写 handoff，创建新会话。
+- 事件：`task` 仍是页面级；`agent_start/tool/check/page_done` 只映射到当前页；切换页面前清空文本缓冲，避免串页。
+- 取消：取消页面 → abort 当前 prompt；会话标记为 dead，后续页面新建会话并从 handoff 恢复；Deck 取消 → 主 API 取消所有在途页面，Builder 清理会话与目录。
+- 失败隔离：单页最终失败不销毁 lane；若失败原因是会话级异常（模型/工具/上下文），关闭会话，下一页重开；失败页本身由主 API 决定重试或标记 failed。
+- 清理：主 API 在 job 结束尽力调用 `DELETE /v1/sessions/{key}`；Builder TTL（默认 30 分钟）兜底清理；不跨 Deck 复用。
+
+#### 会话轮换
+
+触发任一条件即轮换：
+
+- 本会话已构建 `BUILDER_SESSION_PAGES_PER_LANE` 页（默认 3）；
+- 进入新章节；
+- `getContextUsage()` 超过上下文窗口的 `BUILDER_SESSION_CONTEXT_RATIO`（默认 0.6）；
+- 页面失败/取消/模型异常后。
+
+轮换时写入 `handoff-lane-{n}.md`：
+
+- deck 目标与风格；
+- 已完成页面标题、角色、关键概念、交互模式；
+- 已发现的易错/布局问题；
+- 下一页的承接点；
+- 不包含原始页面代码与完整资料，避免上下文膨胀。
+
+新会话首条 prompt 只带 handoff + 当前页任务；需要具体代码时由模型 `read` 已完成页面文件。
+
+#### 缓存与上下文
+
+- 稳定前缀顺序：system（Pi 基座 + 工具 + Skill 描述）→ SKILL/契约摘要 → deck context → 设计系统说明。所有动态内容（页面 brief、反馈）放在用户消息，不修改 system。
+- 避免在 system 中放时间戳、build_id、随机数；它们会破坏前缀缓存。
+- `before_agent_start` 的 guard 提醒要么只在首次会话注入，要么保持逐字稳定；不要每页生成不同文本。
+- `DefaultResourceLoader`、`ModelRuntime`、Skill/Reference 只在会话创建时加载一次，不每页 `reload()`。
+- 对支持显式 `cache_control` 的网关，按网关能力配置 `promptCache`/`compat.cacheControlFormat`；对 DeepSeek 等自动前缀缓存网关，靠“稳定前缀 + 会话连续 + 追加式消息”命中，不假设 100% 命中。
+- `getSessionStats()` 是累计值；每页记录 before/after 差值，写入 `BuildUsage` 的 `cache_read_tokens/cache_write_tokens/cost`。
+- 自动压缩作为安全网：`compaction.enabled=true`，`reserveTokens=24000`，`keepRecentTokens=20000`；优先靠轮换而非压缩，避免压缩重写前缀导致缓存失效。
+
+#### 会话复用不改变的安全边界
+
+- 一个会话只属于一个 Deck、一个 lane；不允许跨用户/跨 Deck。
+- 页面目录、materials、handoff 均在 deck 根内；Guard 继续拒绝越界与符号链接。
+- 页面代码不在 Builder 执行；仍只由 Validator 执行。
+- Builder 仍不持有 DB/OSS/JWT 密钥。
+
+### 4.6 Prompt、缓存、思考与成本
+
+#### Prompt 结构
+
+```text
+[稳定前缀]
+System：Pi 基座 + 工具约束
+Skill：mockfinal-page-builder（只读一次）
+Contract：页面契约 + 设计系统 + 教学页规范（合并后的单一版本）
+Deck context：大纲、风格、页面序列、教学约定（每 lane 一次）
+
+[每页任务卡]
+page_id / role / brief 路径 / materials 路径 / scaffold 路径
+本页教学重点（3–5 条）
+上一页学完什么 / 下一页将学什么
+验收清单（结构、密度、桌面零滚动/移动端可滚动、必调 check_page）
+输出协议（只改必要文件，不写说明）
+
+[反馈/修复]
+只带结构化问题与相关片段，不重发整份资料
+```
+
+- 合并当前三份重复约束（`FALLBACK_PROMPT_HEADER`、`build-page.md`、guard reminder）为一份 `CONTRACT`；guard 只保留 5–8 行安全提醒。
+- 首次 prompt 可要求模型读 SKILL 与契约；后续页面不再重复“读 Skill”，直接给任务卡。
+- `build-page.md` 改成“页面任务模板”，不重复技能全文。
+- 语言策略：
+  - Profile `zh`：保留中文说明 + 中文内容；
+  - Profile `compact`：技术规则/契约用紧凑英文，示例与面向用户的内容用中文；
+  - 用黄金集 A/B，比较 token、首轮通过率、教学评分；默认按模型选择更优者。
+- 输出协议：
+  - 以脚手架为基础，优先 `edit`，禁止整页重写；
+  - 不输出 Markdown 说明、代码解释、总结；
+  - `page.css` 目标 ≤6KB，`page.js` 目标 ≤10KB，`page.html` 目标 ≤16KB；超出时提示精简而非硬截断；
+  - 复用 Kit class，不自造基础按钮/卡片/排版。
+
+#### 思考档位
+
+- 修复 `reasoning: false`：由 `PAGE_BUILDER_REASONING`（默认 true，若网关模型不支持则 false）控制；只有支持 thinking 的模型才传 `thinkingLevel`。
+- 接线 `PAGE_BUILDER_THINKING`，默认 `low`；按角色调整：
+  - `mechanism` / 首次章节页：`low`（必要时 `medium`）；
+  - `concept` / `compare`：`low`；
+  - `practice` / `summary`：`off` 或 `minimal`；
+  - 修复轮：`low`；复杂布局修复可 `medium`。
+- 通过模板、Kit、Validator 降低对“自由发挥”的依赖，再用 A/B 证明低思考不降低首轮通过率与教学评分。
+- `PAGE_BUILDER_THINKING` 必须真正传给 `createAgentSession` / `setThinkingLevel`，并记录每页实际档位。
+
+#### 成本核算
+
+- 扩展 `BuildUsage`：`input_tokens/output_tokens/cache_read_tokens/cache_write_tokens/cost/duration_ms/model_calls/thinking_level`。
+- `resolveModel` 的价格从环境变量读取（input/output/cache read/cache write，按 1M tokens），让 `SessionStats.cost` 有意义；未配置时只记 token。
+- 主 API 的 `deck_build_jobs` 增加 `usage` JSONB（P8，lifespan 幂等 DDL）；页面级 usage 可放 `deck_pages.validation` 或新增 `build_usage` JSONB（二选一，优先 job 级 + 日志，减少表变更）。
+- 日志字段：`deck_id/job_id/page_id/session_key/lane/page_index/input/output/cache_read/cache_write/cost/teaching_score/rotation_reason`。
+- 不在日志中记录 prompt 全文、资料正文、用户选中文本、密钥。
+
+#### 成本目标与验证
+
+| 指标 | 当前 | 目标 |
+| --- | --- | --- |
+| 14 页 Deck 模型成本 | ¥1.69 | ≤¥1.0–1.2 |
+| 每页输入 token | 20.7k–22.4k | 首屏后 ≤8k；缓存命中可观测 |
+| 每页输出 token | 13.1k–26.5k | ≤10k（教学内容增加但代码/说明减少） |
+| 单页 p90 | 157s（P2） | ≤6 分钟 |
+| Deck 总时长 | 15m11s（14 页） | ≤20 分钟（2 lane） |
+
+如果会话复用导致质量下降或延迟不可接受，回退到逐页模式，但保留 Prompt/模板/设计系统带来的成本优化。
+
+### 4.7 主 API 编排
+
+- `run_deck_build_job` 的页面执行从“Semaphore(2) + 每页独立调用”改为“lane worker”：
+  - `assign_lanes(pages, lane_count, outline)`：按章节分组、平衡页数，保持 lane 内顺序；
+  - 每个 lane 顺序执行页面：组装 brief → 调 Builder（带 session 元数据）→ 轮询 → 主 API 最终校验 → 写 bundle/进度；
+  - 两个 lane 并发，页级事件、进度、取消、重试语义不变。
+- 首次 lane 请求带 `deck_context` 与共享 materials；后续页面只带 brief/session 元数据。
+- 单页重建：`session.key = deck_{id}_repair_{uuid}` 或空闲 lane；不重规划，不改变其他页面。
+- `rebuild_all`：复用页面计划，lane 会话全部重建；旧版本保持 current 直到新页 ready。
+- 取消/超时：主 API 设置 `cancel_requested`，lane worker 取消当前 Builder 请求并停止取下一页；已 ready 页面保留。
+- 失败：页级失败不终止 lane；失败页按 `DECK_PAGE_MAX_ATTEMPTS` 重试；连续会话级失败则重建 lane。
+- 兼容：`BUILDER_SESSION_MODE=page` 时保留现有逐页路径；FakeBuilder 测试可只断言 page_id/brief，不受 session 字段影响。
+
+### 4.8 前端架构
+
+**类型/契约**
+
+- `types/index.ts` 新增 `TeachingRole`、`TeachingManifest`、`TeachingCheck`、`PageTeachingSummary`；`DeckPageSummary` 增加可选 `teaching_role/estimated_minutes/check_count/teaching_score`。
+- `PageBundle` 支持 `schema_version: '1.0' | '1.1'`、`manifest.design_system?`、`manifest.teaching?`。
+- `api/decks.ts` 无新端点；进度 API 复用 `PATCH /progress`。
+
+**组件**
+
+- `DeckStudyPanel.vue`：右侧 overlay，tabs 本页/检查/依据/AI；桌面 380–420px，移动全屏 sheet。
+- `TeachingRail.vue`：目标、路线、要点、公式、易错、小结、上下页。
+- `LessonCheck.vue`：选项、判定、解析、重试；本地状态，不持久化。
+- `DeckReaderToolbar.vue` 或统一 `DeckTopBar`：角色徽章、页码、已学、本页/AI/主题/全屏/更多。
+- `AppIconButton.vue`、`EmptyState.vue`、`ErrorState.vue`、`LoadingSkeleton.vue`：全局复用。
+- `PageFrame.vue`：处理 `progress` 事件；暴露 `post('focus_block', ...)`；超时 10s；错误卡可重试。
+
+**状态与轮询**
+
+- 阅读器：`bundleCache` 设 LRU 上限（如 6 页）；相邻页预取；缩略图懒加载。
+- 移动端：iframe 内部纵向滚动，宿主顶栏固定；学习面板全屏 sheet；`PageFrame` 不设置 `scrolling="no"`，禁止横向溢出。
+- 学习面板开关/宽度存 Pinia/`localStorage` 仅作展示偏好；学习状态以后端 `completed_page_ids` 为准。
+- 页面切换后设置 `aria-live` 标题、焦点到 stage/标题；键盘左右/空格保留；面板内输入不触发翻页。
+- 构建轮询保持 1s/隐藏 5s；事件按页分组；失败页可重试/查看原因。
+
+**测试**
+
+- Vitest：teaching 映射、检查判定、进度显式完成、角色标签、LRU、版本兼容。
+- P5/P6 Playwright：更新 header/选择器；新增学习面板打开/关闭、检查题、focus_block、移动 sheet、深色、reduced-motion；保持桌面零滚动断言，并新增移动端纵向滚动/无横向溢出断言。
+- 旧页面（无 teaching）降级测试。
+
+### 4.9 兼容、迁移与发布
+
+- **数据**：不删除旧表/旧页面；新增列仅用 lifespan `ADD COLUMN IF NOT EXISTS`（如 job usage）。旧 `manifest` 无 teaching 时前端降级。
+- **版本**：新 Bundle 1.1 / Runtime 1.1.0；Shell、Validator、前端同时支持 1.0 与 1.1；新构建由 Builder 写 1.1。
+- **部署顺序**：
+  1. 前端/Validator/Shell 先支持双版本（旧页面不受影响）；
+  2. 后端规划/契约/教学字段上线（teaching flag 默认关）；
+  3. Builder 模板/Kit/Prompt 上线（session mode 默认 page）；
+  4. 黄金集通过后开启 `BUILDER_SESSION_MODE=deck` 与 `DECK_TEACHING_ENABLED=true`；
+  5. 观察一版 Deck，再设为默认。
+- **回退**：
+  - 关闭 teaching flag → 新构建回到旧契约（不建议长期）；
+  - `BUILDER_SESSION_MODE=page` → 回退到逐页会话；
+  - 前端回退仍能读 1.1 页面（双版本支持）；
+  - 已生成页面不回滚、不删除；失败页保留旧 current。
+- **HMAC/内部 API**：新增字段不改变签名算法；主 API 与 Builder 同版本部署，旧 Builder 忽略未知字段，新 Builder 兼容旧请求。
+
+### 4.10 配置新增（草案）
+
+| 配置 | 默认 | 所属 | 说明 |
+| --- | --- | --- | --- |
+| `DECK_TEACHING_ENABLED` | `false` → 门禁后 `true` | backend | 启用教学契约/规划/校验 |
+| `DECK_TEACHING_MIN_SCORE` | `70` | backend | 教学评分门禁阈值（校准后启用） |
+| `DECK_VISIBLE_LAYER_CHARS` | `450` | backend/builder | 单层可见正文建议值（非硬门禁，超出提示渐进披露） |
+| `DECK_TOTAL_PAGE_CHARS` | `700` | backend/builder | 单页总正文硬上限（超出必须拆页） |
+| `DECK_MAX_PAGE_BLOCKS` | `8` | backend/builder | 页内总块数上限 |
+| `BUILDER_SESSION_MODE` | `page` → `deck` | builder | 逐页/Deck lane |
+| `BUILDER_SESSION_PAGES_PER_LANE` | `3` | builder | 轮换页数 |
+| `BUILDER_SESSION_CONTEXT_RATIO` | `0.6` | builder | 上下文轮换阈值 |
+| `BUILDER_SESSION_TTL_SECONDS` | `1800` | builder | 会话/目录清理 TTL |
+| `BUILDER_LANE_COUNT` | `2` | builder | lane 上限（与主 API 并发一致） |
+| `PAGE_BUILDER_THINKING` | `low` | builder | off/minimal/low/medium/high |
+| `PAGE_BUILDER_REASONING` | `true`（按模型） | builder | 是否声明 reasoning 能力 |
+| `PAGE_BUILDER_PROMPT_PROFILE` | `compact`（待 A/B） | builder | `zh` / `compact` |
+| `PAGE_BUILDER_CACHE_SHORT/LONG` | 空 | builder | 显式缓存网关可选 |
+| `PAGE_BUILDER_COST_INPUT/OUTPUT/CACHE_READ/CACHE_WRITE` | 空 | builder | 每 1M token 价格，用于成本统计 |
+| `PAGE_BUILDER_TIMEOUT_SECONDS` | `480` | builder | 单页超时（保持） |
+| `DECK_PAGE_MAX_ATTEMPTS` | `2` | backend | 页级总尝试（保持） |
+| `DECK_JOB_TIMEOUT_SECONDS` | `1800` | backend | 整 job 超时（保持/按 lane 调整） |
+
+> 所有新变量必须同步 `backend/.env.example`、`builder/README.md`、`README.md` 环境变量表与 AGENT.md。
+
+---
+
+## 5. 实施路线（P8–P13）
+
+> 旧 P0–P7 已完成；以下是本轮新增阶段。估算为单人、不含评审等待。P10 与 P12 可在 P9 后并行。
+
+### P8 · 基线与度量（2–3 天）
+
+**目标**：先把“现在到底是什么样”量化，避免凭感觉优化。
+
+- [ ] 用现有 14 页 Deck 记录基线：每页正文/块数/交互数（从 bundle 解析）、构建耗时、输入/输出 token、成本、Validator 报告。
+- [ ] 补齐 `BuildUsage` 的 cache/cost 字段与日志（不改变构建行为）；`deck_build_jobs` 增加 `usage` JSONB（lifespan DDL）。
+- [ ] 增加一个只读的基线统计脚本（`builder/scripts/` 或 `backend/tests/fixtures/`），输出 `docs/pageref/P8_BASELINE.md` 与 JSON。
+- [ ] 截图审计：阅读器、总览、构建台在 1280/1440/1920、深浅色、移动端；标出现有视觉问题。
+- [ ] 冻结 P5/P6 验收基线，记录将被新设计改变的断言。
+
+**验收**：基线报告可复现；成本/token 有逐页数据；后续改动可对比。
+
+### P9 · 教学契约与规划（4–5 天）
+
+**目标**：让“教学结构”成为数据与契约的一部分。
+
+- [ ] 后端 `OutlineKnowledgePoint` / `plan_pages` / `build_page_brief` 增加角色、先修、hook、教学契约、密度预算、合并 KP。
+- [ ] `manifest.teaching` schema、bundle 1.1、runtime 1.1.0 的文档与类型（先不要求真实 Pi 生成）。
+- [ ] Validator 静态检查：teaching 必填、block 引用、检查题结构；Builder `checkManifest` 同步。
+- [ ] 前端类型与 `DeckPageSummary` 教学摘要（角色/分钟/检查数/评分占位）。
+- [ ] 单元测试：角色分配、Brief 字段、合并 KP、teaching schema、旧 bundle 兼容。
+- [ ] 用 mock/fake builder 跑通“创建 Deck → 角色计划 → 教学 Brief → 页面 ready（mock）”。
+
+**验收**：规划输出包含角色序列；Brief 含教学目标与密度预算；Validator 能拒绝缺失教学结构的页面；旧页面不被误伤。
+
+### P10 · 页面设计系统与教学模板（5–7 天）
+
+**目标**：让页面“有密度、有教学骨架、又少写代码”。
+
+- [ ] Shell 注入 `DECK_KIT_CSS`（版本化、条件注入、双版本兼容），更新 shell 测试与 Validator shared-shell。
+- [ ] 六套角色模板（concept/mechanism/worked-example/practice/compare/summary），每套含语义 HTML、Kit class、步骤器/检查骨架、manifest 骨架。
+- [ ] 重写 Skill/References：合并硬约束、更新密度预算、加入教学角色与检查题写法、加入正反例；保留按需读取的 recipes。
+- [ ] Prompt 改为“模板起步 + 只改必要文件 + 每页任务卡”，减少重复 skill 全文。
+- [ ] Validator 浏览器检查：内容裁剪、最小字号、教学结构、评分、动画稳定等待、smoke 后复测。
+- [ ] Golden fixtures 升级：每个角色至少 1 个手写/半手写 bundle，覆盖 1.1 契约与教学评分；保留 1.0 legacy 样例。
+- [ ] 真实 Pi 小样验证：先跑 3 页（mechanism/worked_example/practice），检查教学结构与 token；预算 ≤¥1。
+
+**验收**：6 个角色页桌面零滚动、移动端可纵向滚动且无横向溢出、结构完整；Pi 能在模板上完成教学页；每页 CSS 明显下降；教学评分可解释。
+
+### P11 · Builder 会话复用与成本（6–8 天）
+
+**目标**：把“每页一个会话”改为“Deck lane 会话”，并证明成本/质量。
+
+- [ ] Builder `SessionPool`、lane 串行、deck 根 cwd、页面子目录、guard active page、页面级 bundle 收集。
+- [ ] 主 API lane 分配、session 元数据、共享 materials/deck context、cancel/timeout/retry 适配。
+- [ ] 会话轮换与 handoff；失败/取消后的会话恢复；TTL 清理；`DELETE /v1/sessions/{key}`。
+- [ ] Prompt 压缩：合并约束、任务卡、模板起步、compact profile；稳定前缀与缓存配置。
+- [ ] 接线 `PAGE_BUILDER_THINKING`/`reasoning`；角色化档位；记录实际档位与 token/cache/cost。
+- [ ] A/B：逐页 vs lane；zh vs compact；off/minimal/low；黄金集 8–10 页；记录成本、延迟、首轮通过率、教学评分。
+- [ ] 失败注入：lane 中单页失败、会话异常、取消、超时、Builder 重启；确认不污染后续页。
+
+**验收（门禁）**：教学结构完整率 100%；首轮通过率 ≥75%（修复后 ≥95%）；桌面零滚动/安全 100%；移动端无横向溢出且可纵向滚动；14 页成本 ≤¥1.2；Deck 时长 ≤20 分钟；无跨页内容/事实污染。
+
+### P12 · 阅读器与全局体验（6–8 天）
+
+**目标**：把教学结构以舒服、统一的方式呈现给用户。
+
+- [ ] 学习面板（本页/检查/依据/AI）、角色徽章、目标/路线/公式/易错/小结；focus_block 桥接。
+- [ ] 显式“学完本页”、步骤进度、去掉 3 秒自动完成；总览/工作台区分 ready/learned。
+- [ ] 统一 `DeckTopBar`、`AppIconButton`、`EmptyState`、`ErrorState`、`LoadingSkeleton`；修复 10px、danger token、z-index、容器宽度。
+- [ ] 页面切换过渡/骨架/预取/LRU/缩略图懒加载；10s 超时与错误卡。
+- [ ] 总览路线图角色/检查/学习状态；工作台教学进度；构建台角色分布、教学评分、失败建议。
+- [ ] 全局 Home/Workspace/Auth 视觉一致性；深色、移动端（允许纵向滚动、无横向溢出）、reduced-motion、焦点/aria。
+- [ ] 更新 `DESIGN.md` Deck 章节与文件落地地图。
+- [ ] P5/P6 验收脚本更新并执行；新增学习面板/检查/移动端截图。
+
+**验收**：浏览器验收全绿；0 控制台错误；375–1920、深浅色、reduced-motion 可用；移动端纵向滚动与无横向溢出验证通过；学习闭环可完成；视觉与主应用统一。
+
+### P13 · 回归、成本与发布（3–4 天）
+
+**目标**：证明没有破坏旧能力，并把发布/回滚写清楚。
+
+- [ ] 后端 pytest / 前端 Vitest+typecheck+build / Validator / Builder 全量回归。
+- [ ] 红队回归：外链、eval、父窗口、超大 bundle、路径穿越、prompt injection、XSS 检查题/教学文本。
+- [ ] 真实 14 页 E2E：记录 ready/failed、教学评分、首轮通过、成本、cache hit、时长；输出 `P13_RESULTS.json`。
+- [ ] 旧页面兼容：1.0 bundle 阅读器/Shell 正常；旧 Deck 不因新前端报错。
+- [ ] 成本报告：DeepSeek 余额前后、逐页 usage、总成本；确认 ≤ 预算。
+- [ ] 更新 README/AGENT/RULE/DESIGN/PAGE_CONTRACT/INTERNAL_API/新增 `TEACHING_PAGE_SPEC.md`、`SESSION_REUSE.md`、`P8–P13` 报告。
+- [ ] 发布/回滚手册；等待维护者审阅；**不擅自 push/merge**。
+
+**验收**：DoD 全部满足；维护者签收；可一键回退 session/teaching flag。
+
+---
+
+## 6. 调研实验与门禁
+
+### 6.1 黄金集（10 个 brief）
+
+| # | 角色 | 主题 | 关键交互 | 教学检查 |
+| --- | --- | --- | --- | --- |
+| 1 | mechanism | 二分查找 | 区间收缩/预测 | 循环不变量 |
+| 2 | worked_example | 矩阵变换 | 分步推导 | 列向量含义 |
+| 3 | concept | 时间复杂度 | 曲线/分类 | O 与 Θ 区别 |
+| 4 | compare | 进程 vs 线程 | 切换对照 | 共享资源 |
+| 5 | worked_example | 概率条件 | 步骤计算 | 条件概率陷阱 |
+| 6 | mechanism |  TCP 握手 | 状态推进 | 为什么三次 |
+| 7 | practice | 错题辨析 | 选项/解析 | 检索练习 |
+| 8 | summary | 章节速查 | 展开卡片 | 公式/误区 |
+| 9 | concept | 指针与引用 | 图示 | 语义差异 |
+| 10 | compare | 排序稳定性 | 对照 | 稳定性的代价 |
+
+每个 brief 含 2–4 个来源分节、3–5 条目标/要点、1–3 条误区、1–2 个检查点。
+
+### 6.2 A/B 矩阵
+
+| 组 | 会话 | Prompt | Thinking | 目的 |
+| --- | --- | --- | --- | --- |
+| A | 逐页 | zh（现状精简） | off | 当前基线 |
+| B | Deck lane | zh | off | 纯会话复用收益 |
+| C | Deck lane | compact | low | 目标方案 |
+| D | Deck lane | compact | minimal | 成本下限/质量边界 |
+
+可选 E：Deck lane + Kit/模板关闭，用于隔离设计系统收益（仅工程实验，不交付）。
+
+### 6.3 指标
+
+- 首轮 Validator 通过率、修复 1 轮后通过率；
+- 教学结构完整率、教学评分分布；
+- 桌面零滚动（3 桌面 + 阅读器内容视口）、移动端纵向可滚/无横向溢出、内容裁剪、最小字号；
+- 冒烟通过率、检查题结构正确率；
+- 每页 input/output/cache read/cache write/cost、每 Deck 总成本；
+- 每页 p50/p90 时长、Deck 总时长；
+- 跨页事实/布局污染人工抽检；
+- 安全红队 0 通过。
+
+### 6.4 决策规则
+
+- **必须**：教学结构 100%、桌面零滚动 100%、移动端无横向溢出且可纵向滚动、安全 0 违规、旧页面可读。
+- **质量**：首轮 ≥75%，修复后 ≥95%；教学评分中位数 ≥75。
+- **成本**：14 页 ≤¥1.2；若 C 组不达标，尝试 D；仍不达标则回退 B，保留 Prompt/模板收益。
+- **延迟**：单页 p90 ≤6 分钟；Deck ≤20 分钟；否则调整 lane 数/页数/轮换策略。
+- **模型**：DeepSeek Flash 为基线；如有可用 Qwen Coder 等模型，做一次对照，不无限扩模型矩阵。
+
+### 6.5 预算
+
+- P10 小样：≤¥1；
+- P11 A/B：≤¥3；
+- P13 全量：≤¥2；
+- 合计 **≤¥6**；每次真实调用前记录余额，结束后报告实际消耗；超出前暂停。
+
+---
+
+## 7. 验收矩阵
+
+| 场景 | 验收 |
+| --- | --- |
+| 新建 Deck（standard） | 角色序列合理；核心 KP 有机制/例题；章节有小结；页数 10–14 |
+| 构建 14 页 | 全部 ready 或明确 failed；教学结构完整；进度真实 |
+| 单页内容 | 页内总正文 450–700 字；单层建议 ≤450–500 字，超出用渐进式披露；1 主交互 + 1 检查；无裁剪 |
+| 页面角色 | concept/mechanism/worked_example/practice/compare/summary 均能生成并通过 |
+| 教学检查 | 每题有答案/解析/目标映射；宿主可作答/揭示/重试 |
+| 桌面零滚动 | 1280×720、1440×900、1920×1080、阅读器内容视口全部通过 |
+| 移动端 | 375/390 宽度允许纵向滚动，无横向溢出；学习面板为全屏 sheet |
+| 构建中刷新/断线 | 后台继续；重进恢复 job/page；0 订阅者仍完成 |
+| 取消 | 未完成页取消；已 ready 保留；会话/目录清理 |
+| 单页重建 | 不重规划；旧版本保持 current；新版本通过后切换 |
+| 整册重建 | lane 重建；失败页保留旧 ready；最终 ready/partial 正确 |
+| 会话复用 | 同 lane 页面共享会话；稳定前缀；无跨页事实/布局污染；轮换可解释 |
+| 成本 | 14 页 ≤¥1.2；cache 指标可观测 |
+| 旧页面 | 1.0 bundle 在阅读器/Shell 正常；无 teaching 时面板降级 |
+| 前端 | 375/768/1024/1280/1440/1920；深浅色；reduced-motion；0 控制台错误 |
+| 可访问性 | 键盘翻页/面板/检查；焦点可见；aria-live；按钮有名称 |
+| 教学面板 | 目标/路线/公式/易错/检查/依据/AI 可用；移动端 sheet；关闭回焦 |
+| 安全 | 外链/eval/父窗口/存储/网络/路径穿越/prompt injection 全部拦截；检查题 XSS 清洗 |
+| 文案 | 全中文、可行动；不出现内部术语；ready/learned 不混淆 |
+
+---
+
+## 8. 成本预算与观测
+
+### 8.1 当前基线
+
+- P2：3 页，输入 65,153 / 输出 56,390 tokens，成本 ¥0.14，p90 157.2s。
+- P4：14 页，15m11s，¥1.69（含规划）。
+- 当前每页输入约 20.7k–22.4k，输出 13.1k–26.5k；成本几乎全在重复上下文与输出。
+
+### 8.2 目标
+
+- 输入：会话复用 + 只读一次 Skill + 共享 materials + 稳定前缀，目标首屏后 ≤8k/页。
+- 输出：模板/Kit 起步 + 只改必要文件 + 禁止说明文，目标 ≤10k/页。
+- 14 页总成本：≤¥1.0–1.2（-30%～-40%）。
+- 不把成本目标建立在“缓存一定命中”的假设上；以 `cacheRead` 实测为准。
+
+### 8.3 观测
+
+- 每页：`input/output/cache_read/cache_write/cost/duration/thinking_level/rotation_reason`。
+- 每 Deck：页数、lane 数、轮换次数、总成本、p50/p90、首轮通过率、教学评分。
+- 报告：`docs/pageref/P8_BASELINE.md`、`P11_COST.md`、`P13_RESULTS.json`。
+- 不记录 prompt/资料正文/密钥；成本数据只做内部统计与工作台摘要（普通用户不展示具体金额）。
+
+---
+
+## 9. 风险与回滚
+
+| # | 风险 | 概率 | 影响 | 缓解 | 触发/回退 |
+| --- | --- | --- | --- | --- | --- |
+| R1 | 分层隐藏内容导致“看不见的教学” | 中 | 中 | 每层有明确入口与进度；宿主面板承载元信息；Validator 检查入口存在 | 用户反馈“找不到内容”→ 提高默认展开层/优化标签 |
+| R2 | 教学内容增加导致输出 token 上升 | 高 | 中 | 模板/Kit/只改文件/输出预算；单层字数限制 | 成本超目标 → 降页数/降密度/压缩 Prompt |
+| R3 | 会话复用造成跨页污染 | 中 | 高 | lane 轮换、handoff、active page guard、页面目录隔离 | 抽检发现污染 → 缩短轮换页数/回退逐页 |
+| R4 | 缓存不命中（网关差异） | 中 | 中 | 稳定前缀、会话连续、实测 cacheRead；不承诺固定折扣 | 命中率低 → 调 Prompt 顺序/换模型/回退 |
+| R5 | 教学校验误伤/阻塞 | 中 | 高 | 结构 error、质量 warning；先 mock/小样校准；可关 flag | 失败率高 → 放宽 warning/修规则 |
+| R6 | Validator 规则误伤分层布局 | 中 | 中 | 隐藏层用 `display:none`；动画稳定等待；smoke 后复测 | 误报 → 修规则并加 fixture |
+| R7 | 设计系统限制创作 | 中 | 中 | Kit 只提供基础组件，页面 CSS 可覆盖；模板可扩展 | 需要新组件 → 版本化加入 Kit |
+| R8 | 学习面板遮挡/打断阅读 | 中 | 低 | overlay 不改变 stage；默认关闭；移动 sheet；可固定偏好 | 反馈遮挡 → 默认半透明/可拖拽/关闭记忆 |
+| R9 | 前端改动破坏 P5/P6 | 中 | 中 | 双版本、验收脚本更新、逐项回归 | 回归失败 → 回退前端变更 |
+| R10 | 旧页面/旧 Bundle 不兼容 | 低 | 高 | Shell/Validator/前端双版本；旧页面不重校验 | 兼容问题 → 关闭新版本渲染/回退 |
+| R11 | 部署版本错配 | 中 | 高 | HMAC 不变、字段向后兼容、同版本部署、feature flag | 错配 → 回退 Builder/API 同版本 |
+| R12 | 预算超支 | 中 | 中 | ≤¥6 硬上限；每阶段记录余额；超限暂停 | 超限 → 停止真实调用，改 mock/局部验证 |
+
+**回滚顺序**：`BUILDER_SESSION_MODE=page` → `DECK_TEACHING_ENABLED=false` → 前端/Validator 回退到双版本兼容版本 → 不删除任何已生成页面/数据。
+
+---
+
+## 10. 文档义务
+
+| 改动 | 必须更新 |
+| --- | --- |
+| 页面契约/教学字段/Runtime | `docs/pageref/PAGE_CONTRACT.md`、`docs/pageref/INTERNAL_API.md`、`AGENT.md` §5.5/§5.6 |
+| Builder 会话/Guard/内部 API | `builder/README.md`、`docs/pageref/SESSION_REUSE.md`、`AGENT.md` §4 |
+| 教学页规范/密度/角色 | 新增 `docs/pageref/TEACHING_PAGE_SPEC.md`；`DESIGN.md` Deck 章节 |
+| 前端视觉/组件/动效 | `DESIGN.md`（阅读器、学习面板、TopBar、IconButton、过渡、移动端） |
+| 新增配置 | `backend/.env.example`、`builder/README.md`、`README.md` 环境变量表 |
+| 新依赖/版本 | `requirements.txt` / `package.json` + 说明（尽量不新增） |
+| 测试/验收 | `AGENT.md` §3.3、`RULE.md` §7、P5/P6 脚本说明 |
+| 成本/缓存/Prompt 策略 | `P8_BASELINE.md`、`P11_COST.md`、`P13_RESULTS.json`、`P13_REPORT.md` |
+
+---
+
+## 11. 决策记录与已确认事项
+
+### 已定（本方案建议）
+
+1. 单页采用“页内分层 + 宿主教学面板 + 角色化”的混合方案，不采用单屏硬塞。
+2. 新页面必须带 `manifest.teaching`；旧页面降级可读。
+3. 宿主 Shell 注入版本化设计系统；Bundle 只写语义结构与局部 CSS。
+4. Pi 采用 Deck lane 会话（默认 2 lane），lane 内串行、按章节分配；保留逐页回退。
+5. Prompt 采用稳定前缀 + 每页短任务卡 + 模板起步 + 只改必要文件。
+6. 思考档位默认 `low`，练习/小结可 `off/minimal`，复杂机制可 `medium`。
+7. 前端用统一学习面板替代“依据 Modal + AI 抽屉”的割裂浮层；显式“学完本页”。
+8. 真实模型验证预算 ≤¥6。
+9. 移动端允许纵向滚动；桌面 1280/1440/1920 与阅读器内容视口继续零滚动，移动端禁止横向溢出。
+
+### 维护者已确认（2026-11-08）
+
+| # | 问题 | 结论 |
+| --- | --- | --- |
+| Q1 | 默认密度档位与页数 | 保持 `standard`（10–14 页）；`deep` 作为重课程选项 |
+| Q2 | 检查题结果是否持久化 | MVP 先本地状态 + 显式学完；下阶段再存分数/需复习 |
+| Q3 | 学习面板默认打开还是关闭 | 默认关闭，标题旁显示角色/检查数；用户可记忆偏好 |
+| Q4 | 移动端滚动策略 | **允许移动端纵向滚动**；桌面（发布门禁 1280/1440/1920 + 阅读器内容视口）保持零滚动；移动端禁止横向溢出，不承诺单屏 |
+| Q5 | 教学评分门禁 | P11 校准后设 `≥70` 为 Builder 重试条件，不直接判死 |
+| Q6 | 真实模型验证预算 | ¥6 上限；超出前暂停并汇报 |
+| Q7 | 默认模型/Prompt 语言 | 以 DeepSeek Flash 基线；compact 英文规则 + 中文内容按 A/B 结果决定 |
+
+---
+
+## 附录 A · 教学 Manifest 示例（mechanism）
+
+```json
+{
+  "schema_version": "1.1",
+  "design_system": "1.0",
+  "page_id": "page_012",
   "title": "二分查找：每次排除一半",
-  "subtitle": "把搜索区间折半，直到命中或为空",
-  "knowledge_point_ids": ["kp_012"],
+  "subtitle": "维护区间不变量，直到命中或为空",
+  "knowledge_point_ids": ["kp_12"],
   "importance": "core",
-  "estimated_minutes": 6,
-  "layout": "focus",
+  "estimated_minutes": 7,
+  "layout": "split-steps",
   "interactions": [
     {
       "id": "bisect-demo",
-      "type": "simulation",
+      "type": "simulate",
       "label": "拖动目标值，观察区间收缩",
+      "objective_id": "o2",
       "smoke": {
         "action": "click",
         "selector": "[data-mp-action='step']",
-        "expect": "[data-mp-state='shrunk']"
+        "expect": "[data-mp-state='stepped']"
       }
     }
   ],
+  "teaching": {
+    "version": "1.0",
+    "role": "mechanism",
+    "objectives": [
+      "能说出二分查找的循环不变量",
+      "能解释每次排除一半的原因"
+    ],
+    "prerequisites": ["数组有序", "区间概念"],
+    "hook": "如果每次只排除一个元素，10 亿个数要试多久？",
+    "chain": [
+      { "id": "c1", "title": "维护搜索区间", "block_id": "b1" },
+      { "id": "c2", "title": "比较中点", "block_id": "b2" },
+      { "id": "c3", "title": "排除一半", "block_id": "b3" }
+    ],
+    "check": [
+      {
+        "id": "q1",
+        "objective_id": "o2",
+        "question": "为什么 mid 要向下取整？",
+        "options": ["保证区间收缩", "让结果更快", "避免数组越界", "没有原因"],
+        "answer_index": 0,
+        "explanation": "向下取整保证 left/right 至少移动一格。"
+      }
+    ],
+    "summary": {
+      "key_points": ["区间不变量", "每次排除一半", "O(log n)"],
+      "misconceptions": ["mid 向上取整导致死循环"],
+      "next": "下一节：边界写法"
+    }
+  },
   "source_refs": [
-    { "material_id": 3, "section_id": 42, "quote": "二分查找每次将搜索区间缩小一半…" }
+    { "material_id": 3, "section_id": 42, "quote": "二分查找每次将搜索区间缩小一半……" }
   ],
   "assistant": {
     "summary": "本页讲解二分查找的区间不变量与复杂度。",
@@ -717,1055 +1227,125 @@ Builder 交付一个 JSON bundle（单文件、无目录、无外部资源）：
 }
 ```
 
-- `interactions[].smoke` 是必填的自动冒烟步骤；非交互页可声明 `type: "none"`，但 Non-summary 页面应至少有一个交互。
-- `source_refs` 来自大纲阶段，后端解析为实际段落；页面不得编造引用。
-- `layout` 只是元数据（供总览/生成参考），不限制自由布局。
-
-### 7.3 Runtime API
-
-宿主 shell 注入 `runtime.js`，页面可使用：
-
-```js
-MockFinal.ready({ title })                 // 页面可交互
-MockFinal.emit(type, payload)              // 交互/进度/完成事件
-MockFinal.next() / MockFinal.prev()        // 请求翻页（可选）
-MockFinal.requestAssistant(quote?)         // 请求打开侧栏
-MockFinal.getTheme()                       // { mode, tokens, reducedMotion }
-MockFinal.onHostMessage(fn)                // theme / pause / resume / quote
-```
-
-运行时负责：
-
-- 选区监听：`selectionchange` → `{ text, rect, blockText }` → `postMessage` 给宿主；
-- 错误捕获：`window.onerror` / `unhandledrejection` → 宿主 + Validator；
-- 尺寸上报：ResizeObserver → 宿主（页面可用 `100dvh`/容器查询）；
-- 键盘：仅在页面内交互需要时注册，翻页快捷键由宿主处理；
-- 降低动效：根据 `prefers-reduced-motion` 与宿主消息设置 `data-mp-reduced-motion`；
-- 禁止访问父页面/网络：runtime 自身也不提供这些能力。
-
-### 7.4 Shell 与沙箱
-
-宿主组装：
-
-```html
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'none';
-    script-src 'unsafe-inline';
-    style-src 'unsafe-inline';
-    img-src data:;
-    font-src data:;
-    media-src data:;
-    connect-src 'none';
-    frame-src 'none';
-    object-src 'none';
-    base-uri 'none';
-    form-action 'none';
-  ">
-  <style>/* reset + theme tokens + runtime base */</style>
-  <style>/* page.css */</style>
-</head>
-<body>
-  <div id="mp-root">/* page.html */</div>
-  <script>/* runtime.js */</script>
-  <script>/* page.js */</script>
-</body>
-</html>
-```
-
-- iframe：`sandbox="allow-scripts"`（**不加** `allow-same-origin`）、`referrerpolicy="no-referrer"`、无 `allow` 权限。
-- 使用 `srcdoc` 注入；不通过 URL 加载页面，避免鉴权与缓存泄露；页面不能在沙箱外发请求。
-- **Validator 与前端复用同一份 `pageShell` 实现/构建产物**（Node 与前端共享 runtime 源、固定版本号），避免“校验时通过、真实渲染时漂移”。
-- 组装时转义 `</script`、`</style`，防止生成内容提前闭合标签；Validator 也检查这类序列。
-- 页面不能读取父页面 DOM、cookie、localStorage；宿主通过 `postMessage` 通信，并校验 `event.source === iframe.contentWindow` + 随机 channel token。
-- 页面加载超时（默认 10s）显示错误卡片，可重试；iframe 卡死时可销毁重建。
-
-### 7.5 零滚动策略
-
-- 页面根元素：`height: 100dvh; overflow: hidden;`，内部使用 `grid-template-rows: auto 1fr auto`。
-- 字号/间距：`clamp()` + `minmax()`；避免固定大 px。
-- 内容预算（Skill 约束）：每页 1 个核心观点、3–5 个内容块、1 个主交互；正文建议 ≤ 250 中文字符（不含图注/公式）。
-- 校验器在 3 个视口测量 `scrollWidth/scrollHeight`；任何超出即失败；同时检查所有 `overflow: auto/scroll` 的可见元素。
-- 对复杂知识点，优先拆页（最多 3 页），而不是压缩字号。
-
-### 7.6 Validator 规则
-
-静态检查：
-
-- bundle JSON schema、字段长度、总大小、文件编码；
-- HTML 禁止标签/属性、内联事件白名单（只允许 `data-mp-*`）、`javascript:` URL；
-- JS 禁止 API（网络、存储、eval、父窗口、动态脚本注入）；
-- CSS 禁止 `@import`、外部 `url()`、`position: fixed` 遮挡导航（可选警告）；
-- manifest 必填项、引用 ID 存在、冒烟选择器语法。
-
-浏览器检查（Playwright）：
-
-- 加载 shell + bundle，等待 `MockFinal.ready` 或超时；
-- 视口：1280×720、1440×900、1920×1080（桌面验收）；1024×768（缩放提示）；
-- 零滚动：`scrollWidth <= clientWidth + 1`、`scrollHeight <= clientHeight + 1`；无内部滚动容器；
-- 控制台：无 error、无 unhandled rejection；
-- 网络：拦截并拒绝所有非本地请求；出现即失败；
-- 交互：执行 `manifest.interactions[].smoke`（click/input/step），验证 `expect` 选择器/状态；
-- 可访问性：标题层级、焦点可见、图标按钮 `aria-label`、reduced-motion 下动画降级；
-- 截图：每个视口 1 张（供工作台缩略图与人工复核）。
-
-报告：
+## 附录 B · Page Brief 示例（节选）
 
 ```json
 {
-  "status": "passed|warning|failed",
-  "issues": [
-    { "severity": "error", "code": "ZERO_SCROLL_OVERFLOW", "message": "…", "selector": "…", "viewport": "1280x720" }
-  ],
-  "screenshots": ["…"],
-  "duration_ms": 12345
-}
-```
-
-- `error` 阻止放行；有限数量的 `warning` 可放行但记录。
-- 最终门禁由后端调用 Validator；Builder 的自检报告仅供参考。
-
-### 7.7 修复闭环
-
-```text
-Pi 写完 → check_page（Validator 静态+浏览器）
-  ├─ passed → agent_settled → Builder 最终校验 → 交付
-  ├─ failed → 修复 prompt（问题列表 + 相关文件）→ 最多 2 轮
-  └─ 仍失败 → 返回 failed + 报告；后端可重试整页 1 次
-```
-
-修复 prompt 只带结构化问题与必要上下文，不把整份资料重新灌入；优先修布局/交互/违规，不重写整页。
-
-### 7.8 版本化
-
-- `runtime_version`、`schema_version`、`harness_version` 三者独立版本号。
-- 页面 bundle 带 `runtime_version`；前端不支持时拒绝渲染并提示更新。
-- Harness 升级必须跑黄金用例回归；Pi 版本锁定，升级单独任务。
-- 页面重做生成新 `version`；成功后再切换 `deck_pages.current_version`，旧版本保留一个周期用于回滚。
-
----
-
-## 8. 后端设计
-
-### 8.1 数据模型
-
-新增表（均为 `create_all` 自动创建；不改既有表结构）：
-
-**`material_sections`**：见 §5.1。
-
-**`review_decks`**
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `id` | int PK | |
-| `workspace_id` | FK cascade | 归属 |
-| `title` | varchar(255) | 默认「{工作区名} · 复习页」 |
-| `status` | varchar(16) | `draft/planning/building/partial/ready/failed/canceled` |
-| `style` | jsonb | 预设、内容偏好、自定义提示词、密度 |
-| `outline` | jsonb | 章节/知识点快照（可查询冗余） |
-| `source_signature` | varchar(64) | 资料分节内容哈希，检测资料变更 |
-| `last_page_id` | int nullable | 继续上次 |
-| `completed_page_ids` | jsonb | 已读页面 ID |
-| `created_at / updated_at` | timestamptz | |
-
-**`knowledge_points`**
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `id` | int PK | |
-| `deck_id` | FK cascade | |
-| `parent_id` | FK self nullable | 章节/子知识点 |
-| `ordinal` | int | |
-| `title` | varchar(255) | |
-| `summary` | text | |
-| `importance` | varchar(8) | `core/normal/minor` |
-| `difficulty` | varchar(8) | `easy/medium/hard` |
-| `objectives` | jsonb | 学习目标 |
-| `key_points` | jsonb | 要点 |
-| `formulas` | jsonb | 公式（KaTeX） |
-| `misconceptions` | jsonb | 易错点 |
-| `source_refs` | jsonb | `[{material_id, section_id}]` |
-| `interaction_idea` | text | 给 Page Builder 的视觉化建议 |
-| `created_at` | timestamptz | |
-
-**`deck_pages`**
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `id` | int PK | |
-| `deck_id` | FK cascade | |
-| `knowledge_point_ids` | jsonb | 可覆盖多个非重要知识点 |
-| `primary_knowledge_point_id` | int nullable | |
-| `ordinal` | int | 阅读顺序 |
-| `title` | varchar(255) | |
-| `kind` | varchar(16) | `concept/interactive/summary/practice` |
-| `status` | varchar(16) | `planned/building/validating/ready/failed/canceled` |
-| `current_version` | int | |
-| `bundle_key` | varchar(512) nullable | 存储 key |
-| `thumbnail_key` | varchar(512) nullable | |
-| `manifest` | jsonb | 页面元数据快照 |
-| `validation` | jsonb | 最近一次报告摘要 |
-| `build_attempts` | int | |
-| `builder_build_id` | varchar(64) | |
-| `created_at / updated_at` | timestamptz | |
-
-**`deck_build_jobs`**
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `id` | int PK | |
-| `deck_id` | FK cascade | |
-| `workspace_id` | FK cascade | |
-| `status` | varchar(16) | `pending/planning/building/validating/done/partial/failed/canceled` |
-| `stage` | varchar(255) | 中文阶段文案 |
-| `progress` | int | 0–100，真实页级 |
-| `total_pages / ready_pages / failed_pages` | int | |
-| `error` | text nullable | |
-| `cancel_requested` | bool | |
-| `created_at / started_at / finished_at` | timestamptz | |
-
-部分唯一索引：同一 Deck 同时最多一个活跃 job。
-
-**`deck_build_events`**
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `id` | bigint PK | 前端 `after_id` 游标 |
-| `job_id` | FK cascade | |
-| `page_id` | int nullable | |
-| `type` | varchar(32) | `stage/text/tool/page_ready/validation/error/retry` |
-| `payload` | jsonb | |
-| `created_at` | timestamptz | |
-
-索引 `(job_id, id)`；按 job 级联删除；保留策略建议 30 天或随 Deck 删除。
-
-**`page_chat_messages`**
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `id` | int PK | |
-| `user_id / deck_id / page_id` | FK | 归属 |
-| `role` | varchar(16) | `user/assistant` |
-| `status` | varchar(16) | `done/streaming/failed`（用户消息恒为 done） |
-| `content` | text | |
-| `quote` | text nullable | 选中文本 |
-| `context_refs` | jsonb | 引用资料段落 |
-| `created_at` | timestamptz | |
-
-### 8.2 状态机
-
-```text
-Deck: draft → planning → building → ready
-                         ├→ partial（部分页失败）
-                         └→ failed（规划/全部页失败）
-       任一阶段可 canceled（用户取消）
-Page: planned → building → validating → ready
-                    ├→ building（修复轮次）
-                    └→ failed（重试耗尽）
-Job:  pending → planning → building → validating → done/partial/failed/canceled
-```
-
-规则：
-
-- 同一 Deck 最多一个活跃 job；应用层 409 + DB 部分唯一索引兜底。
-- 页面失败不阻断其他页；Deck 最终 `partial`，用户可重试失败页。
-- 取消只由独立取消接口触发；客户端断开不取消。
-- 服务重启：遗留 `pending/planning/building/validating` 置 `failed`（中文原因）；Builder 侧任务由 TTL 清理。
-
-### 8.3 API 契约（新）
-
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
-| GET | `/api/workspaces/{id}/decks` | Deck 列表（按更新时间倒序） |
-| POST | `/api/workspaces/{id}/decks` | 创建 Deck（draft），body：`title?/style` |
-| GET | `/api/decks/{id}` | Deck 详情：状态、style、outline、pages 摘要、进度 |
-| PATCH | `/api/decks/{id}` | 更新标题/style；style 变更只影响后续构建/单页重做，不自动重排已有页面 |
-| DELETE | `/api/decks/{id}` | 204，级联页面/事件/聊天与存储对象 |
-| POST | `/api/decks/{id}/build` | 首次构建 → `{job_id}`；无已就绪资料 400；活跃任务 409；body 可选 `rebuild_all=true`（复用大纲重建全部页）或 `replan=true`（仅无页面/全部失败时） |
-| POST | `/api/decks/{id}/cancel` | 取消活跃 job |
-| GET | `/api/deck-jobs/{id}` | job 状态/阶段/进度/错误 |
-| GET | `/api/deck-jobs/{id}/events?after_id=` | 增量事件（轮询；可选 SSE 包装） |
-| GET | `/api/decks/{id}/pages/{page_id}` | 页面元数据/状态/版本 |
-| GET | `/api/decks/{id}/pages/{page_id}/bundle` | 已就绪 bundle JSON（含 manifest/html/css/js） |
-| GET | `/api/decks/{id}/pages/{page_id}/thumbnail` | 缩略图（可选） |
-| POST | `/api/decks/{id}/pages/{page_id}/rebuild` | 带反馈重建单页 → `{job_id}` |
-| PATCH | `/api/decks/{id}/progress` | `{last_page_id, completed_page_ids}` |
-| GET | `/api/decks/{id}/pages/{page_id}/messages` | 聊天历史 |
-| POST | `/api/decks/{id}/pages/{page_id}/messages` | SSE 流式问答 |
-
-约定沿用现有：创建 200、删除 204、未认证 401、无权 404、冲突 409、业务错误 `{"detail": "中文"}`。Builder/Validator 不可用返回 503/504，文案可行动（例如「页面构建服务暂不可用，请稍后重试」）。
-
-### 8.4 编排流程
-
-1. **创建/校验**：资料已就绪；LLM/Builder/Validator 配置齐全；Deck 无活跃 job。
-2. **规划**：
-   - 取 `material_sections`，做资料级摘要（可复用现有 map-reduce 思路）；
-   - 结构化输出章节/知识点 JSON（Pydantic 校验 + 最多 2 次修复）；
-   - 生成 `knowledge_points`、页面计划（重要度 × 内容量 → 1–3 页，总页数上限）；
-   - 解析 `source_refs`，缺失/无效时用标题/关键词回退并标注置信度。
-3. **构建**：
-   - 每页组装 `PageBrief`（知识点、来源段落、风格、用户偏好、交互建议、约束）；
-   - 调 Builder `POST /v1/builds`；轮询 Builder 状态与事件，写入 `deck_build_events`；
-   - 收到 bundle 后调 Validator 最终门禁；失败则 Builder 修复或标记页面失败；
-   - 成功：保存 bundle/缩略图，页面 `ready`，更新进度，写事件；继续下一页。
-4. **收尾**：全部页面结束 → Deck `ready/partial`；job 终态；清理 Builder 临时目录。
-5. **单页重建**：复用页面 brief + 用户反馈，生成新 `version`，成功后再切换 current。
-
-并发：页面构建默认并发 2（可配）；资料摘要并发复用现有 Semaphore(4)。总 job 超时 30 分钟（可配）。
-
-构建模式：
-
-- **首次构建**：无页面 → 规划 + 逐页构建。
-- **整册重建**（`rebuild_all=true`）：复用现有大纲与页面计划，逐页重建新版本；旧版本在对应新页 ready 前保持可读。
-- **重新规划**：仅在没有页面或整册构建全部失败时允许；会替换大纲/页面，需确认；构建中不可用；已有页面时建议新建 Deck。
-- **单页重建**：见 §8.4 第 5 条，不触碰其他页。
-
-### 8.5 大纲与 Page Brief
-
-**大纲规划 prompt 要点：**
-
-- 只依据给定资料，不编造；公式保留 KaTeX；
-- 输出严格 JSON：`chapters[] / knowledge_points[] / source_section_ids[] / importance / interaction_idea / page_count`；
-- 覆盖资料主要考点；非重要知识点可合并；
-- 每个知识点至少 1 个 `section_id`；无法引用则标记 `unverified`，不得伪造；
-- 章节数 3–6，知识点 6–16，页面总数 6–16（按密度）；
-- 交互建议要具体（例如「用区间收缩动画演示二分」），不要泛泛写「加动画」。
-
-**Page Brief：**
-
-```json
-{
-  "page_id": "page_003",
+  "page_id": "page_012",
   "deck_title": "数据结构 · 复习页",
-  "knowledge_point": { "title": "…", "summary": "…", "objectives": [], "key_points": [], "formulas": [], "misconceptions": [] },
+  "chapter_title": "查找算法",
+  "role": "mechanism",
+  "teaching_contract": {
+    "objectives": ["能说出循环不变量", "能解释排除一半"],
+    "prerequisites": ["数组有序"],
+    "required": ["hook", "chain", "worked_example", "check", "misconception"],
+    "density": {
+      "visible_layer_chars": 450,
+      "total_page_chars": 700,
+      "visible_blocks": 6,
+      "total_blocks": 8,
+      "primary_interactions": 1,
+      "checks": 2
+    }
+  },
+  "knowledge_point": {
+    "title": "二分查找",
+    "summary": "在有序数组中折半查找",
+    "objectives": ["..."],
+    "key_points": ["..."],
+    "formulas": ["$O(\\log n)$"],
+    "misconceptions": ["mid 向上取整导致死循环"]
+  },
+  "merged_knowledge_points": [],
   "source_excerpts": [
-    { "section_id": 42, "heading": "…", "text": "…（≤ 6000 字）" }
+    { "section_id": 42, "heading": "二分查找", "text": "……" }
   ],
-  "style": { "preset": "blueprint", "content": ["formula", "example"], "custom_prompt": "…", "density": "standard" },
-  "interaction_idea": "…",
+  "style": { "preset": "blueprint", "content": ["concept", "formula"], "density": "standard", "custom_prompt": "" },
+  "deck_context": {
+    "previous_learning": "上一页已经讲清有序数组与区间",
+    "next_hook": "下一页做边界题",
+    "chapter_index": 2,
+    "chapter_total": 4
+  },
   "constraints": {
     "viewport": ["1280x720", "1440x900", "1920x1080"],
     "no_scroll": true,
     "no_network": true,
     "max_bundle_bytes": 2097152,
-    "runtime_version": "1.0.0",
+    "runtime_version": "1.1.0",
     "language": "zh-CN"
-  },
-  "previous_page": { "title": "…", "summary": "…" },
-  "next_page": { "title": "…", "summary": "…" }
-}
-```
-
-- 用户自定义提示词只作为「偏好」字段，不得覆盖 constraints。
-- 来源段落总量超预算时，优先保留与 objectives/key_points 最相关的段落，并记录被截断信息。
-
-### 8.6 构建/校验失败处理
-
-| 失败点 | 处理 |
-| --- | --- |
-| Builder 不可用/超时 | 页面 `failed`，job 记录中文原因；可重试单页；Deck 可 `partial` |
-| 规划 LLM 输出非法 | 自动修复 2 次；仍失败 → job `failed`，保留原始错误摘要 |
-| 来源引用无效 | 回退标题/关键词匹配；标记 `unverified`；大纲页提示 |
-| Validator 失败 | Builder 修复 2 轮；仍失败返回报告；后端重试 1 次；仍失败页面 `failed` |
-| Validator 不可用 | **fail-closed**：页面不 ready；job 记录「校验服务不可用」 |
-| 单页超时/上下文超限 | 页面失败，建议拆分知识点或重做；不阻塞其他页 |
-| 用户取消 | 调 Builder cancel；页面 `canceled`；已 ready 页面保留 |
-| 服务重启 | 活跃 job/pages 置 failed；已 ready 页面保留；用户可重建 |
-
-错误文案必须是中文、可行动，不暴露 prompt/密钥/内部堆栈。
-
-### 8.7 长任务与重连
-
-- 遵守 RULE.md §3.7：DB 是唯一事实来源；构建在 `tasks.spawn()` 后台运行；HTTP/SSE 断开不取消。
-- 前端以 `job_id` 恢复：先取 job 快照与页面列表，再按 `after_id` 拉事件。
-- 事件接口只搬运；允许 0 订阅者；最终结果先落库再发完成事件。
-- 不引入 Redis/消息队列；单 API worker 下进程内事件足够。多 worker 时需改为 DB `LISTEN/NOTIFY` 或 Redis（文档注明）。
-
-### 8.8 配置草案
-
-新增（全部经 `Settings`）：
-
-```text
-PAGE_BUILDER_URL=http://page-builder:9100
-PAGE_BUILDER_TOKEN=change-me
-# 示例值；按实际网关可用、工具调用稳定的 Coder 模型填写
-PAGE_BUILDER_MODEL=qwen3-coder-plus
-PAGE_BUILDER_TIMEOUT_SECONDS=480
-PAGE_BUILDER_CONCURRENCY=2
-PAGE_VALIDATOR_URL=http://page-validator:9200
-PAGE_VALIDATOR_TOKEN=change-me
-DECK_MAX_PAGES=16
-DECK_MIN_PAGES=6
-DECK_PAGE_MAX_ATTEMPTS=2
-DECK_JOB_TIMEOUT_SECONDS=1800
-DECK_MAX_MATERIAL_CHARS=200000
-DECK_MAX_BUNDLE_BYTES=2097152
-```
-
-移除：所有 `EMBED_*`。保留 `LLM_*` 用于大纲/旧版生成/AI 助手。Builder 容器单独持有 `LLM_BASE_URL/LLM_API_KEY/PAGE_BUILDER_MODEL/PAGE_VALIDATOR_*`。
-
-### 8.9 清理与级联
-
-- 删除 Deck：DB 级联页面/知识点/job/events/chat；best-effort 删除 bundle/thumbnail 存储对象。
-- 删除工作区：在现有级联基础上增加 decks 相关表；先取消活跃 job（best-effort），再删。
-- 删除资料：section 级联删除；已有页面保留（来源引用可能失效），Deck 显示「资料已变更」；重建时使用剩余资料。
-- 删除页面：删除 bundle/thumbnail；聊天级联。
-
----
-
-## 9. 前端设计
-
-### 9.1 路由
-
-新增（全部在登录守卫内）：
-
-```text
-/workspace/:id/decks/:deckId                  Deck 总览（全屏布局）
-/workspace/:id/decks/:deckId/build            构建工作台
-/workspace/:id/decks/:deckId/pages/:pageId    阅读器
-```
-
-- 使用独立 `DeckLayout.vue`（不套 `AppLayout` 的侧栏），保证全屏空间。
-- `meta.title` 动态设置；返回工作区。
-- 路由守卫继续使用 vue-router 5 返回值写法。
-
-### 9.2 总览页 / 工作台
-
-组件建议：
-
-```text
-views/DeckOverviewView.vue
-components/deck/DeckRoadmap.vue       # SVG 连线 + 节点
-components/deck/DeckWorkbench.vue     # 继续/进度/页面清单/失败重试
-components/deck/DeckPageCard.vue
-components/deck/DeckStyleBadge.vue
-```
-
-- 布局：顶部标题/操作，中部路线图，右侧/底部工作台；桌面一屏；移动端纵向滚动。
-- 路线图：章节分组；节点状态；核心节点更大；连线用 `border-strong`/`ink` 单色；不使用彩色状态。
-- 工作台：完成度环/条、继续上次、页面列表（状态/时长/重要度）、资料覆盖、风格摘要、重建入口。
-- 构建中：路线图节点实时更新；点击 building 页显示占位；ready 页可进入。
-- 空态：无页面时提示「从构建工作台开始」；失败态给出重试。
-
-### 9.3 阅读器
-
-组件建议：
-
-```text
-views/DeckReaderView.vue
-components/deck/DeckStage.vue          # 全屏舞台 + iframe 生命周期
-components/deck/PageFrame.vue          # srcdoc 组装 + postMessage 桥
-components/deck/PageProgress.vue       # 页码/进度/键盘提示
-components/deck/SelectionAction.vue    # 选中文本「问 AI」
-components/deck/DeckAssistantDrawer.vue
-lib/pageShell.ts                       # 组装 shell、转义、CSP
-```
-
-- 获取 bundle → `buildShell(bundle)` → iframe `srcdoc`；页面加载完成后淡入。
-- 预加载相邻页 bundle；只保留 current ±1 的 iframe，避免内存膨胀。
-- 翻页：键盘/按钮/页码；过渡 180–240ms；reduced-motion 直接切换。
-- 全屏：`requestFullscreen()` 在容器上；Esc 退出；移动端隐藏全屏入口。
-- 页面错误：加载超时/控制台错误/`MockFinal` 未 ready → 错误卡片 + 重试；不允许白屏。
-- 页面完成：runtime `emit('complete')` 或阅读到末尾 → 更新 `completed_page_ids`（防抖 PATCH）。
-- 选中：runtime 发选区 → 显示浮动「问 AI」→ 打开抽屉并带 quote。
-- 侧栏：overlay 抽屉，宽约 400px；不改变页面 stage 尺寸（避免重排溢出）；关闭恢复焦点。
-
-### 9.4 构建工作台
-
-组件建议：
-
-```text
-views/DeckBuildView.vue
-components/deck/BuildSetupPanel.vue    # 预设/内容/密度/自定义提示词
-components/deck/BuildTimeline.vue
-components/deck/BuildConsole.vue       # 可见输出，非终端模拟
-components/deck/BuildPageGrid.vue      # 逐页卡片/缩略图
-```
-
-- 设置面板在新建 Deck 时展示；启动后折叠为摘要。
-- 构建中：阶段时间线 + 真实进度 + 当前页 + 事件流；自动滚动到底部，但用户上滚时暂停自动滚动。
-- 事件文案映射为友好中文；保留工具动作摘要，不暴露 prompt/密钥。
-- 页面卡片 ready 后可点击进入；failed 显示原因/重试；building 显示骨架/脉冲。
-- 取消：确认弹窗说明「已完成页面保留」。
-- 离开/刷新：重新进入按 job 恢复；完成时提示前往总览。
-- 视觉：保持单色纸感，不使用「黑客终端」绿字/霓虹。
-
-### 9.5 AI 助手
-
-- 抽屉内消息列表：用户消息右对齐/边框，助手消息左对齐/无气泡堆叠；引用块显示选中文本。
-- 快捷动作 chips（单色描边）：解释 / 举例 / 记忆 / 考考我 / 关联。
-- 流式：逐字追加渲染；结束后完整 Markdown 渲染；错误可重试。
-- 引用：回答下方显示「依据：资料名 · 章节」，点击可展开来源摘要（不跳转原文）。
-- 历史：进入页面加载最近 N 条；分页加载更早（可选）。
-- 输入：支持 Enter 发送、Shift+Enter 换行；发送中禁用重复提交。
-- 空态：提示「选中页面中的文字，或直接提问」。
-
-### 9.6 设计语言
-
-- 应用壳与 Deck 共享现有 DESIGN.md 语义 token；不新增裸色值。
-- Deck 舞台是「纸面 stage」：`panel` 底、`ink` 正文、`raised` 分区；允许更大的字号与留白。
-- 动效：150/200/400ms；只用于解释状态变化；禁止循环装饰；必须实现 reduced-motion。
-- 页面内的视觉元素以 SVG/Canvas/CSS 绘制为主，不使用外部图片；需要图标时内联 SVG（lucide 路径可复用，但不加载外部资源）。
-- 不在页面内使用 emoji、3D 图标、彩色渐变、Glassmorphism；与 DESIGN.md 反对清单保持一致。
-- 若新增 Deck 专属 token/组件规格，在同一任务更新 `DESIGN.md`；大规模视觉扩展走 `design/*` 分支（见 RULE/DESIGN）。
-
-### 9.7 状态与性能
-
-- 前端只做展示状态：构建轮询、iframe 生命周期、抽屉开关、设置表单；业务状态以后端为准。
-- 构建事件轮询 1s；页面不可见时降频（`document.visibilityState`）。
-- 阅读器预加载相邻页；bundle 缓存在内存/IndexedDB？MVP 内存即可，退出清理。
-- 不在前端执行页面代码之外的 AI 生成；不把大纲/页面状态写入 localStorage 作为事实来源。
-- 401 走全局处理；404 显示「页面不存在或无权访问」；503/504 显示可行动提示。
-
-### 9.8 可访问性
-
-- 全屏阅读器：Tab 顺序、焦点可见、Esc 关闭、翻页按钮有 `aria-label`。
-- iframe `title` 描述当前页；页面加载状态 `aria-live`。
-- 页面内交互必须键盘可达；Validator 检查焦点与 aria。
-- 状态不能只靠颜色；使用图标/文案/边框。
-- 移动端触控目标 ≥ 32px；主操作 ≥ 40px。
-
----
-
-## 10. AI 助手后端
-
-### 10.1 上下文组装
-
-每次提问包含：
-
-1. 系统提示：中文助教；只依据给定页面/资料；不编造；引用章节；回答简洁；不执行代码。
-2. 当前页面：标题、知识点摘要、key_facts、formulas、source_refs。
-3. 选中文本（≤ 2000 字）+ 所在块上下文（≤ 3000 字）。
-4. 相关来源段落（按 source_refs 取 `material_sections`，总量 ≤ 6000 字）。
-5. 最近 10 条对话。
-6. 用户问题。
-
-总预算约 12k–16k 字符；超限按优先级裁剪（对话 → 来源 → 块上下文），不裁剪当前问题/选中文本。
-
-### 10.2 流式接口
-
-- `POST /api/decks/{id}/pages/{page_id}/messages`：保存 user 消息，创建 assistant 消息占位，返回 `text/event-stream`：
-  - `event: delta` → `{text}`
-  - `event: done` → `{message_id, refs}`
-  - `event: error` → `{detail}`
-- 断线：本次回答取消，assistant 消息标记 `failed` 或删除占位；已发送的 user 消息保留。聊天属于交互式短请求，不纳入长任务语义（与构建任务区分）。
-- 限流：进程内按 user 20 次/分钟；文档注明多副本需共享存储。
-- 安全：助手输出视为不可信 Markdown；前端 `html:false` + DOMPurify；不输出 HTML/脚本。
-
-### 10.3 引用与拒答
-
-- 回答中引用 `【资料名 · 章节】`；后端返回 `context_refs` 供前端展示。
-- 若来源不足，明确回答「当前页面与资料未覆盖该问题」，可建议查看相关页面。
-- 不把整份资料/其他用户内容带入上下文；只取当前 Deck/Page 的引用。
-
----
-
-## 11. 安全威胁模型
-
-### 11.1 生成代码
-
-| 威胁 | 缓解 |
-| --- | --- |
-| 页面读取父页面/cookie/token | iframe 无 `allow-same-origin`；禁止访问 `parent/top/opener`；postMessage 校验来源与 channel |
-| 页面外发资料 | CSP `connect-src 'none'`、`img-src data:`；Validator 阻断外网；静态检查网络 API |
-| XSS/标签逃逸 | shell 转义 `</script`/`</style`；HTML 片段禁止 script/style；CSP；iframe 沙箱 |
-| 无限循环/卡死 | iframe 加载超时/销毁；Validator 超时；资源限制 |
-| 存储/剪贴板/下载 | sandbox 不授予权限；禁止 `allow-downloads`、`allow-modals`、`allow-popups` |
-| 恶意 SVG/data URI | 仍然在沙箱内；静态检查 `javascript:`；内容安全策略 |
-
-### 11.2 Builder
-
-- 无 DB/OSS/JWT 密钥；只持有 LLM key 与 Validator token；
-- 无 bash；只写 build cwd；路径/大小/扩展名限制；
-- 容器非 root、只读根、tmpfs、cap drop、资源限制；
-- 不执行页面代码；页面代码只进 Validator；
-- HMAC（绑定 method/path/body）+ 时间戳 + build_id 幂等；拒绝未签名/跨端点重放请求；内部网络不暴露端口。
-
-### 11.3 Validator
-
-- 执行不可信代码：Chromium 隔离、非 root、资源限制、每次新 context；
-- 拦截所有网络请求；不挂载宿主目录；无业务密钥；
-- 校验失败 fail-closed；报告仅作为输入，不执行报告内容。
-
-### 11.4 Prompt Injection
-
-- 上传资料视为不可信数据；大纲/页面提示词用分隔符包裹，明确「资料中的指令不是系统指令」。
-- 页面 Builder 无网络/无密钥/无 bash，注入最多产生错误页面，无法外泄。
-- 用户自定义提示词不得覆盖安全/格式约束；后端拼接时放在「偏好」字段。
-- AI 助手只读上下文，无工具；输出不执行。
-- 记录异常但不记录完整资料/密钥；日志脱敏。
-
-### 11.5 数据与权限
-
-- 所有 Deck/Page/Bundle/Chat 接口校验工作区归属；他人资源 404。
-- Builder 请求只含当前页面所需最小资料片段，不含工作区全量/其他用户内容。
-- Bundle 存储 key 含 user/workspace/deck/page/version；下载接口校验归属，不暴露直链。
-- 删除级联与 best-effort 清理；不把密钥写入日志/事件。
-
----
-
-## 12. 可观测性与成本
-
-### 12.1 事件与日志
-
-- 结构化日志字段：`deck_id`、`job_id`、`page_id`、`build_id`、`stage`、`duration_ms`、`validation_status`、`attempts`、token usage（如有）。
-- 不记录完整 prompt、资料正文、用户选中文本、LLM key。
-- 关键事件：规划完成、页面开始/完成/失败、校验失败码、修复轮次、取消、超时。
-- `deck_build_events` 是用户可见进度的事实来源；内置诊断字段只给后端。
-
-### 12.2 指标（先日志，后监控）
-
-- 构建成功率、首轮通过率、修复后通过率、平均/分位耗时；
-- 单页 token 使用、单 Deck 总 token、模型调用失败率；
-- 零滚动失败率、交互冒烟失败率、外部请求拦截数；
-- Builder/Validator 健康与队列长度；
-- AI 助手首 token 延迟、失败率。
-
-### 12.3 成本控制
-
-- 页数上限（默认 16）、资料字符上限（200k）、单页来源字符上限（6k/节，总 12k）；
-- 页面构建并发 2；超时/重试上限；
-- 大纲只调用一次（可显式重规划，但计入配额）；
-- 页面重做只重建单页；
-- 在 Phase 2 记录每页实际 token/耗时，再设定用户级配额；MVP 先做工作区级上限 + 速率限制。
-
----
-
-## 13. 测试与验收
-
-### 13.1 测试策略
-
-当前仓库没有自动化测试与 CI（见 RULE.md §7）。**已确认引入最小测试栈**（2026-11-07 决策，满足 RULE.md §1.5 的维护者确认要求），作为独立 `chore` 提交落地：
-
-- 后端：`pytest` + `httpx.AsyncClient`，覆盖分节、规划 schema、Deck API、归属、状态机、取消、事件回放；
-- Builder：Node 测试（Vitest/Node test），覆盖路径守卫、静态检查、shell 转义、bundle 打包、事件映射；
-- Validator：Playwright 测试 + 好/坏页面 fixtures（溢出、外链、控制台错误、交互失败）；
-- 前端：Vitest 组件测试 + Playwright E2E（登录、创建 Deck、构建 mock、阅读、选区、聊天）；
-- 测试栈只覆盖 PageRef 核心链路，不做全仓库格式化或无关重构；测试框架版本与脚本需写入 README/RULE。
-
-### 13.2 Golden Eval（Harness 质量）
-
-固定 10 个页面 brief：
-
-- 二分查找、快速排序、矩阵变换、概率分布、时间线、概念对比、公式推导、错题辨析、流程步骤、总结页；
-- 每个 brief 含来源段落与预期交互；
-- 每次改 Skill/Prompt/Extension/模型后跑：
-  - 首轮/修复通过率；
-  - 零滚动；
-  - 交互冒烟；
-  - 构建时长/token；
-  - 人工 1–5 分视觉评分（布局、信息层级、动效克制、内容准确）。
-
-### 13.3 验收矩阵
-
-| 场景 | 验收 |
-| --- | --- |
-| 新用户上传 3 种格式资料 | 分节成功、无 Embedding、资料就绪 |
-| 创建 Deck 并构建 12 页 | 大纲合法、页面逐页 ready、进度真实 |
-| 构建中刷新/关闭页面 | 后台继续；重新进入恢复 job/页面 |
-| 构建中取消 | 未完成页取消；已 ready 保留；无残留 Builder 任务 |
-| 单页构建失败 | Deck partial；其他页可读；失败页可重试 |
-| 页面零滚动 | 3 个桌面视口通过；无内部滚动 |
-| 页面交互 | 冒烟操作通过；键盘可用；reduced-motion 降级 |
-| 页面安全 | 外链/网络/eval/父窗口访问被拦截 |
-| 选区问答 | 选中文本带入上下文；流式回答；引用正确 |
-| 权限 | 他人 Deck/Page/Bundle/Chat 一律 404 |
-| 删除 | Deck/工作区/资料/页面级联与存储清理正确 |
-| 迁移 | 旧资料分节回填；旧 Markdown 工件可读 |
-| Builder/Validator 宕机 | 503/504 中文提示；页面不误放行 |
-
-### 13.4 验证命令（测试栈落地后）
-
-```bash
-# 后端（新增测试后）
-pytest
-
-# 前端
-cd frontend && pnpm typecheck && pnpm build
-
-# 编排
-docker compose up -d --build
-curl http://127.0.0.1:8000/api/health
-
-# E2E（新增后）
-pnpm exec playwright test
-```
-
-> 在测试框架未落地前，不要虚构这些命令已通过；阶段交付必须附实际验证记录。
-
-### 13.5 人工检查
-
-- 深色/浅色、375/768/1280/1440/1920 宽度；
-- 全屏进入/退出、键盘翻页、焦点；
-- 构建工作台空态/加载/失败/取消；
-- 页面加载慢/超时/控制台错误；
-- 长标题、长公式、长文件名不撑破布局；
-- 动效 reduced-motion；
-- 删除确认与不可撤销后果。
-
----
-
-## 14. Roadmap
-
-### 14.1 阶段总览
-
-| 阶段 | 目标 | 主要交付 | 估算（单人） | 门禁 |
-| --- | --- | --- | --- | --- |
-| P0 | 决策归档与验证准备 | 决策记录、黄金 brief、契约草案、Pi 版本锁定 | 2–3 天 | 决策已归档 |
-| P1 | 去 Embedding | `material_sections`、分节、旧生成改造、依赖/配置清理 | 5–7 天 | 旧链路无向量可用 |
-| P2 | Pi Builder PoC | Builder/Validator 容器、Harness v0、3 个黄金页、评估报告 | 7–10 天 | **关键 Gate** |
-| P3 | Deck 领域与规划 | 表/API/大纲/页面计划/事件/取消 | 5–6 天 | 规划契约稳定 |
-| P4 | 构建集成 | 端到端构建、校验门禁、修复、存储、渐进交付 | 6–8 天 | 12 页 E2E |
-| P5 | 阅读器/工作台 | 全屏 Deck、总览路线图、构建工作台、选区桥 | 6–8 天 | 浏览器验收 |
-| P6 | AI 助手 | 上下文、SSE、选区、历史、引用 | 4–5 天 | 问答 E2E |
-| P7 | 加固与发布 | 安全/成本/可观测性/文档/迁移/回归 | 4–6 天 | DoD |
-
-**合计：约 39–53 人日**（不含评审等待与需求变更）。单人约 9–12 周；双人并行约 6–7 周。关键路径是 P1 → P2 → P4；P3 可在 P2 进行中并行设计契约。P2 的估算偏保守，因为它同时包含容器、Harness、Validator 与安全验证；实际拆分后可缩短。
-
-### 14.2 Gantt（基线，示意）
-
-```mermaid
-gantt
-    title PageRef 开发路线（2026-11 起，单人估算）
-    dateFormat  YYYY-MM-DD
-    axisFormat  %m/%d
-
-    section 基础
-    P0 决策与验证准备        :p0, 2026-11-10, 3d
-    P1 去 Embedding          :p1, after p0, 7d
-
-    section Pi
-    P2 Builder PoC 门禁      :crit, p2, after p1, 10d
-
-    section 领域
-    P3 Deck 领域与规划       :p3, after p2, 6d
-    P4 构建集成              :crit, p4, after p3, 8d
-
-    section 体验
-    P5 阅读器与工作台        :p5, after p4, 8d
-    P6 AI 助手               :p6, after p5, 5d
-
-    section 收尾
-    P7 加固与发布            :p7, after p6, 6d
-```
-
-> 日期仅为排期基线；实际以人力与 P2 评估结果为准。P2 失败则暂停后续阶段，进入 Plan B 评估。
-
-### 14.3 阶段任务明细
-
-#### P0 · 决策归档与验证准备（2–3 天）
-
-- [x] 归档 §17 的已确认决策；不再等待决策，按结论执行。
-- [x] 按 Q4 结论落地最小测试栈骨架（pytest/Vitest/Playwright）。
-- [x] 锁定 `@earendil-works/pi-coding-agent@1.5.0` 与 Node 24；记录升级策略。
-- [x] 定义 `PageBundle` / `Manifest` / `Runtime API` v0 草案。
-- [x] 准备 3 个黄金 brief 与来源段落（二分、矩阵、时间线）。
-- [x] 建立 `builder/`、`validator/` 目录与 compose 草案。
-- [x] 输出：决策记录、契约草案、PoC 验收表。
-
-#### P1 · 去 Embedding（4–5 天）
-
-- [x] `material_sections` 模型与建表。
-- [x] 解析器增强标题元数据；分节服务；懒回填。
-- [x] 生成链路改 sections；删除 RAG 补充。
-- [x] 删除向量代码/配置/依赖/向量清理调用。
-- [x] 启动逻辑与健康检查适配。
-- [x] README / AGENT / `.env.example` / compose / init SQL 同步。
-- [x] 验证：5 种格式上传、分节、旧 review/exam 生成、无 `EMBED_*` 引用。
-- [x] 输出：可运行的「无向量」基线。
-
-#### P2 · Pi Builder PoC（7–10 天）【Critical Gate】
-
-- [x] Builder 容器 + 内部 HTTP + HMAC + 任务模型。
-- [x] Pi SDK 会话（in-memory、无 bash、路径守卫）。
-- [x] Harness v0：Skill、Prompt Template、Extension、黄金示例、runtime 文档。
-- [x] Validator 容器：静态 + Playwright 零滚动/交互/网络/控制台。
-- [x] 事件流映射；构建日志。
-- [x] 构建 3 个黄金页；记录通过率/耗时/token（真实 Pi 3/3；p90 157.2s；输入 65,153 / 输出 56,390 tokens；成本 ¥0.14）。
-- [x] 红队：外链、eval、父窗口、超大 bundle、路径穿越（16/16 拦截）。
-- [x] 输出：评估报告 + Gate 结论（**Go**；工程门槛通过，人工视觉签收待维护者复核截图）。
-
-#### P3 · Deck 领域与规划（5–6 天）
-
-- [x] 表：`review_decks`、`knowledge_points`、`deck_pages`、`deck_build_jobs`、`deck_build_events`、`page_chat_messages`。
-- [x] Pydantic schemas、类型、API 骨架、归属校验。
-- [x] 大纲规划服务：结构化 JSON、校验、修复、source_refs。
-- [x] 页面计划：重要度/密度 → 页数；Page Brief 组装。
-- [x] 事件写入与 `after_id` 查询；取消语义。
-- [x] 旧资料 source_signature / 资料变更提示。
-- [x] 输出：可用 mock builder 跑通「创建 Deck → 规划 → 页面计划」。
-
-#### P4 · 构建集成（6–8 天）
-
-- [x] Builder client（HMAC、幂等、超时、重试、取消）。
-- [x] 页面编排：并发 2、每页 brief、事件转写、进度。
-- [x] Validator final gate；修复 2 轮 + 后端重试 1 次（统一为 `DECK_PAGE_MAX_ATTEMPTS`）。
-- [x] bundle/thumbnail 存储；版本切换；失败页重试。
-- [x] Deck 状态机、partial、删除级联。
-- [x] 重启恢复/失败落库；0 订阅者继续。
-- [x] 失败注入：Builder/Validator down、超时、取消、重启（真实长时超时演练未做）。
-- [x] 输出：真实 Pi 多页 E2E（`deepseek-flash`，实际 14 页；14/14 ready、0 failed、0 issues，15m11s，¥1.69；证据 `P4_REAL_E2E.json`）。
-
-#### P5 · 阅读器与工作台（6–8 天）
-
-- [x] 新路由与 DeckLayout；总览路线图/工作台。
-- [x] 构建设置面板 + 构建工作台（时间线/事件/页面卡片/取消/恢复）。
-- [x] `pageShell`：CSP、srcdoc、转义、runtime 注入、channel。
-- [x] 阅读器：加载/预加载/翻页/全屏/错误/进度。
-- [x] 选区桥与「问 AI」入口（先占位）。
-- [x] 深浅色、reduced-motion、375/768/1280/1440/1920 验证。
-- [x] 输出：可用的构建与阅读主路径（浏览器验收 34/34；Fullscreen API、全屏 AI 抽屉与失效 job 恢复已实测；真实 Pi 页面待补）。
-
-#### P6 · AI 助手（4–5 天）
-
-- [x] 聊天表/API/SSE；user/assistant 消息持久化。
-- [x] 上下文组装、引用、限流；拒答由 system prompt 约束，真实模型拒答质量待凭据验证。
-- [x] 侧栏 UI、快捷动作、历史、错误/重试。
-- [x] 选区 quote + block context 前后端联调。
-- [x] XSS/Markdown 安全验证。
-- [x] 输出：选中文本问答 E2E（假 LLM 全链路 24/24；真实模型质量待凭据）。
-
-#### P7 · 加固与发布（4–6 天）
-
-- [x] 安全复核：沙箱、网络、路径、HMAC、prompt injection（三路审计 + 修复 + 残留风险登记）。
-- [x] 成本/并发/超时/配额上限与错误文案复核（真实压测/真实 token 成本待凭据）。
-- [x] 可观测性：构建/助手结构化日志字段与事件保留。
-- [x] 迁移：旧资料回填、旧复习工件只读、模拟考试继续可用、向量清理说明。
-- [x] 文档：README/AGENT/RULE/DESIGN/PAGE_CONTRACT/API 地图/环境变量/P7_RELEASE。
-- [x] 全量回归完成（真实 Pi Gate 3/3、真实 14 页 E2E 14/14、12 页编排/断线恢复隔离库集成 6 项均通过）；输出发布说明与回滚手册。
-- [ ] 等待人类审阅；**不擅自 push/merge**（当前未提交）。
-
-### 14.4 依赖关系
-
-```mermaid
-flowchart LR
-    P0 --> P1 --> P2
-    P2 --> P3
-    P2 --> P4
-    P3 --> P4
-    P4 --> P5 --> P6 --> P7
-    P3 -. 契约可并行 .-> P5
-```
-
----
-
-## 15. 风险登记册
-
-| # | 风险 | 概率 | 影响 | 缓解 | 触发/应对 |
-| --- | --- | --- | --- | --- | --- |
-| R1 | Pi 生成页面质量不稳定/布局溢出 | 高 | 高 | Harness + 黄金示例 + Validator + 修复闭环 + 页面预算 | P2 Gate 不达标 → Plan B |
-| R2 | 生成代码安全逃逸 | 中 | 高 | 沙箱 iframe/CSP/无网络/静态检查/红队 | 任一逃逸 → 停止发布，修复后重跑 |
-| R3 | Pi/SDK API 变化 | 中 | 中 | 锁定 1.5.0；Builder 适配层；升级独立任务 | 升级回归失败 → 回退版本 |
-| R4 | 构建成本/延迟过高 | 高 | 中 | 并发/页数/字符上限；渐进交付；模型选择 | 超预算 → 降页数/换模型/优化 skill |
-| R5 | 模型工具调用不稳定 | 中 | 高 | 启动探测；简化工具集；备用模型 | 失败率高 → 换模型或 Plan B |
-| R6 | 上传资料 Prompt Injection | 中 | 中 | 资料视为数据；无网络/密钥；来源约束 | 发现异常输出 → 加分隔/过滤/人工复核 |
-| R7 | 零滚动在真实字体/缩放下失败 | 高 | 中 | Canonical stage + 3 视口校验 + clamp | 失败 → 修复/拆页；不缩字号硬塞 |
-| R8 | Builder/Validator 运维复杂 | 中 | 中 | 健康检查、fail-closed、资源限制、文档 | 不可用 → 503 可行动提示 |
-| R9 | 旧资料回填失败 | 中 | 中 | 幂等、逐资料状态、重试、懒回填 | 失败资料 → 提示重新上传 |
-| R10 | 移动端体验不一致 | 中 | 低 | 明确支持矩阵；移动端阅读降级 | 不承诺零滚动；提供滚动阅读 |
-| R11 | 需求蔓延（彩色主题/导出/分享） | 高 | 中 | 非目标清单；阶段门禁 | 新需求另开分支/版本 |
-| R12 | 无测试框架导致回归 | 高 | 中 | 已确认引入最小测试栈；黄金 eval | 排期压缩 → 保留黄金 eval + 人工清单，显式记录未覆盖项 |
-| R13 | 大资料上下文超限 | 中 | 中 | 分层大纲、source pack、字符上限 | 超限 → 拆知识点/减少来源 |
-| R14 | 页面运行时与校验器实现漂移 | 中 | 中 | 共享 `page-runtime` 源/版本号；同一 shell 逻辑 | 漂移 → 统一构建产物再发版 |
-
----
-
-## 16. 迁移、回滚与发布
-
-### 16.1 分阶段发布
-
-1. **P1 合并后**：用户无感；资料解析分节；旧 review/exam 仍可用；Embedding 配置删除。
-2. **P3/P4 内部验证**：Deck API 与 Builder 仅开发环境；不暴露入口。
-3. **P5 灰度**：工作区出现「复习页」入口；旧「终极复习」保留在旧版资料；模拟考试保留。
-4. **P6**：AI 助手仅在 Deck 阅读器内启用。
-5. **P7**：完成验收后由人类决定合并；不自行 push/merge。
-
-### 16.2 回滚
-
-- 分支未合并：直接放弃分支即可。
-- 合并后回滚：
-  - 新表/新页面是增量的，可保留；
-  - 恢复旧生成代码与 Embedding 依赖需要代码回滚；因此**至少一个发布周期不 DROP 向量表**；
-  - 旧 Markdown 工件始终保留，回滚后可继续访问；
-  - Builder/Validator 可整体下线，Deck 入口隐藏；不影响旧功能。
-- 数据备份：迁移前备份数据库；不把 DROP/破坏性 SQL 放进启动流程。
-
-### 16.3 旧功能处理
-
-- **复习 Markdown**：由 Deck 取代；旧工件迁移期只读保留，后续独立任务下线。
-- **模拟考试**：**已确认保留**；继续使用旧生成与展示（改造为 sections 驱动），本期不重做产品形态。后续如需页面化，另开版本，不与 PageRef 混合。
-- **旧生成接口**：保留一个迁移周期；文档标记 legacy；后续删除需单独 `BREAKING CHANGE`。
-
-### 16.4 文档义务
-
-| 改动 | 必须更新 |
-| --- | --- |
-| 去 Embedding / 分节 | README、AGENT、`.env.example`、compose、init SQL |
-| Deck/Builder/Validator 架构 | AGENT（目录/流程/API/启动） |
-| 页面契约/安全边界 | AGENT 或独立 `PAGE_CONTRACT.md`；RULE 补充 |
-| Deck 视觉/动效/全屏 | DESIGN.md（Deck 章节） |
-| 环境变量/部署 | README + `.env.example` |
-| 新依赖/版本 | requirements/package/lock + 说明 |
-| 测试/验证命令 | README/RULE（已确认引入测试栈） |
-
----
-
-## 17. 已确认决策（2026-11-07）
-
-维护者已确认以下决策，P0 只做归档，不再作为待定项。未特别说明时，后续实现以本节为准。
-
-| # | 决策 | 结论 | 落地位置 |
-| --- | --- | --- | --- |
-| Q1 | 模拟考试是否保留 | **保留**。继续旧生成与展示，改造为 sections 驱动；本期不做页面化重做 | §2.1 / §3.2 / §16.3 |
-| Q2 | Deck 是否允许彩色主题 | **否**。保持单色纸感 + 动效；风格差异靠排版/网格/密度/交互隐喻 | §3.6 / §9.6 |
-| Q3 | 移动端零滚动承诺 | **桌面 ≥1024 宽零滚动；移动端滚动阅读**。不承诺移动端单屏 | §3.8 / §7.5 |
-| Q4 | 是否引入测试框架 | **是**。最小 pytest + Vitest + Playwright，只覆盖 PageRef 核心链路 | §13.1 |
-| Q5 | 默认 Pi 模型 | **环境可配**，优先工具调用稳定的 Coder 模型；启动时做工具调用探测 | §6.5 / §8.8 |
-| Q6 | 页数/成本上限 | **6–16 页；构建并发 2；单页 8 分钟超时**；可按环境调整 | §8.4 / §12.3 |
-| Q7 | 大纲是否需人工确认 | **否**。自动进入构建；仅在没有页面或整册失败时允许「重新规划」，已有页面时建议新建 Deck | §3.1 / §8.4 |
-| Q8 | 页面是否允许外链资源 | **否**。页面完全自包含，CSP/Validator 双重拦截 | §7.1 / §11.1 |
-
----
-
-## 18. Definition of Done
-
-- [x] Embedding 代码、配置、依赖、文档引用全部移除；旧资料可分节并生成旧版内容。
-- [x] 模拟考试继续可用（sections 驱动），旧复习 Markdown 迁移期只读可访问。
-- [x] Deck/Page/BuildJob/BuildEvent/Chat 数据模型与 API 落地，归属校验完整。
-- [x] Pi Builder 容器可独立启动、健康检查、HMAC、超时、取消、幂等。
-- [x] Harness（Skill/Template/Extension/示例）版本化，Pi 版本锁定。
-- [x] Validator 容器可校验零滚动/交互/网络/控制台/截图；后端最终门禁生效。
-- [x] 12 页 Deck 端到端构建；单页失败不影响其他页；刷新/断线可恢复。（真实 Pi 14 页 E2E 通过：14/14 ready、0 failed；并发/断线/重试由隔离库集成 6 项覆盖）
-- [x] 总览路线图 + 构建工作台 + 全屏阅读器可用；桌面零滚动验收通过。
-- [x] 选区 AI 助手可用；流式、引用、历史、限流、XSS 安全（真实模型质量待凭据）。
-- [x] 最小测试栈（pytest/Vitest/Playwright/node:test）覆盖核心链路并通过。
-- [x] 安全清单（沙箱/CSP/无网络/路径/HMAC/Prompt Injection）复核通过；残留风险见 P7_REPORT §4。
-- [x] 成本/耗时上限已落地；真实构建成本已测量：P2 Gate ¥0.14、P4 14 页 E2E ¥1.69，总 ¥1.83（预算 ¥10）。
-- [x] README/AGENT/RULE/DESIGN/`.env.example`/compose/依赖同步。
-- [x] 未提交 `.env`、密钥、`backend/data/`、构建产物；未擅自 push/merge。
-- [ ] 人类维护者审阅并明确同意后才合并 `main`。
-
----
-
-## 附录 A · 环境变量草案
-
-### backend/.env（新增/删除）
-
-```text
-# 删除
-# EMBED_BASE_URL / EMBED_API_KEY / EMBED_MODEL / EMBED_DIM
-
-# 新增
-PAGE_BUILDER_URL=http://page-builder:9100
-PAGE_BUILDER_TOKEN=change-me
-# 示例值；按实际网关可用、工具调用稳定的 Coder 模型填写
-PAGE_BUILDER_MODEL=qwen3-coder-plus
-PAGE_BUILDER_TIMEOUT_SECONDS=480
-PAGE_BUILDER_CONCURRENCY=2
-PAGE_VALIDATOR_URL=http://page-validator:9200
-PAGE_VALIDATOR_TOKEN=change-me
-DECK_MAX_PAGES=16
-DECK_MIN_PAGES=6
-DECK_PAGE_MAX_ATTEMPTS=2
-DECK_JOB_TIMEOUT_SECONDS=1800
-DECK_MAX_MATERIAL_CHARS=200000
-DECK_MAX_BUNDLE_BYTES=2097152
-```
-
-### builder 容器
-
-```text
-LLM_BASE_URL=
-LLM_API_KEY=
-PAGE_BUILDER_MODEL=
-PAGE_VALIDATOR_URL=http://page-validator:9200
-PAGE_VALIDATOR_TOKEN=change-me
-BUILDER_TOKEN=change-me
-PI_CODING_AGENT_DIR=/opt/mockfinal-pi/agent
-```
-
-### validator 容器
-
-```text
-VALIDATOR_TOKEN=change-me
-```
-
-> 所有 token/密钥只放环境变量；不写入镜像、不写入日志、不下发前端。
-
----
-
-## 附录 B · API 草案示例
-
-```http
-POST /api/workspaces/12/decks
-Content-Type: application/json
-
-{
-  "title": "数据结构 · 复习页",
-  "style": {
-    "preset": "blueprint",
-    "content": ["concept", "formula", "example", "misconception"],
-    "density": "standard",
-    "custom_prompt": "多用图示，公式推导一步一步来"
   }
 }
 ```
 
-```http
-POST /api/decks/7/build
-→ 200 { "job_id": 31 }
-```
+## 附录 C · Builder 会话请求示例
 
-```http
-GET /api/deck-jobs/31/events?after_id=120
-→ [
-  { "id": 121, "type": "stage", "payload": { "text": "正在规划知识点…" } },
-  { "id": 122, "type": "page_ready", "payload": { "page_id": 3, "title": "二分查找" } }
-]
-```
-
-```http
-GET /api/decks/7/pages/3/bundle
-→ {
-  "schema_version": "1.0",
-  "runtime_version": "1.0.0",
-  "manifest": { "…": "…" },
-  "html": "…",
-  "css": "…",
-  "js": "…"
+```json
+{
+  "build_id": "bld_page_012_v2_7f3a",
+  "page_brief": { "page_id": "page_012", "role": "mechanism", "...": "..." },
+  "session": {
+    "key": "deck_9_lane_0",
+    "lane": 0,
+    "page_index": 2,
+    "page_total": 7,
+    "first": false
+  },
+  "deck_context": {
+    "deck_title": "数据结构 · 复习页",
+    "style": { "preset": "blueprint", "density": "standard" },
+    "pages": [{ "page_id": "page_010", "role": "concept", "title": "有序数组" }],
+    "previous_learning": "上一页已经讲清有序数组与区间",
+    "next_hook": "下一页做边界题"
+  }
 }
 ```
 
+## 附录 D · 每页任务卡（Prompt 骨架）
+
+```text
+你是 MockFinal 页面构建代理。本页是 Deck 的第 {page_index}/{page_total} 页，角色：{role}。
+
+只改 pages/{page_id}/ 下的 4 个文件；以 scaffold 为基础，优先 edit，不整页重写。
+读 briefs/{page_id}.json 与 materials/index.md；只引用 brief 指定的 section_id。
+本页教学重点：
+- 目标：{objectives}
+- 讲解链：{chain}
+- 必须包含：{required}
+密度预算：整页总正文 ≤700 字；单层建议 ≤450–500 字，超出用渐进式披露；可见块 3–6、主交互 1、检查 1–2。
+使用 Kit class（mp-kit-*），不要自造按钮/卡片/排版；不要写说明文。
+完成后调用 check_page(page_id="{page_id}")；按问题修复；通过后结束。
+```
+
+## 附录 E · 文件落地地图
+
+| 改动 | 文件 |
+| --- | --- |
+| 大纲/角色/页计划/Brief | `backend/app/services/deck_planner.py`、`deck_builder.py`、`schemas.py`、`types/index.ts` |
+| 教学契约/Validator | `docs/pageref/PAGE_CONTRACT.md`、`validator/src/static-check.ts`、`browser-check.ts`、`shared/page-shell/shell.mjs` |
+| 设计系统/模板 | `shared/page-shell/shell.mjs`、`builder/pi-harness/templates/roles/*`、`pi-harness/skills/*` |
+| 会话复用/Guard | `builder/src/session.ts`、`server.ts`、`task-store.ts`、`pi-harness/extensions/mockfinal-guard/index.ts` |
+| 主 API lane | `backend/app/services/deck_builder.py`、`page_builder_client.py`、`models.py`、`main.py`（DDL） |
+| 阅读器/学习面板 | `frontend/src/views/DeckReaderView.vue`、`components/deck/DeckStudyPanel.vue`、`TeachingRail.vue`、`LessonCheck.vue`、`PageFrame.vue` |
+| 总览/构建台 | `DeckOverviewView.vue`、`DeckBuildView.vue`、`DeckRoadmap.vue`、`DeckWorkbench.vue`、`DeckPageCard.vue`、`BuildSetupPanel.vue` |
+| 全局视觉 | `frontend/src/style.css`、`AppIconButton.vue`、`EmptyState.vue`、`ErrorState.vue`、`DeckTopBar.vue`、`DESIGN.md` |
+| 测试/验收 | `backend/tests`、`builder/tests`、`validator/src/tests`、`frontend/src/**/*.test.ts`、`validator/scripts/p5-acceptance.mjs`、`p6-acceptance.mjs` |
+
 ---
 
-## 附录 C · 参考资料
+## 附：继续生效的旧版不变量
 
-### 项目内
+以下来自旧 Plan/P7，不在本轮修改范围内，但任何新改动必须继续满足：
 
-- `README.md`、`AGENT.md`、`RULE.md`、`DESIGN.md`
-- `backend/app/services/indexer.py`、`generator.py`、`prompts.py`
-- `backend/app/models.py`、`schemas.py`、`main.py`
-- `frontend/src/views/WorkspaceView.vue`、`components/ArtifactPanel.vue`
-- `docker-compose.yml`、`backend/requirements.txt`、`docker-initdb.d/01-init.sql`
+- 页面在 `sandbox="allow-scripts"` iframe 中运行，`srcdoc` 注入，CSP 禁止网络；不得添加 `allow-same-origin`。
+- HTML 禁止 `script/style/iframe/object/embed/link/form/meta/base` 与内联事件；JS 禁止网络、存储、eval、父窗口；CSS 禁止 `@import` 与外部 `url()`。
+- 只有 Builder 交付 bundle 且主 API 独立 Validator 通过后，页面才能 `ready`；不得伪造 bundle 或跳过最终校验。
+- Builder/Validator 未配置、超时、连接失败、503/504 → 页面 `failed`（fail-closed），不降级跳过。
+- 单页重建/整册重建失败时保留旧 `current_version`/`bundle_key`；新版本通过后才切换。
+- 同一 Deck 最多一个活跃 job；客户端断开不取消；取消只由独立接口触发。
+- 所有资源访问校验归属；他人资源 404；不泄露存在性。
+- LLM 输出、教学文本、检查题、AI 回答一律视为不可信；前端 `html:false` + DOMPurify，不得为视觉效果放宽。
 
-### Pi 官方文档
+---
 
-- SDK: <https://pi.dev/docs/latest/sdk>
-- RPC: <https://pi.dev/docs/latest/rpc>
-- JSON Event Stream: <https://pi.dev/docs/latest/json>
-- CLI Integration: <https://pi.dev/docs/latest/cli-integration>
-- Skills: <https://pi.dev/docs/latest/skills>
-- Prompt Templates: <https://pi.dev/docs/latest/prompt-templates>
-- Extensions: <https://pi.dev/docs/latest/extensions>
-- Custom Providers: <https://pi.dev/docs/latest/custom-provider>
-- Containerization / Isolation: <https://pi.dev/docs/latest/containerization>
-- npm 包: <https://www.npmjs.com/package/@earendil-works/pi-coding-agent>
-
-### 技术依据
-
-- 沙箱 iframe：HTML Standard `sandbox`、CSP `connect-src` / `frame-src` / `form-action`。
-- Playwright：多视口布局测量、网络拦截、控制台错误、交互冒烟。
-- Vue Router 5 返回值守卫、Pinia setup store、Tailwind CSS 4 语义 token（项目现状）。
+> 本方案的实施以 P11 黄金集门禁与维护者审阅为准；未通过门禁不进入默认放量。所有真实模型验证费用按 §6.5 上限执行，超出前暂停并汇报。

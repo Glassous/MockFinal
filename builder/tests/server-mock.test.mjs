@@ -86,7 +86,8 @@ async function startBuilder(overrides = {}) {
       token: VALIDATOR_TOKEN,
       timeoutMs: 5000,
     },
-    llm: { baseUrl: "", apiKey: "", model: "", thinkingLevel: "medium" },
+    session: { mode: "page", pagesPerLane: 3, contextRatio: 0.6, ttlSeconds: 60 },
+    llm: { baseUrl: "", apiKey: "", model: "", thinkingLevel: "medium", reasoning: false, promptProfile: "zh" },
     mock: { enabled: true, bundlePath: MOCK_BUNDLE },
     logLevel: "error",
     ...overrides,
@@ -115,6 +116,18 @@ function signedGet(port, pathname) {
   const timestamp = String(Math.floor(Date.now() / 1000));
   const signature = computeSignature(BUILDER_TOKEN, timestamp, "GET", pathname, Buffer.alloc(0));
   return fetch(`http://127.0.0.1:${port}${pathname}`, {
+    headers: {
+      "X-MF-Timestamp": timestamp,
+      "X-MF-Signature": signature,
+    },
+  });
+}
+
+function signedDelete(port, pathname) {
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const signature = computeSignature(BUILDER_TOKEN, timestamp, "DELETE", pathname, Buffer.alloc(0));
+  return fetch(`http://127.0.0.1:${port}${pathname}`, {
+    method: "DELETE",
     headers: {
       "X-MF-Timestamp": timestamp,
       "X-MF-Signature": signature,
@@ -351,4 +364,71 @@ test("HTTP：未配置 Validator 时创建请求返回 503", async (t) => {
   const response = await signedPost(builder.port, "/v1/builds", buildBody("bld_mock_006"));
   assert.equal(response.status, 503);
   assert.equal((await response.json()).code, "VALIDATOR_UNAVAILABLE");
+});
+
+test("HTTP：session 元数据被接受并写入快照", async (t) => {
+  const validator = await startFakeValidator();
+  t.after(() => new Promise((resolve) => validator.server.close(resolve)));
+  const builder = await startBuilder({
+    validator: {
+      url: `http://127.0.0.1:${validator.port}`,
+      token: VALIDATOR_TOKEN,
+      timeoutMs: 5000,
+    },
+  });
+  t.after(async () => {
+    await builder.app.stop();
+  });
+  const body = {
+    ...buildBody("bld_mock_lane_001"),
+    session: { key: "deck_1_lane_0", lane: 0, page_index: 0, page_total: 3, first: true },
+  };
+  const created = await signedPost(builder.port, "/v1/builds", body);
+  assert.equal(created.status, 202);
+  const snapshot = await waitForStatus(builder.port, "bld_mock_lane_001", ["succeeded", "failed"]);
+  assert.equal(snapshot.status, "succeeded", snapshot.error ?? "");
+  assert.equal(snapshot.session_key, "deck_1_lane_0");
+  assert.equal(snapshot.lane, 0);
+  const pageDir = path.join(
+    builder.buildRoot,
+    "sessions",
+    "deck_1_lane_0",
+    "pages",
+    "page_mock_001",
+  );
+  assert.equal(fs.existsSync(pageDir), false, "MOCK 模式清理页面目录，但不得误删会话根");
+});
+
+test("HTTP：非法 session 元数据被拒绝", async (t) => {
+  const builder = await startBuilder();
+  t.after(async () => {
+    await builder.app.stop();
+  });
+  const invalidKey = await signedPost(builder.port, "/v1/builds", {
+    ...buildBody("bld_mock_lane_bad_1"),
+    session: { key: "bad key!" },
+  });
+  assert.equal(invalidKey.status, 400);
+  const badIndex = await signedPost(builder.port, "/v1/builds", {
+    ...buildBody("bld_mock_lane_bad_2"),
+    session: { key: "deck_1_lane_0", page_index: 3, page_total: 3 },
+  });
+  assert.equal(badIndex.status, 400);
+});
+
+test("HTTP：DELETE /v1/sessions/{key} 幂等且校验 key", async (t) => {
+  const builder = await startBuilder();
+  t.after(async () => {
+    await builder.app.stop();
+  });
+  const missing = await signedDelete(builder.port, "/v1/sessions/deck_missing_lane_0");
+  assert.equal(missing.status, 202);
+  assert.deepEqual(await missing.json(), { key: "deck_missing_lane_0", status: "not_found" });
+
+  const invalid = await signedDelete(builder.port, "/v1/sessions/bad%20key");
+  assert.equal(invalid.status, 400);
+  assert.equal((await invalid.json()).code, "INVALID_SESSION_KEY");
+
+  const wrongMethod = await signedGet(builder.port, "/v1/sessions/deck_missing_lane_0");
+  assert.equal(wrongMethod.status, 405);
 });

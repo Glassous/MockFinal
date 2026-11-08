@@ -27,6 +27,24 @@ function envFlag(env: Env, name: string): boolean {
   return raw === "1" || raw === "true" || raw === "yes";
 }
 
+export type BuilderThinkingLevel = "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+export type BuilderPromptProfile = "zh" | "compact";
+
+const THINKING_LEVELS: readonly BuilderThinkingLevel[] = [
+  "off",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+];
+
+function envThinkingLevel(env: Env, name: string, fallback: BuilderThinkingLevel): BuilderThinkingLevel {
+  const raw = env[name]?.trim().toLowerCase() as BuilderThinkingLevel | undefined;
+  return raw && THINKING_LEVELS.includes(raw) ? raw : fallback;
+}
+
 export interface BuilderConfig {
   host: string;
   port: number;
@@ -42,6 +60,12 @@ export interface BuilderConfig {
   maxBundleBytes: number;
   agentDir: string;
   harnessDir: string;
+  session: {
+    mode: "page" | "deck";
+    pagesPerLane: number;
+    contextRatio: number;
+    ttlSeconds: number;
+  };
   validator: {
     url: string;
     token: string;
@@ -51,7 +75,18 @@ export interface BuilderConfig {
     baseUrl: string;
     apiKey: string;
     model: string;
-    thinkingLevel: string;
+    thinkingLevel: BuilderThinkingLevel;
+    /** 网关模型是否声明支持 reasoning/thinking；默认 false（兼容不支持该参数的网关）。 */
+    reasoning: boolean;
+    /** zh：中文提示词；compact：紧凑英文技术规则 + 中文内容。 */
+    promptProfile: BuilderPromptProfile;
+    /** 每 1M token 单价；用于 BuildUsage.cost 估算，0 表示不计价。 */
+    cost: {
+      input: number;
+      output: number;
+      cacheRead: number;
+      cacheWrite: number;
+    };
   };
   mock: {
     enabled: boolean;
@@ -88,6 +123,12 @@ export function loadConfig(env: Env = process.env): BuilderConfig {
     maxBundleBytes: envNumber(env, "DECK_MAX_BUNDLE_BYTES", 2 * 1024 * 1024),
     agentDir,
     harnessDir,
+    session: {
+      mode: envString(env, "BUILDER_SESSION_MODE", "page") === "deck" ? "deck" : "page",
+      pagesPerLane: Math.max(1, Math.trunc(envNumber(env, "BUILDER_SESSION_PAGES_PER_LANE", 3))),
+      contextRatio: Math.min(0.9, Math.max(0.1, envNumber(env, "BUILDER_SESSION_CONTEXT_RATIO", 0.6))),
+      ttlSeconds: Math.max(60, Math.trunc(envNumber(env, "BUILDER_SESSION_TTL_SECONDS", 1800))),
+    },
     validator: {
       url: envString(env, "PAGE_VALIDATOR_URL", "http://page-validator:9200").replace(/\/+$/, ""),
       token: envString(env, "PAGE_VALIDATOR_TOKEN", ""),
@@ -97,7 +138,16 @@ export function loadConfig(env: Env = process.env): BuilderConfig {
       baseUrl: envString(env, "LLM_BASE_URL", ""),
       apiKey: envString(env, "LLM_API_KEY", ""),
       model: envString(env, "PAGE_BUILDER_MODEL", ""),
-      thinkingLevel: envString(env, "PAGE_BUILDER_THINKING", "medium"),
+      thinkingLevel: envThinkingLevel(env, "PAGE_BUILDER_THINKING", "medium"),
+      reasoning: envFlag(env, "PAGE_BUILDER_REASONING"),
+      promptProfile:
+        envString(env, "PAGE_BUILDER_PROMPT_PROFILE", "zh") === "compact" ? "compact" : "zh",
+      cost: {
+        input: envNumber(env, "PAGE_BUILDER_COST_INPUT", 0),
+        output: envNumber(env, "PAGE_BUILDER_COST_OUTPUT", 0),
+        cacheRead: envNumber(env, "PAGE_BUILDER_COST_CACHE_READ", 0),
+        cacheWrite: envNumber(env, "PAGE_BUILDER_COST_CACHE_WRITE", 0),
+      },
     },
     mock: {
       enabled: envFlag(env, "PAGE_BUILDER_MOCK"),

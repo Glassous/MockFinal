@@ -18,6 +18,18 @@
 # - 不在容器内写入密钥，全部通过环境变量注入。
 # ============================================================
 services:
+  # 主 API 需要同时访问 db（default）与 Builder/Validator（pageref_internal）
+  api:
+    networks:
+      - default
+      - pageref_internal
+    environment:
+      PAGE_BUILDER_URL: http://page-builder:9100
+      PAGE_VALIDATOR_URL: http://page-validator:9200
+      PAGE_BUILDER_TOKEN: ${BUILDER_TOKEN}
+      PAGE_VALIDATOR_TOKEN: ${VALIDATOR_TOKEN}
+      DECK_TEACHING_ENABLED: "true"
+
   page-validator:
     build:
       # 构建上下文为仓库根目录：镜像同时需要 validator/ 与 shared/（共享 runtime 与 shell）

@@ -75,6 +75,13 @@ async def lifespan(app: FastAPI):
             await conn.execute(
                 text("ALTER TABLE deck_build_jobs ADD COLUMN IF NOT EXISTS feedback TEXT")
             )
+            # 2a-3. P8 用量观测列：usage JSONB（新库 create_all 已包含）
+            await conn.execute(
+                text(
+                    "ALTER TABLE deck_build_jobs ADD COLUMN IF NOT EXISTS "
+                    "usage JSONB NOT NULL DEFAULT '{}'::jsonb"
+                )
+            )
             # 2b. 启动自愈：上次进程遗留的 pending/running 任务、indexing 资料置 failed（#4）
             await conn.execute(
                 update(GenerationJob)

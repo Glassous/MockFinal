@@ -1,0 +1,182 @@
+{
+  "generated_at": "2026-11-08T05:32:20.119Z",
+  "base": "http://127.0.0.1:9100",
+  "role": "practice",
+  "session_key": "deck_fi_validator_1794115822",
+  "build_id": "probe_practice_1794115940068",
+  "first": false,
+  "cancel_after_ms": null,
+  "create": {
+    "status": 202,
+    "body": {
+      "build_id": "probe_practice_1794115940068",
+      "status": "running"
+    }
+  },
+  "final": {
+    "build_id": "probe_practice_1794115940068",
+    "status": "succeeded",
+    "stage": "页面构建完成，已通过 Builder 侧最终校验",
+    "attempts": 1,
+    "error": null,
+    "events_cursor": 43,
+    "usage": {
+      "input_tokens": 6130,
+      "output_tokens": 9381,
+      "cache_read_tokens": 669952,
+      "cache_write_tokens": 0,
+      "cost": 0,
+      "duration_ms": 57340
+    },
+    "validation": {
+      "status": "passed",
+      "issues": [],
+      "screenshots": [],
+      "duration_ms": 2138,
+      "teaching": {
+        "score": 80,
+        "criteria": {
+          "objectives": 20,
+          "chain": 20,
+          "example": 0,
+          "misconceptions": 15,
+          "check": 15,
+          "sources": 10
+        },
+        "warnings": []
+      }
+    },
+    "harness_version": "0.1.0",
+    "runtime_version": "1.1.0",
+    "created_at": "2026-11-08T05:32:20.112Z",
+    "started_at": "2026-11-08T05:32:20.112Z",
+    "finished_at": "2026-11-08T05:33:17.474Z",
+    "page_id": "page_sample_practice_float",
+    "session_key": "deck_fi_validator_1794115822",
+    "lane": 0
+  },
+  "events": [
+    {
+      "seq": 32,
+      "type": "stage",
+      "payload": {
+        "text": "模型开始新一轮输出"
+      },
+      "at": "2026-11-08T05:33:06.838Z"
+    },
+    {
+      "seq": 33,
+      "type": "tool",
+      "payload": {
+        "tool": "edit",
+        "text": "修改页面文件：page.css"
+      },
+      "at": "2026-11-08T05:33:10.938Z"
+    },
+    {
+      "seq": 34,
+      "type": "stage",
+      "payload": {
+        "text": "模型开始新一轮输出"
+      },
+      "at": "2026-11-08T05:33:10.944Z"
+    },
+    {
+      "seq": 35,
+      "type": "check",
+      "payload": {
+        "tool": "check_page",
+        "text": "自检页面"
+      },
+      "at": "2026-11-08T05:33:12.044Z"
+    },
+    {
+      "seq": 36,
+      "type": "check",
+      "payload": {
+        "text": "自检结果：passed（第 2/3 次）",
+        "status": "passed",
+        "issues": 0
+      },
+      "at": "2026-11-08T05:33:14.166Z"
+    },
+    {
+      "seq": 37,
+      "type": "check",
+      "payload": {
+        "text": "自检完成",
+        "tool": "check_page",
+        "is_error": false
+      },
+      "at": "2026-11-08T05:33:14.166Z"
+    },
+    {
+      "seq": 38,
+      "type": "stage",
+      "payload": {
+        "text": "模型开始新一轮输出"
+      },
+      "at": "2026-11-08T05:33:14.167Z"
+    },
+    {
+      "seq": 39,
+      "type": "page_done",
+      "payload": {
+        "text": "Pi 生成完成，等待最终校验",
+        "aborted": false
+      },
+      "at": "2026-11-08T05:33:15.331Z"
+    },
+    {
+      "seq": 40,
+      "type": "text",
+      "payload": {
+        "text": "files: manifest.json, page.html, page.css, page.js\ncheck_page: passed (第一轮仅 MIN_FONT_WARNING，已提升小标签字号后复检通过)"
+      },
+      "at": "2026-11-08T05:33:15.331Z"
+    },
+    {
+      "seq": 41,
+      "type": "stage",
+      "payload": {
+        "text": "正在收集页面文件并做 Builder 侧最终校验"
+      },
+      "at": "2026-11-08T05:33:15.331Z"
+    },
+    {
+      "seq": 42,
+      "type": "check",
+      "payload": {
+        "text": "最终校验：passed，问题 0 条",
+        "status": "passed",
+        "issues": 0
+      },
+      "at": "2026-11-08T05:33:17.474Z"
+    },
+    {
+      "seq": 43,
+      "type": "page_done",
+      "payload": {
+        "text": "页面构建完成，已通过校验并生成 bundle。",
+        "files": [
+          "manifest.json",
+          "page.html",
+          "page.css",
+          "page.js"
+        ],
+        "validation_status": "passed"
+      },
+      "at": "2026-11-08T05:33:17.474Z"
+    }
+  ],
+  "cancel_result": null,
+  "cancelled_at_ms": null,
+  "duration_ms": 57556,
+  "cleanup": {
+    "status": 202,
+    "body": {
+      "key": "deck_fi_validator_1794115822",
+      "status": "closed"
+    }
+  }
+}

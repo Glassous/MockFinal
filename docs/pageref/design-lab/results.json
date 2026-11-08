@@ -1,0 +1,530 @@
+{
+  "generatedAt": "2026-11-08T09:38:15.386Z",
+  "results": [
+    {
+      "theme": "editorial",
+      "page": "cr-condition",
+      "initial": {
+        "theme": "editorial",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1791,
+        "viewportHeight": 720,
+        "viewportsTall": 2.4875,
+        "horizontalOverflow": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 649,
+        "minFont": {
+          "px": 12,
+          "sample": "第 2 讲 · 解析函数"
+        },
+        "figure": {
+          "width": 320,
+          "height": 376,
+          "shareOfContent": 0.116
+        },
+        "flowHeight": 1474,
+        "railWidth": 320,
+        "contentBottom": 1701
+      },
+      "mobile": {
+        "theme": "editorial",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentHeight": 3268,
+        "viewportHeight": 844,
+        "viewportsTall": 3.8720379146919433,
+        "horizontalOverflow": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 699,
+        "minFont": {
+          "px": 12,
+          "sample": "第 2 讲 · 解析函数"
+        },
+        "figure": {
+          "width": 362,
+          "height": 371,
+          "shareOfContent": 0.194
+        },
+        "flowHeight": 1913,
+        "railWidth": 362,
+        "contentBottom": 2322
+      },
+      "consoleErrors": []
+    },
+    {
+      "theme": "editorial",
+      "page": "residue-contour",
+      "initial": {
+        "theme": "editorial",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1996,
+        "viewportHeight": 720,
+        "viewportsTall": 2.772222222222222,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 536,
+        "minFont": {
+          "px": 12,
+          "sample": "第 3 讲 · 留数定理"
+        },
+        "figure": {
+          "width": 320,
+          "height": 376,
+          "shareOfContent": 0.102
+        },
+        "flowHeight": 1679,
+        "railWidth": 320,
+        "contentBottom": 1906
+      },
+      "mobile": {
+        "theme": "editorial",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentHeight": 3276,
+        "viewportHeight": 844,
+        "viewportsTall": 3.881516587677725,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 576,
+        "minFont": {
+          "px": 12,
+          "sample": "第 3 讲 · 留数定理"
+        },
+        "figure": {
+          "width": 362,
+          "height": 371,
+          "shareOfContent": 0.188
+        },
+        "flowHeight": 1971,
+        "railWidth": 362,
+        "contentBottom": 2328
+      },
+      "consoleErrors": []
+    },
+    {
+      "theme": "editorial",
+      "page": "laplace-ode",
+      "initial": {
+        "theme": "editorial",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2040,
+        "viewportHeight": 720,
+        "viewportsTall": 2.8333333333333335,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 465,
+        "minFont": {
+          "px": 12,
+          "sample": "第 5 讲 · 拉普拉斯变换"
+        },
+        "figure": null,
+        "flowHeight": 1723,
+        "railWidth": 320,
+        "contentBottom": 1951
+      },
+      "mobile": {
+        "theme": "editorial",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentHeight": 2905,
+        "viewportHeight": 844,
+        "viewportsTall": 3.441943127962085,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 487,
+        "minFont": {
+          "px": 12,
+          "sample": "第 5 讲 · 拉普拉斯变换"
+        },
+        "figure": null,
+        "flowHeight": 1988,
+        "railWidth": 362,
+        "contentBottom": 2345
+      },
+      "consoleErrors": []
+    },
+    {
+      "theme": "workbench",
+      "page": "cr-condition",
+      "initial": {
+        "theme": "workbench",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1737,
+        "viewportHeight": 720,
+        "viewportsTall": 2.4125,
+        "horizontalOverflow": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 674,
+        "minFont": {
+          "px": 12,
+          "sample": "第 2 讲 · 解析函数"
+        },
+        "figure": {
+          "width": 320,
+          "height": 374,
+          "shareOfContent": 0.126
+        },
+        "flowHeight": 1470,
+        "railWidth": 320,
+        "contentBottom": 1648
+      },
+      "mobile": {
+        "theme": "workbench",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentHeight": 3302,
+        "viewportHeight": 844,
+        "viewportsTall": 3.9123222748815167,
+        "horizontalOverflow": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 709,
+        "minFont": {
+          "px": 12,
+          "sample": "第 2 讲 · 解析函数"
+        },
+        "figure": {
+          "width": 362,
+          "height": 376,
+          "shareOfContent": 0.193
+        },
+        "flowHeight": 1953,
+        "railWidth": 362,
+        "contentBottom": 2336
+      },
+      "consoleErrors": []
+    },
+    {
+      "theme": "workbench",
+      "page": "residue-contour",
+      "initial": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1913,
+        "viewportHeight": 720,
+        "viewportsTall": 2.6569444444444446,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 555,
+        "minFont": {
+          "px": 12,
+          "sample": "第 3 讲 · 留数定理"
+        },
+        "figure": {
+          "width": 320,
+          "height": 374,
+          "shareOfContent": 0.113
+        },
+        "flowHeight": 1646,
+        "railWidth": 320,
+        "contentBottom": 1824
+      },
+      "mobile": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentHeight": 3285,
+        "viewportHeight": 844,
+        "viewportsTall": 3.8921800947867298,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 586,
+        "minFont": {
+          "px": 12,
+          "sample": "第 3 讲 · 留数定理"
+        },
+        "figure": {
+          "width": 362,
+          "height": 376,
+          "shareOfContent": 0.192
+        },
+        "flowHeight": 1961,
+        "railWidth": 362,
+        "contentBottom": 2317
+      },
+      "consoleErrors": []
+    },
+    {
+      "theme": "workbench",
+      "page": "laplace-ode",
+      "initial": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1958,
+        "viewportHeight": 720,
+        "viewportsTall": 2.7194444444444446,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 480,
+        "minFont": {
+          "px": 12,
+          "sample": "第 5 讲 · 拉普拉斯变换"
+        },
+        "figure": null,
+        "flowHeight": 1691,
+        "railWidth": 320,
+        "contentBottom": 1868
+      },
+      "mobile": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentHeight": 2889,
+        "viewportHeight": 844,
+        "viewportsTall": 3.4229857819905214,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 487,
+        "minFont": {
+          "px": 12,
+          "sample": "第 5 讲 · 拉普拉斯变换"
+        },
+        "figure": null,
+        "flowHeight": 1956,
+        "railWidth": 362,
+        "contentBottom": 2312
+      },
+      "consoleErrors": []
+    },
+    {
+      "theme": "problem",
+      "page": "cr-condition",
+      "initial": {
+        "theme": "problem",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1782,
+        "viewportHeight": 720,
+        "viewportsTall": 2.475,
+        "horizontalOverflow": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 674,
+        "minFont": {
+          "px": 12,
+          "sample": "第 2 讲 · 解析函数"
+        },
+        "figure": {
+          "width": 304,
+          "height": 364,
+          "shareOfContent": 0.108
+        },
+        "flowHeight": 1483,
+        "railWidth": 304,
+        "contentBottom": 1693
+      },
+      "mobile": {
+        "theme": "problem",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentHeight": 3286,
+        "viewportHeight": 844,
+        "viewportsTall": 3.8933649289099526,
+        "horizontalOverflow": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 699,
+        "minFont": {
+          "px": 12,
+          "sample": "第 2 讲 · 解析函数"
+        },
+        "figure": {
+          "width": 362,
+          "height": 360,
+          "shareOfContent": 0.187
+        },
+        "flowHeight": 1924,
+        "railWidth": 362,
+        "contentBottom": 2343
+      },
+      "consoleErrors": []
+    },
+    {
+      "theme": "problem",
+      "page": "residue-contour",
+      "initial": {
+        "theme": "problem",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1941,
+        "viewportHeight": 720,
+        "viewportsTall": 2.6958333333333333,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 555,
+        "minFont": {
+          "px": 12,
+          "sample": "第 3 讲 · 留数定理"
+        },
+        "figure": {
+          "width": 304,
+          "height": 364,
+          "shareOfContent": 0.096
+        },
+        "flowHeight": 1667,
+        "railWidth": 304,
+        "contentBottom": 1852
+      },
+      "mobile": {
+        "theme": "problem",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentHeight": 3275,
+        "viewportHeight": 844,
+        "viewportsTall": 3.8803317535545023,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 576,
+        "minFont": {
+          "px": 12,
+          "sample": "第 3 讲 · 留数定理"
+        },
+        "figure": {
+          "width": 362,
+          "height": 360,
+          "shareOfContent": 0.186
+        },
+        "flowHeight": 1937,
+        "railWidth": 362,
+        "contentBottom": 2330
+      },
+      "consoleErrors": []
+    },
+    {
+      "theme": "problem",
+      "page": "laplace-ode",
+      "initial": {
+        "theme": "problem",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2010,
+        "viewportHeight": 720,
+        "viewportsTall": 2.7916666666666665,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 480,
+        "minFont": {
+          "px": 12,
+          "sample": "第 5 讲 · 拉普拉斯变换"
+        },
+        "figure": null,
+        "flowHeight": 1711,
+        "railWidth": 304,
+        "contentBottom": 1921
+      },
+      "mobile": {
+        "theme": "problem",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentHeight": 2945,
+        "viewportHeight": 844,
+        "viewportsTall": 3.4893364928909953,
+        "horizontalOverflow": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 487,
+        "minFont": {
+          "px": 12,
+          "sample": "第 5 讲 · 拉普拉斯变换"
+        },
+        "figure": null,
+        "flowHeight": 1981,
+        "railWidth": 362,
+        "contentBottom": 2374
+      },
+      "consoleErrors": []
+    }
+  ]
+}

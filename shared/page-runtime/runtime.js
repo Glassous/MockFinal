@@ -1,5 +1,5 @@
 /*!
- * MockFinal 页面运行时 runtime_version = "1.0.0"
+ * MockFinal 页面运行时 runtime_version = "1.1.0"
  * 契约：docs/pageref/PAGE_CONTRACT.md §6、§8
  *
  * 宿主（前端阅读器与 Validator）把本文件内联进 sandbox iframe 的 shell，
@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  var RUNTIME_VERSION = '1.0.0';
+  var RUNTIME_VERSION = '1.1.0';
   var MAX_PAYLOAD_BYTES = 4096;
   var MAX_TEXT_BYTES = 2048;
   var MAX_ERROR_BYTES = 1024;
@@ -33,7 +33,7 @@
     'font-sans',
     'font-mono'
   ];
-  var HOST_MESSAGE_TYPES = ['theme', 'pause', 'resume', 'quote'];
+  var HOST_MESSAGE_TYPES = ['theme', 'pause', 'resume', 'quote', 'focus_block'];
   var EMIT_TYPES = ['interaction', 'progress', 'complete'];
 
   var CHANNEL = typeof window.__MP_CHANNEL__ === 'string' ? window.__MP_CHANNEL__ : '';
@@ -54,6 +54,13 @@
   var state = { mode: 'light', reducedMotion: false, tokens: {} };
 
   var root = document.documentElement;
+  // page-kit 2.0 的 flow 页允许页内滚动：Space/PageDown 交给浏览器滚动，只保留左右方向键翻页。
+  var scrollMode = false;
+  try {
+    scrollMode = root.getAttribute('data-mp-scroll') === 'flow';
+  } catch (err) {
+    scrollMode = false;
+  }
 
   function utf8Length(text) {
     if (typeof text !== 'string') return 0;
@@ -211,9 +218,33 @@
         root.setAttribute('data-mp-paused', 'true');
       } else if (type === 'resume') {
         root.setAttribute('data-mp-paused', 'false');
+      } else if (type === 'focus_block') {
+        highlightBlock(payload.block_id);
       }
       notify({ type: type, payload: payload });
     });
+  }
+
+  var focusTimer = null;
+  function highlightBlock(blockId) {
+    if (typeof blockId !== 'string' || blockId === '') return;
+    var target = null;
+    var nodes = document.querySelectorAll('[data-mp-block]');
+    for (var i = 0; i < nodes.length; i += 1) {
+      if (nodes[i].getAttribute('data-mp-block') === blockId) {
+        target = nodes[i];
+        break;
+      }
+    }
+    if (!target) return;
+    if (focusTimer) window.clearTimeout(focusTimer);
+    var previous = document.querySelector('[data-mp-focus]');
+    if (previous) previous.removeAttribute('data-mp-focus');
+    target.setAttribute('data-mp-focus', 'true');
+    focusTimer = window.setTimeout(function () {
+      focusTimer = null;
+      target.removeAttribute('data-mp-focus');
+    }, 1800);
   }
 
   function setupSelection() {
@@ -294,6 +325,17 @@
     document.addEventListener('keydown', function (event) {
       if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
       if (isEditableTarget(event.target)) return;
+      if (scrollMode) {
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          post('request_next', {});
+        } else if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          post('request_prev', {});
+        }
+        // Space / PageDown / PageUp / 上下箭头保持浏览器默认滚动
+        return;
+      }
       if (event.key === ' ' && isControlTarget(event.target)) return;
       if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') {
         event.preventDefault();

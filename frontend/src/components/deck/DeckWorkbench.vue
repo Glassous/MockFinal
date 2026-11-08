@@ -10,7 +10,6 @@ import {
 } from 'lucide-vue-next'
 import type { Deck } from '@/types'
 import {
-  deckProgressPercent,
   deckUpdatedSummary,
   densityLabel,
   normalizeDeckStyle,
@@ -33,8 +32,28 @@ const emit = defineEmits<{
 
 const style = computed(() => normalizeDeckStyle(props.deck.style))
 const pages = computed(() => sortedPages(props.deck))
-const progress = computed(() => deckProgressPercent(props.deck))
 const completedCount = computed(() => props.deck.completed_page_ids.length)
+const learnedPercent = computed(() =>
+  props.deck.total_pages
+    ? Math.round((completedCount.value / props.deck.total_pages) * 100)
+    : 0,
+)
+const learnedIds = computed(() => new Set(props.deck.completed_page_ids))
+const continueId = computed(() => {
+  const next = pages.value.find(
+    (page) => page.status === 'ready' && page.has_bundle && !learnedIds.value.has(page.id),
+  )
+  return next?.id ?? props.deck.continue_page_id ?? null
+})
+const checkTotal = computed(() =>
+  pages.value.reduce((sum, page) => sum + (page.check_count ?? 0), 0),
+)
+const teachingReady = computed(
+  () => pages.value.filter((page) => page.status === 'ready' && page.teaching_role).length,
+)
+const teachingPercent = computed(() =>
+  props.deck.ready_pages ? Math.round((teachingReady.value / props.deck.ready_pages) * 100) : 0,
+)
 const allFailed = computed(
   () => pages.value.length > 0 && pages.value.every((page) => page.status === 'failed'),
 )
@@ -48,17 +67,19 @@ const active = computed(() => !!props.deck.active_job_id)
         <h2 class="text-sm font-semibold tracking-tight text-ink">工作台</h2>
         <DeckStatusPill kind="deck" :status="deck.status" />
       </div>
-      <p class="mt-1 text-xs text-muted">{{ deckUpdatedSummary(deck) }}</p>
+      <p class="mt-1 text-xs text-muted">
+        已学完 {{ completedCount }} / {{ deck.total_pages }} 页 · {{ deckUpdatedSummary(deck) }}
+      </p>
 
       <div class="mt-3">
         <div class="flex items-center justify-between text-[11px] text-muted">
-          <span>就绪进度</span>
-          <span>{{ progress }}%</span>
+          <span>学习进度</span>
+          <span>{{ learnedPercent }}%</span>
         </div>
         <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-raised">
           <div
             class="h-full rounded-full bg-invert transition-all duration-300"
-            :style="{ width: `${progress}%` }"
+            :style="{ width: `${learnedPercent}%` }"
           />
         </div>
       </div>
@@ -69,10 +90,10 @@ const active = computed(() => !!props.deck.active_job_id)
           查看构建进度
         </AppButton>
       </div>
-      <div v-else-if="deck.continue_page_id" class="mt-3">
-        <AppButton block size="sm" @click="emit('continue', deck.continue_page_id)">
+      <div v-else-if="continueId" class="mt-3">
+        <AppButton block size="sm" @click="emit('continue', continueId)">
           <template #icon><Play class="h-4 w-4" /></template>
-          继续阅读
+          继续学习
         </AppButton>
       </div>
       <div v-else-if="!pages.length" class="mt-3">
@@ -91,18 +112,22 @@ const active = computed(() => !!props.deck.active_job_id)
         </p>
       </div>
 
-      <div class="mb-4 grid grid-cols-3 gap-2 text-center">
+      <div class="mb-4 grid grid-cols-2 gap-2 text-center">
         <div class="rounded-2xl border border-border bg-raised px-2 py-2">
           <p class="text-lg font-bold text-ink">{{ deck.ready_pages }}</p>
-          <p class="text-[10px] text-faint">已就绪</p>
+          <p class="text-[11px] text-faint">已构建</p>
         </div>
         <div class="rounded-2xl border border-border bg-raised px-2 py-2">
           <p class="text-lg font-bold text-ink">{{ deck.failed_pages }}</p>
-          <p class="text-[10px] text-faint">失败</p>
+          <p class="text-[11px] text-faint">失败</p>
         </div>
         <div class="rounded-2xl border border-border bg-raised px-2 py-2">
           <p class="text-lg font-bold text-ink">{{ completedCount }}</p>
-          <p class="text-[10px] text-faint">已阅读</p>
+          <p class="text-[11px] text-faint">已学完</p>
+        </div>
+        <div class="rounded-2xl border border-border bg-raised px-2 py-2">
+          <p class="text-lg font-bold text-ink">{{ checkTotal }}</p>
+          <p class="text-[11px] text-faint">随堂检查</p>
         </div>
       </div>
 
@@ -125,6 +150,22 @@ const active = computed(() => !!props.deck.active_job_id)
         </div>
         <p v-if="style.custom_prompt" class="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-faint">
           {{ style.custom_prompt }}
+        </p>
+      </section>
+
+      <section class="mb-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-semibold text-ink">教学完整度</h3>
+          <span class="text-[11px] text-faint">{{ teachingPercent }}%</span>
+        </div>
+        <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-raised">
+          <div
+            class="h-full rounded-full bg-invert transition-all duration-300"
+            :style="{ width: `${teachingPercent}%` }"
+          />
+        </div>
+        <p class="mt-1 text-[11px] leading-relaxed text-muted">
+          {{ teachingReady }} / {{ deck.ready_pages }} 个已构建页面带教学结构。
         </p>
       </section>
 
@@ -193,7 +234,7 @@ const active = computed(() => !!props.deck.active_job_id)
           整册重建
         </AppButton>
       </div>
-      <p class="mt-2 text-[10px] leading-relaxed text-faint">
+      <p class="mt-2 text-[11px] leading-relaxed text-faint">
         重建时旧页面在新版本就绪前保持可读；单页可在页面卡片或阅读器中重做。
       </p>
     </footer>

@@ -1,11 +1,16 @@
 ---
 name: mockfinal-page-builder
-description: 把一份 PageBrief 与来源段落构建成单个 MockFinal 复习页 PageBundle（manifest.json、page.html、page.css、page.js），满足单屏零滚动、单色纸感、可访问交互与可执行冒烟，并在结束前调用 check_page 直到通过。
+description: 把一份 PageBrief 与来源段落构建成单个 MockFinal 复习页。content_schema=2.0 时只写 content.json（page-kit 渲染）；1.0 时写 manifest.json、page.html、page.css、page.js。结束前必须调用 check_page 直到通过。
 ---
 
 # Skill: mockfinal-page-builder
 
-把一份 PageBrief 与对应来源段落转换为**一个** PageBundle（4 个文件），通过 Validator 的静态与浏览器检查。
+把一份 PageBrief 与对应来源段落转换为**一个**复习页，通过 Validator 的静态与浏览器检查。
+
+> **先看 brief 的 `constraints.content_schema`：**
+> - `"2.0"`：只写 `content.json`，按 `references/content-schema.md`；本文第 2–4 节的 4 文件规则不适用（manifest/HTML/CSS/JS 由构建期渲染器生成）。
+> - 缺省或 `"1.0"`：按本文写 4 个文件（legacy 路径）。
+
 
 ## 0. 何时使用
 
@@ -38,7 +43,7 @@ Builder 收到 `/build-page` 或等价的页面构建请求时使用；一次会
 1. **加载技能**：确认已读本 `SKILL.md`；若由 `/skill:mockfinal-page-builder` 加载，仍要读取第 1 步列出的两份必读 references。
 2. **读 brief**：读 `{{brief_path}}`，记下 `page_id`、`knowledge_point`（title/summary/objectives/key_points/formulas/misconceptions）、`style.preset`、`content`、`density`、`interaction_idea`、`constraints`（视口、`no_scroll`、`max_bundle_bytes`、`runtime_version`、`language`）。
 3. **读资料**：按 `source_excerpts[].section_id` 在 `materials/` 中找到原文，核对 heading 与正文；为 `source_refs` 选 1–3 条可引用的原句（不改写事实）。
-4. **定版式与交互**：按 `layouts.md` 选 1 个主布局，按 `animation-recipes.md` 选 1 个配方；先在纸上确定：1 个核心观点、3–5 个内容块、1 个主交互、1 个冒烟路径（点击一次 → 出现新状态）。
+4. **定版式与交互**：教学页使用构建目录中已放入的角色模板（concept/mechanism/worked_example/practice/compare/summary），在模板上 `edit`；再按 `layouts.md` / `animation-recipes.md` 选 1 个主布局与 1 个配方。确定：1 个核心观点、3–5 个表达块（页内总块 ≤8）、1 个主交互、1 个冒烟路径（点击一次 → 出现新状态）、1 道检查题。
 5. **写 manifest**：`schema_version`、`runtime_version`、`page_id`、`title`、`subtitle`、`knowledge_point_ids`、`importance`、`estimated_minutes`、`layout`、`interactions`（含 `smoke`）、`source_refs`、`assistant`、`a11y: { reduced_motion: true }`。先写它，后续代码以它为准。
 6. **写 page.html + page.css**：先结构后样式。根 `.mp-page` 用 `100dvh` grid（`auto 1fr auto`），主体 `min-height: 0`；字号/间距用 `clamp()`；颜色只用 `--mp-*`；按钮用 `<button type="button">` 并写文本或 `aria-label`；补 reduced-motion 规则。
 7. **写 page.js**：单一 `step/index` 状态 + 幂等 `render()`；事件绑定 `data-mp-action`；`data-mp-state` 反映状态；状态立即更新、动画只做过渡；末尾 `MockFinal.ready({ title })` 恰好一次。IIFE 包裹避免全局变量。

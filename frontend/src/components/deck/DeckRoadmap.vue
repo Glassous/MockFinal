@@ -3,12 +3,13 @@ import { computed } from 'vue'
 import {
   AlertCircle,
   Check,
+  CheckCheck,
   CircleDashed,
   CircleDot,
   Loader2,
 } from 'lucide-vue-next'
 import type { RoadmapChapter, RoadmapNode } from '@/lib/deck'
-import { PAGE_STATUS_LABELS } from '@/lib/deck'
+import { PAGE_STATUS_LABELS, TEACHING_ROLE_LABELS } from '@/lib/deck'
 
 const props = defineProps<{
   chapters: RoadmapChapter[]
@@ -47,6 +48,7 @@ function statusLabel(node: RoadmapNode): string {
 }
 
 const statusIcon = (node: RoadmapNode) => {
+  if (node.learned) return CheckCheck
   if (node.status === 'ready') return Check
   if (node.status === 'building' || node.status === 'validating') return Loader2
   if (node.status === 'failed') return AlertCircle
@@ -98,7 +100,7 @@ function openNode(node: RoadmapNode) {
               @click="openNode(node)"
             >
               <span
-                class="relative z-10 inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border text-[10px] font-bold"
+                class="relative z-10 inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border text-[11px] font-bold"
                 :class="
                   node.status === 'ready'
                     ? 'border-transparent bg-invert-ink/15 text-invert-ink'
@@ -116,17 +118,20 @@ function openNode(node: RoadmapNode) {
               <span class="min-w-0 flex-1">
                 <span class="block truncate text-xs leading-tight">{{ node.title }}</span>
                 <span
-                  class="mt-0.5 block text-[10px] leading-tight"
+                  class="mt-0.5 block text-[11px] leading-tight"
                   :class="node.status === 'ready' ? 'text-invert-ink/65' : 'text-faint'"
                 >
                   {{ statusLabel(node) }}
+                  <template v-if="node.learned"> · 已学完</template>
+                  <template v-if="node.role"> · {{ TEACHING_ROLE_LABELS[node.role] }}</template>
+                  <template v-if="node.checkCount"> · {{ node.checkCount }} 检查</template>
                   <template v-if="node.pageCount > 1"> · {{ node.pageCount }} 页</template>
                   <template v-if="node.importance === 'core'"> · 核心</template>
                 </span>
               </span>
               <span
                 v-if="node.page"
-                class="shrink-0 text-[10px] font-medium"
+                class="shrink-0 text-[11px] font-medium"
                 :class="node.status === 'ready' ? 'text-invert-ink/65' : 'text-faint'"
               >
                 {{ String(node.page.ordinal + 1).padStart(2, '0') }}

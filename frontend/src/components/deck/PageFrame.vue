@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { PageBundle, PageSelection } from '@/types'
 import { buildPageShell, describeShellError } from '@/lib/pageShell'
 
@@ -27,17 +27,27 @@ const MAX_QUOTE_CHARS = 2000
 const iframe = ref<HTMLIFrameElement | null>(null)
 const html = ref('')
 const channel = ref('')
+const isFlow = computed(
+  () =>
+    props.bundle.manifest.design_system === '2.0' &&
+    props.bundle.manifest.teaching?.scroll === 'flow',
+)
 let readyTimer: number | null = null
 let ready = false
 let accepting = false
+let srcdocLoaded = false
 
 function clip(value: unknown, limit: number): string {
   return typeof value === 'string' ? value.slice(0, limit) : ''
 }
 
 function onFrameLoad() {
+  // srcdoc 首次 load 是正常挂载；只有挂载完成后的再次 load 才是页面自我导航。
+  if (html.value && !srcdocLoaded) {
+    srcdocLoaded = true
+    return
+  }
   if (!ready) return
-  // srcdoc 就绪后再次 load 只可能是页面自我导航；立即销毁内容并停止后续消息
   ready = false
   accepting = false
   clearReadyTimer()
@@ -56,14 +66,15 @@ function clearReadyTimer() {
 function scheduleReadyTimeout() {
   clearReadyTimer()
   readyTimer = window.setTimeout(() => {
-    if (!ready) emit('error', '页面加载超时（8 秒），请重试')
-  }, 8000)
+    if (!ready) emit('error', '页面加载超时（10 秒），请重试')
+  }, 10000)
 }
 
 function build() {
   clearReadyTimer()
   ready = false
   accepting = false
+  srcdocLoaded = false
   try {
     const shell = buildPageShell(props.bundle, props.theme)
     html.value = shell.html
@@ -89,6 +100,13 @@ function sendTheme() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   post('theme', { mode: props.theme, reducedMotion })
 }
+
+function focusBlock(blockId: string) {
+  if (!blockId) return
+  post('focus_block', { block_id: blockId })
+}
+
+defineExpose({ focusBlock })
 
 function onMessage(event: MessageEvent) {
   const frame = iframe.value
@@ -179,6 +197,7 @@ onBeforeUnmount(() => {
     :srcdoc="html"
     sandbox="allow-scripts"
     referrerpolicy="no-referrer"
+    :tabindex="isFlow ? 0 : undefined"
     class="h-full w-full border-0 bg-panel"
     :title="bundle.manifest.title || '复习页'"
     @load="onFrameLoad"

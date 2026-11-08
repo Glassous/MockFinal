@@ -104,11 +104,27 @@ def normalize_report(payload: Any) -> dict:
     # INTERNAL_API §4.1：任一 error 级问题即失败；不信任外部报告的 passed 结论
     if status != "failed" and any(issue["severity"] == "error" for issue in issues):
         status = "failed"
+    raw_teaching = payload.get("teaching")
+    teaching: dict | None = None
+    if isinstance(raw_teaching, dict):
+        try:
+            score = int(raw_teaching.get("score"))
+        except (TypeError, ValueError):
+            score = -1
+        warnings = raw_teaching.get("warnings")
+        if 0 <= score <= 100:
+            teaching = {
+                "score": score,
+                "warnings": [str(item)[:300] for item in warnings][:10]
+                if isinstance(warnings, list)
+                else [],
+            }
     return {
         "status": status,
         "issues": issues,
         "screenshots": screenshots,
         "duration_ms": max(0, duration_ms),
+        "teaching": teaching,
     }
 
 
@@ -164,7 +180,10 @@ class PageValidatorClient:
         headers = {"Authorization": f"Bearer {self.token}"}
         try:
             async with httpx.AsyncClient(
-                base_url=self.base_url, timeout=self.timeout, transport=self._transport
+                base_url=self.base_url,
+                timeout=self.timeout,
+                transport=self._transport,
+                trust_env=False,
             ) as client:
                 response = await client.post("/v1/validate", json=body, headers=headers)
         except httpx.TimeoutException as exc:

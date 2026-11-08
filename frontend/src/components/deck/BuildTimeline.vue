@@ -21,7 +21,7 @@ const canceled = computed(() => props.job?.status === 'canceled')
       >
         <div class="flex min-w-0 flex-1 items-center gap-1.5">
           <span
-            class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold"
+            class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold"
             :class="[
               index < stageIndex
                 ? 'border-transparent bg-invert text-invert-ink'

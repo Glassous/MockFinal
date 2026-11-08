@@ -12,6 +12,7 @@ import type {
   OutlineChapter,
   OutlineKnowledgePoint,
   PagePlanEntry,
+  TeachingRole,
 } from '@/types'
 
 export const DECK_PRESETS: { value: DeckPreset; label: string; hint: string }[] = [
@@ -54,6 +55,15 @@ export const PAGE_STATUS_LABELS: Record<DeckPageStatus, string> = {
   ready: '已就绪',
   failed: '失败',
   canceled: '已取消',
+}
+
+export const TEACHING_ROLE_LABELS: Record<TeachingRole, string> = {
+  concept: '概念',
+  mechanism: '机制',
+  worked_example: '例题',
+  practice: '练习',
+  compare: '对比',
+  summary: '小结',
 }
 
 export const JOB_STATUS_LABELS: Record<DeckJobStatus, string> = {
@@ -162,6 +172,9 @@ export interface RoadmapNode {
   status: RoadmapNodeStatus
   page: DeckPageSummary | null
   pageCount: number
+  role: TeachingRole | null
+  checkCount: number
+  learned: boolean
 }
 
 export interface RoadmapChapter {
@@ -185,6 +198,7 @@ export function buildRoadmap(deck: Deck): RoadmapChapter[] {
   const plans = deck.outline?.page_plan ?? []
   const pagesByOrdinal = new Map<number, DeckPageSummary>()
   for (const page of deck.pages) pagesByOrdinal.set(page.ordinal, page)
+  const learnedIds = new Set(deck.completed_page_ids ?? [])
 
   const pageByKp = new Map<number, DeckPageSummary>()
   for (const plan of plans) {
@@ -218,6 +232,9 @@ export function buildRoadmap(deck: Deck): RoadmapChapter[] {
         status: page?.status ?? 'unstarted',
         page,
         pageCount: plans.filter((plan) => plan.primary_kp_index === index).length || 1,
+        role: page?.teaching_role ?? null,
+        checkCount: page?.check_count ?? 0,
+        learned: page ? learnedIds.has(page.id) : false,
       }
     })
     return { title: chapter.title, nodes }

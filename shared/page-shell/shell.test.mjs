@@ -81,7 +81,7 @@ test('buildShell 注入顺序固定：base css → page css → html → channel
   const pageCss = shell.indexOf('.mp-page { height: 100dvh');
   const root = shell.indexOf('<div id="mp-root">');
   const chan = shell.indexOf('window.__MP_CHANNEL__');
-  const runtime = shell.indexOf("var RUNTIME_VERSION = '1.0.0';");
+  const runtime = shell.indexOf(`var RUNTIME_VERSION = '${SUPPORTED_RUNTIME_VERSION}';`);
   const pageJs = shell.indexOf("MockFinal.ready({ title: '测试页' });");
   assert.ok(baseCss < pageCss, 'base css 必须在 page css 之前');
   assert.ok(pageCss < root, 'page css 必须在页面内容之前');
@@ -154,12 +154,22 @@ test('buildShell 校验 schema_version / runtime_version / 字段类型', () => 
   assert.throws(
     () =>
       buildShell({
-        bundle: makeBundle({ runtime_version: '1.1.0' }),
+        bundle: makeBundle({ runtime_version: '9.9.9' }),
         runtimeSource,
         channel
       }),
     (err) => err instanceof ShellBuildError && err.code === 'RUNTIME_VERSION_MISMATCH'
   );
+});
+
+test('buildShell 兼容 1.0 旧 bundle（1.1 runtime 向后兼容）', () => {
+  const shell = buildShell({
+    bundle: makeBundle({ schema_version: '1.0', runtime_version: '1.0.0' }),
+    runtimeSource,
+    channel
+  });
+  assert.ok(shell.includes(`var RUNTIME_VERSION = '${SUPPORTED_RUNTIME_VERSION}';`));
+  assert.ok(shell.includes('<div id="mp-root">'));
 });
 
 test('buildShell 拒绝超过 2 MiB 的 bundle', () => {
@@ -181,4 +191,88 @@ test('buildShell 校验 channel 与 theme', () => {
   );
   const dark = buildShell({ bundle: makeBundle(), runtimeSource, channel, theme: 'dark' });
   assert.ok(dark.includes('data-mp-theme="dark"'));
+});
+
+test('DECK_KIT 只对 design_system=1.0 注入，且不新增 style 标签', () => {
+  const legacy = buildShell({ bundle: makeBundle(), runtimeSource, channel });
+  assert.equal((legacy.match(/<style>/g) || []).length, 2);
+  assert.ok(!legacy.includes('.mp-layout-split'), '旧页面不得注入 kit');
+
+  const bundle = makeBundle({
+    schema_version: '1.1',
+    manifest: {
+      ...makeBundle().manifest,
+      schema_version: '1.1',
+      design_system: '1.0',
+      teaching: { version: '1.0', role: 'mechanism', objectives: ['目标'] }
+    }
+  });
+  const next = buildShell({ bundle, runtimeSource, channel });
+  assert.equal((next.match(/<style>/g) || []).length, 2);
+  assert.ok(next.includes('.mp-layout-split'));
+  assert.ok(next.includes('.mp-option'));
+  assert.ok(next.includes('data-mp-state="hidden"'));
+});
+
+test('Shell 基础层提供移动端纵向滚动且禁止横向溢出', () => {
+  const shell = buildShell({ bundle: makeBundle(), runtimeSource, channel });
+  assert.ok(shell.includes('@media (max-width: 767px)'));
+  assert.ok(shell.includes('overflow-y: auto !important'));
+  assert.ok(shell.includes('overflow-x: hidden !important'));
+});
+
+function makePg2Bundle(overrides = {}) {
+  return {
+    schema_version: '1.1',
+    runtime_version: SUPPORTED_RUNTIME_VERSION,
+    manifest: {
+      ...makeBundle().manifest,
+      schema_version: '1.1',
+      design_system: '2.0',
+      renderer: { kit: 'page-kit', version: '2.0.0', theme: 'editorial' },
+      teaching: { version: '1.0', role: 'mechanism', objectives: ['目标'], scroll: 'flow' }
+    },
+    html: '<div class="pg-page" data-pg-theme="editorial" data-pg-title="测试页"><h1 class="pg-title">测试页</h1></div>',
+    css: '',
+    js: '',
+    ...overrides
+  };
+}
+
+test('PAGE_KIT 2.0 注入基础样式、主题、通用脚本与 scroll 属性', () => {
+  const shell = buildShell({ bundle: makePg2Bundle(), runtimeSource, channel });
+  assert.equal((shell.match(/<style>/g) || []).length, 2);
+  assert.ok(shell.includes('.pg-page'));
+  assert.ok(shell.includes('[data-pg-theme="editorial"]'));
+  assert.ok(shell.includes('[data-pg-theme="workbench"]'));
+  assert.ok(shell.includes('[data-pg-theme="problem"]'));
+  assert.ok(shell.includes('data-mp-scroll="flow"'));
+  assert.ok(shell.includes('data-pg-figure'));
+  assert.ok(shell.includes('MockFinal.ready'));
+  const runtimeIndex = shell.indexOf("var RUNTIME_VERSION = '1.1.0';");
+  const kitIndex = shell.indexOf('data-pg-figure');
+  assert.ok(runtimeIndex >= 0 && runtimeIndex < kitIndex, 'kit 脚本必须在 runtime 之后');
+  assert.ok(!shell.includes('.mp-layout-split'), '2.0 页面不得注入 1.0 Deck Kit');
+});
+
+test('PAGE_KIT 2.0 fit 页写入 data-mp-scroll=fit', () => {
+  const bundle = makePg2Bundle();
+  bundle.manifest.teaching = { ...bundle.manifest.teaching, scroll: 'fit' };
+  const shell = buildShell({ bundle, runtimeSource, channel });
+  assert.ok(shell.includes('data-mp-scroll="fit"'));
+});
+
+test('PAGE_KIT 2.0 必须提供合法主题', () => {
+  const bundle = makePg2Bundle();
+  bundle.manifest.renderer = { kit: 'page-kit', version: '2.0.0', theme: 'sepia' };
+  assert.throws(
+    () => buildShell({ bundle, runtimeSource, channel }),
+    (err) => err instanceof ShellBuildError && err.code === 'BUNDLE_SCHEMA_INVALID'
+  );
+  const missing = makePg2Bundle();
+  delete missing.manifest.renderer;
+  assert.throws(
+    () => buildShell({ bundle: missing, runtimeSource, channel }),
+    (err) => err instanceof ShellBuildError && err.code === 'BUNDLE_SCHEMA_INVALID'
+  );
 });

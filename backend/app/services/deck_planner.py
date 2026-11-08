@@ -27,8 +27,65 @@ logger = logging.getLogger(__name__)
 # LLM 调用签名：messages 为 [(role, content), ...]，返回文本
 LLMCall = Callable[[list[tuple[str, str]]], Awaitable[str]]
 
-RUNTIME_VERSION = "1.0.0"
+RUNTIME_VERSION = "1.1.0"
+RUNTIME_VERSION_LEGACY = "1.0.0"
+BUNDLE_SCHEMA_VERSION = "1.1"
+TEACHING_VERSION = "1.0"
+DESIGN_SYSTEM_VERSION = "1.0"
+CONTENT_SCHEMA_VERSION = "2.0"
 DEFAULT_VIEWPORTS = ["1280x720", "1440x900", "1920x1080"]
+ROLE_SCROLL = {
+    "concept": "flow",
+    "mechanism": "flow",
+    "worked_example": "flow",
+    "practice": "fit",
+    # 两栏对照 + 结论 + 检查在 1280×720 单屏放不下，compare 允许页内滚动
+    "compare": "flow",
+    "summary": "fit",
+}
+ROLE_MINUTES = {
+    "concept": 8,
+    "mechanism": 10,
+    "worked_example": 12,
+    "practice": 8,
+    "compare": 7,
+    "summary": 6,
+}
+
+TEACHING_ROLES = (
+    "concept",
+    "mechanism",
+    "worked_example",
+    "practice",
+    "compare",
+    "summary",
+)
+# 角色 → 主要求（P10 模板与 Validator 共用同一口径）
+ROLE_REQUIRED_FIELDS: dict[str, list[str]] = {
+    "concept": ["hook", "chain", "misconception", "check"],
+    "mechanism": ["hook", "chain", "worked_example", "check", "misconception"],
+    "worked_example": ["worked_example", "check", "misconception"],
+    "practice": ["check", "summary"],
+    "compare": ["hook", "chain", "misconception", "check"],
+    "summary": ["summary", "misconception"],
+}
+# 每个知识点的角色展开顺序（第 1 个为基础角色）
+ROLE_SEQUENCES: dict[str, list[str]] = {
+    "mechanism": ["mechanism", "worked_example", "practice"],
+    "concept": ["concept", "worked_example", "practice"],
+    "worked_example": ["worked_example", "practice", "worked_example"],
+    "practice": ["practice", "worked_example", "practice"],
+    "compare": ["compare", "practice", "worked_example"],
+    "summary": ["summary", "concept", "practice"],
+}
+ROLE_TO_KIND = {
+    "concept": "concept",
+    "mechanism": "interactive",
+    "worked_example": "interactive",
+    "practice": "interactive",
+    "compare": "concept",
+    "summary": "summary",
+}
 
 # 密度 → (最小页数, 最大页数)，与 Plan §8.5 一致
 DENSITY_PAGE_RANGES: dict[str, tuple[int, int]] = {
@@ -70,6 +127,14 @@ class OutlineKnowledgePoint(BaseModel):
     section_ids: list[int] = Field(default_factory=list, max_length=50)
     interaction_idea: str = Field(default="", max_length=2000)
     page_count: int = Field(default=1, ge=0, le=MAX_PAGES_PER_KP)
+    # P9 教学字段（均可选，含长度上限）
+    prerequisites: list[str] = Field(default_factory=list, max_length=6)
+    teaching_role_hint: Literal[
+        "concept", "mechanism", "worked_example", "practice", "compare", "summary"
+    ] | None = None
+    hook: str = Field(default="", max_length=300)
+    worked_example_idea: str = Field(default="", max_length=1000)
+    check_idea: str = Field(default="", max_length=1000)
 
 
 class OutlineChapter(BaseModel):
@@ -105,8 +170,13 @@ OUTLINE_USER_TEMPLATE = """请为下面的课程资料规划一份动态复习�
 4. importance 取 core / normal / minor，difficulty 取 easy / medium / hard；
 5. interaction_idea 要具体到可实现的视觉化或交互（例如「用区间收缩动画演示二分」），
    不要写「加动画」这类空话；纯记忆型知识点可为空字符串；
-6. page_count 是该知识点建议页数（1–3），最终页数由后端按密度统一调整；
-7. 严格输出以下 JSON（不要额外字段、不要解释、不要代码块围栏）：
+6. teaching_role_hint 标注该知识点最适合的教学角色：
+   concept（建立概念）/ mechanism（理解机制）/ worked_example（例题）/ practice（练习）/
+   compare（对比辨析）/ summary（章节小结）；
+7. hook 用一句问题或反常识现象引发思考；check_idea 给出一个能检验目标是否达成的具体问题；
+   worked_example_idea 为 core 知识点给出一个例题方向；prerequisites 列出先修概念（没有就给空数组）；
+8. page_count 是该知识点建议页数（1–3），最终页数由后端按密度统一调整；
+9. 严格输出以下 JSON（不要额外字段、不要解释、不要代码块围栏）：
 {{
   "chapters": [
     {{
@@ -123,7 +193,12 @@ OUTLINE_USER_TEMPLATE = """请为下面的课程资料规划一份动态复习�
           "misconceptions": ["易错点"],
           "section_ids": [1, 2],
           "interaction_idea": "具体交互建议",
-          "page_count": 1
+          "page_count": 1,
+          "prerequisites": ["先修概念"],
+          "teaching_role_hint": "mechanism",
+          "hook": "一句引发思考的问题",
+          "worked_example_idea": "例题方向",
+          "check_idea": "具体检查题"
         }}
       ]
     }}
@@ -475,12 +550,18 @@ def _get_value(item: Any, key: str, default: Any = None) -> Any:
 
 
 def _flatten_knowledge_points(chapters: Sequence[Any]) -> list[dict]:
-    """展平章节下的知识点，保留所属章节标题。"""
+    """展平章节下的知识点，保留所属章节标题与章节序号。"""
     flat: list[dict] = []
-    for chapter in chapters:
+    for chapter_index, chapter in enumerate(chapters):
         chapter_title = str(_get_value(chapter, "title", "") or "")
         for kp in _get_value(chapter, "knowledge_points", []) or []:
-            flat.append({"chapter_title": chapter_title, "kp": kp})
+            flat.append(
+                {
+                    "chapter_title": chapter_title,
+                    "chapter_index": chapter_index,
+                    "kp": kp,
+                }
+            )
     return flat
 
 
@@ -489,15 +570,34 @@ def _importance(kp: Any) -> str:
     return value if value in ("core", "normal", "minor") else "normal"
 
 
-def _page_kind(kp: Any) -> str:
-    """core + 有交互建议 → interactive；minor → summary；其余 concept。"""
+def _base_role(kp: Any) -> str:
+    """按大纲角色提示 + 重要度/交互建议选择基础教学角色。"""
+    hint = str(_get_value(kp, "teaching_role_hint", "") or "").strip()
+    if hint in TEACHING_ROLES:
+        return hint
     importance = _importance(kp)
     idea = str(_get_value(kp, "interaction_idea", "") or "").strip()
-    if importance == "core" and idea:
-        return "interactive"
+    if importance == "core":
+        return "mechanism" if idea else "concept"
     if importance == "minor":
         return "summary"
-    return "concept"
+    misconceptions = [item for item in (_get_value(kp, "misconceptions", []) or []) if item]
+    return "compare" if not idea and len(misconceptions) >= 2 else "concept"
+
+
+def _page_kind(kp: Any) -> str:
+    """kind 继续供前端兼容；角色映射见 ROLE_TO_KIND。"""
+    return ROLE_TO_KIND[_base_role(kp)]
+
+
+ROLE_TITLE_SUFFIX = {
+    "worked_example": "（例题）",
+    "practice": "（练习）",
+    "compare": "（对比）",
+    "summary": "（小结）",
+    "mechanism": "（机制）",
+    "concept": "（概念）",
+}
 
 
 def plan_pages(chapters: Sequence[Any], density: str) -> list[dict]:
@@ -553,24 +653,20 @@ def plan_pages(chapters: Sequence[Any], density: str) -> list[dict]:
     for kp_index in range(min(target, total_kp)):
         kp = flat[kp_index]["kp"]
         title = str(_get_value(kp, "title", "") or f"知识点 {kp_index + 1}")
+        base_role = _base_role(kp)
+        role_sequence = ROLE_SEQUENCES[base_role]
         primary_count = counts[kp_index]
-        plans.append(
-            {
-                "primary_kp_index": kp_index,
-                "kp_indices": [kp_index],
-                "title": title,
-                "kind": _page_kind(kp),
-                "ordinal": ordinal,
-            }
-        )
-        ordinal += 1
-        for extra in range(1, primary_count):
+        for extra in range(primary_count):
+            role = role_sequence[min(extra, len(role_sequence) - 1)]
+            page_title = title if extra == 0 else f"{title}{ROLE_TITLE_SUFFIX[role]}"
             plans.append(
                 {
                     "primary_kp_index": kp_index,
                     "kp_indices": [kp_index],
-                    "title": f"{title}（进阶 {extra}）",
-                    "kind": "concept",
+                    "title": page_title,
+                    "kind": ROLE_TO_KIND[role],
+                    "role": role,
+                    "chapter_index": flat[kp_index]["chapter_index"],
                     "ordinal": ordinal,
                 }
             )
@@ -582,9 +678,32 @@ def plan_pages(chapters: Sequence[Any], density: str) -> list[dict]:
         for offset, kp_index in enumerate(extra_indices):
             plans[offset % len(plans)]["kp_indices"].append(kp_index)
 
-    # 重新编号，确保 ordinal 连续
+    # 每章最后一页优先小结（仅在该章至少 2 页且不占用例题/练习页时）
+    chapter_positions: dict[int, list[int]] = {}
+    for position, plan in enumerate(plans):
+        chapter_positions.setdefault(int(plan["chapter_index"]), []).append(position)
+    for positions in chapter_positions.values():
+        if len(positions) < 2:
+            continue
+        last = plans[positions[-1]]
+        if last["role"] not in ("worked_example", "practice"):
+            last["role"] = "summary"
+            last["kind"] = ROLE_TO_KIND["summary"]
+            if not last["title"].endswith(ROLE_TITLE_SUFFIX["summary"]):
+                last["title"] = f"{last['title'].split('（')[0]}{ROLE_TITLE_SUFFIX['summary']}"
+
+    # 全册最后一页：若没有任何小结页，则把最后一页（非例题/练习）作为小结
+    if plans and not any(plan["role"] == "summary" for plan in plans):
+        last = plans[-1]
+        if last["role"] not in ("worked_example", "practice"):
+            last["role"] = "summary"
+            last["kind"] = ROLE_TO_KIND["summary"]
+            last["title"] = f"{last['title'].split('（')[0]}{ROLE_TITLE_SUFFIX['summary']}"
+
+    # 重新编号，确保 ordinal 连续；移除内部章节索引
     for index, plan in enumerate(plans):
         plan["ordinal"] = index
+        plan.pop("chapter_index", None)
     return plans
 
 
@@ -596,11 +715,19 @@ def _style_dict(deck: Any) -> dict:
     style = _deck_field(deck, "style", {}) or {}
     if not isinstance(style, Mapping):
         return {}
+    design_system = str(style.get("design_system") or "1.0")
+    if design_system not in ("1.0", "2.0"):
+        design_system = "1.0"
+    page_theme = str(style.get("page_theme") or "workbench")
+    if page_theme not in ("editorial", "workbench", "problem"):
+        page_theme = "workbench"
     return {
         "preset": style.get("preset", "editorial"),
         "content": list(style.get("content") or []),
         "density": style.get("density", "standard"),
         "custom_prompt": style.get("custom_prompt", ""),
+        "design_system": design_system,
+        "page_theme": page_theme,
     }
 
 
@@ -620,6 +747,72 @@ def _excerpt_priority(section: Mapping, keywords: Sequence[str]) -> int:
     return score
 
 
+def _dedupe(items: Iterable[Any], limit: int) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        text = str(item or "").strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        result.append(text)
+        if len(result) >= limit:
+            break
+    return result
+
+
+def _teaching_view(kp: Any) -> dict:
+    return {
+        "title": str(_get_value(kp, "title", "") or ""),
+        "summary": str(_get_value(kp, "summary", "") or ""),
+        "objectives": list(_get_value(kp, "objectives", []) or []),
+        "key_points": list(_get_value(kp, "key_points", []) or []),
+        "formulas": list(_get_value(kp, "formulas", []) or []),
+        "misconceptions": list(_get_value(kp, "misconceptions", []) or []),
+    }
+
+
+def _teaching_contract(role: str, kp: Any, merged_kps: Sequence[Any]) -> dict:
+    objectives = _dedupe(
+        [
+            *(list(_get_value(kp, "objectives", []) or [])),
+            *[
+                objective
+                for merged in merged_kps
+                for objective in (list(_get_value(merged, "objectives", []) or []))
+            ],
+        ],
+        3,
+    )
+    prerequisites = _dedupe(
+        [
+            *(list(_get_value(kp, "prerequisites", []) or [])),
+            *[
+                prereq
+                for merged in merged_kps
+                for prereq in (list(_get_value(merged, "prerequisites", []) or []))
+            ],
+        ],
+        6,
+    )
+    return {
+        "objectives": objectives,
+        "prerequisites": prerequisites,
+        "hook": str(_get_value(kp, "hook", "") or ""),
+        "check_idea": str(_get_value(kp, "check_idea", "") or ""),
+        "worked_example_idea": str(_get_value(kp, "worked_example_idea", "") or ""),
+        "required": list(ROLE_REQUIRED_FIELDS.get(role, ROLE_REQUIRED_FIELDS["concept"])),
+        "density": {
+            "visible_layer_chars": int(settings.deck_visible_layer_chars),
+            "total_page_chars": int(settings.deck_total_page_chars),
+            "visible_blocks": 6,
+            "total_blocks": int(settings.deck_max_page_blocks),
+            "primary_interactions": 1,
+            "checks": 2 if role == "practice" else 1,
+        },
+    }
+
+
 def build_page_brief(
     deck: Any,
     kp: Any,
@@ -627,12 +820,18 @@ def build_page_brief(
     sections_by_id: Mapping[int, Mapping],
     *,
     current_page: Any | None = None,
+    role: str | None = None,
+    merged_kps: Sequence[Any] = (),
+    chapter_index: int | None = None,
+    chapter_total: int | None = None,
+    chapter_title: str | None = None,
 ) -> dict:
     """按 Plan §8.5 组装 Page Brief。
 
     - page_id 留空字符串，由调用方填 `page_{db_id}`；
     - source_excerpts 单节 ≤6000 字、总量 ≤12000 字，超预算时按与 objectives/key_points
       的相关度优先保留，并在 source_meta 记录截断信息；
+    - teaching_contract 仅在 DECK_TEACHING_ENABLED=true 时下发，避免旧链路行为变化；
     - constraints 是硬约束，用户自定义提示词只能作为 style.custom_prompt 偏好。
     """
     refs = _source_refs(kp)
@@ -677,6 +876,7 @@ def build_page_brief(
         excerpts.append(
             {
                 "section_id": int(section.get("id")),
+                "material_id": section.get("material_id"),
                 "heading": str(section.get("heading") or ""),
                 "text": content,
             }
@@ -705,9 +905,39 @@ def build_page_brief(
                     }
                 break
 
-    return {
+    resolved_role = role if role in TEACHING_ROLES else _base_role(kp)
+    merged_views = [_teaching_view(item) for item in merged_kps]
+    style = _style_dict(deck)
+    content_2 = style.get("design_system") == "2.0"
+    teaching_enabled = bool(settings.deck_teaching_enabled) or content_2
+    scroll = ROLE_SCROLL.get(resolved_role, "flow")
+    knowledge_point_ids = []
+    for item in [kp, *merged_kps]:
+        item_id = _get_value(item, "id")
+        if item_id is not None:
+            knowledge_point_ids.append(f"kp_{item_id}")
+    deck_context = {
+        "previous_learning": (
+            f"上一页《{previous_page['title']}》：{previous_page['summary']}"
+            if previous_page and previous_page.get("title")
+            else ""
+        ),
+        "next_hook": (
+            f"下一页《{next_page['title']}》：{next_page['summary']}"
+            if next_page and next_page.get("title")
+            else ""
+        ),
+        "chapter_index": chapter_index,
+        "chapter_total": chapter_total,
+        "chapter_title": chapter_title or "",
+    }
+
+    brief: dict[str, Any] = {
         "page_id": "",
         "deck_title": str(_deck_field(deck, "title", "") or ""),
+        "role": resolved_role,
+        "knowledge_point_ids": knowledge_point_ids,
+        "estimated_minutes": ROLE_MINUTES.get(resolved_role, 8),
         "knowledge_point": {
             "title": str(_get_value(kp, "title", "") or ""),
             "summary": str(_get_value(kp, "summary", "") or ""),
@@ -715,7 +945,9 @@ def build_page_brief(
             "key_points": list(_get_value(kp, "key_points", []) or []),
             "formulas": list(_get_value(kp, "formulas", []) or []),
             "misconceptions": list(_get_value(kp, "misconceptions", []) or []),
+            "importance": _importance(kp),
         },
+        "merged_knowledge_points": merged_views,
         "source_excerpts": excerpts,
         "source_meta": {
             "total_budget": SOURCE_TOTAL_BUDGET,
@@ -725,16 +957,31 @@ def build_page_brief(
             "unverified": bool(missing_section_ids)
             or any(bool(ref.get("unverified")) for ref in refs),
         },
-        "style": _style_dict(deck),
+        "style": style,
         "interaction_idea": str(_get_value(kp, "interaction_idea", "") or ""),
+        "deck_context": deck_context,
         "constraints": {
             "viewport": list(DEFAULT_VIEWPORTS),
-            "no_scroll": True,
+            "no_scroll": scroll == "fit" if content_2 else True,
             "no_network": True,
             "max_bundle_bytes": settings.deck_max_bundle_bytes,
-            "runtime_version": RUNTIME_VERSION,
+            "runtime_version": RUNTIME_VERSION if teaching_enabled else RUNTIME_VERSION_LEGACY,
+            "schema_version": BUNDLE_SCHEMA_VERSION if teaching_enabled else "1.0",
             "language": "zh-CN",
+            **(
+                {
+                    "content_schema": CONTENT_SCHEMA_VERSION,
+                    "design_system": "2.0",
+                    "page_theme": style.get("page_theme", "workbench"),
+                    "scroll": scroll,
+                }
+                if content_2
+                else {}
+            ),
         },
         "previous_page": previous_page,
         "next_page": next_page,
     }
+    if teaching_enabled:
+        brief["teaching_contract"] = _teaching_contract(resolved_role, kp, merged_kps)
+    return brief

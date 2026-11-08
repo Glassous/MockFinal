@@ -15,7 +15,7 @@
 - [RULE.md](./RULE.md) —— 代码规范、接口契约、文档义务与 Git 分支/提交纪律
 - [DESIGN.md](./DESIGN.md) —— 前端设计语言：单色纸感、设计 token、布局、组件与动效规范
 - [Plan.md](./Plan.md) —— PageRef 动态复习页与 Pi 构建流水线（现状、决策与路线图）
-- [docs/pageref/](./docs/pageref/) —— 页面契约、内部接口、P2–P7 报告、浏览器验收、发布与回滚手册
+- [docs/pageref/](./docs/pageref/) —— 页面契约、内部接口、教学页规范、会话复用、P2–P13 报告、浏览器验收、发布与回滚手册
 
 ## 架构
 
@@ -74,10 +74,16 @@ pnpm dev   # http://localhost:5173
 | `PAGE_BUILDER_URL` / `PAGE_BUILDER_TOKEN` | 构建必填 | 空 | P4 新增：Pi Builder 内部地址与 HMAC 共享密钥；缺失时 build/rebuild 返回 503 |
 | `PAGE_BUILDER_TIMEOUT_SECONDS` | 否 | `480` | P4 新增：单次 Builder 请求超时（秒） |
 | `PAGE_BUILDER_CONCURRENCY` | 否 | `2` | P4 新增：页面并发构建数 |
+| `DECK_SESSION_REUSE_ENABLED` | 否 | `false` | P11 新增：Deck 构建按章节分配 lane 并携带 `session` 元数据复用 Builder 会话；需 Builder 同时 `BUILDER_SESSION_MODE=deck` |
+| `DECK_LANE_COUNT` | 否 | `2` | P11 新增：lane 数上限（与 `PAGE_BUILDER_CONCURRENCY` 取较小值） |
 | `PAGE_VALIDATOR_URL` / `PAGE_VALIDATOR_TOKEN` | 构建必填 | 空 | P4 新增：Page Validator 内部地址与 Bearer token；不可用时 fail-closed |
 | `PAGE_VALIDATOR_TIMEOUT_SECONDS` | 否 | `120` | P4 新增：单次最终校验超时（秒） |
 | `DECK_PAGE_MAX_ATTEMPTS` | 否 | `2` | P4 新增：单页最多尝试次数（含首次，最终校验失败重试） |
 | `DECK_JOB_TIMEOUT_SECONDS` | 否 | `1800` | P4 新增：构建任务总超时（秒），超时取消 Builder |
+| `DECK_TEACHING_ENABLED` | 否 | `false` | P9 新增：启用教学契约（Brief teaching_contract、manifest.teaching、schema 1.1）；门禁通过后开启 |
+| `DECK_TEACHING_MIN_SCORE` | 否 | `70` | P9 新增：教学评分门禁阈值（P11 校准后启用） |
+| `DECK_VISIBLE_LAYER_CHARS` / `DECK_TOTAL_PAGE_CHARS` / `DECK_MAX_PAGE_BLOCKS` | 否 | `450` / `700` / `8` | P9 新增：密度预算（单层建议、整页硬上限、块数上限） |
+| `PAGE_BUILDER_COST_INPUT` / `OUTPUT` / `CACHE_READ` / `CACHE_WRITE` | 否 | 空 | P8 新增（Builder 侧环境变量）：每 1M token 单价，用于 `usage.cost` 估算；主 API 只落库 `deck_build_jobs.usage`，不向前端展示金额 |
 
 > P4 新增的 `PAGE_BUILDER_*` / `PAGE_VALIDATOR_*` / `DECK_PAGE_MAX_ATTEMPTS` / `DECK_JOB_TIMEOUT_SECONDS` 用于内部页面构建与校验服务。Builder/Validator 不暴露公网，主 API 通过私有网络 + HMAC/Bearer 调用；未配置或不可用时 Deck 构建返回 503 或页面失败（fail-closed，不会跳过校验）。
 
@@ -144,6 +150,21 @@ pnpm dev   # http://localhost:5173
 - 旧版本（含向量库时期）上传的资料无需重新上传：首次生成时会自动懒回填分节；
   旧库中的 `material_chunks` 与 vector 扩展保留但不再读写，确认无需回滚后可手动清理。
 - 生成/构建任务为进程内 asyncio 任务：api 容器重启会中断进行中的任务；启动自愈会把遗留任务标记 failed（Deck 已有旧 bundle 的页面保持可读），可重新发起。
+
+## PageContent 2.0 与设计实验室
+
+Review 页支持第二套内容契约：模型只写 `content.json`，由 `builder/src/page-kit` 在构建期渲染为 HTML + manifest，前端仍用 iframe 沙箱与同一份 shell。旧 `design_system="1.0"` 页面不变。规范见 [docs/pageref/PAGE_CONTENT_2.0.md](./docs/pageref/PAGE_CONTENT_2.0.md)。
+
+```bash
+# 生成 / 预览三个设计方向 × 三个页面
+node design_lab/build.mjs
+node design_lab/serve.mjs            # http://localhost:4173
+
+# 截图与测量（1280/1440/390/dark/state2/check/reduced）
+cd validator && node scripts/design-lab-shoot.mjs
+```
+
+启用 2.0 deck 构建时，在创建 Deck 的 `style` 中传 `design_system:"2.0"`、`page_theme:"workbench"`；可选 `outline_override` 使用固定大纲（同一套 `Outline` 结构）。`DECK_TEACHING_ENABLED=true` 仍然推荐开启；2.0 会强制 1.1 manifest 与 teaching。
 
 ## 测试
 

@@ -59,7 +59,7 @@ test('html 中的逃逸序列与非法 channel 直接失败', async () => {
 
 test('runtime 版本不一致时 shell 拒绝组装', async () => {
   const shell = await loadShellModule();
-  const tampered = loadRuntimeSource().replace('runtime_version = "1.0.0"', 'runtime_version = "1.1.0"');
+  const tampered = loadRuntimeSource().replace('runtime_version = "1.1.0"', 'runtime_version = "9.9.9"');
   assert.throws(() =>
     shell.buildShell({ bundle: goodBundle(), runtimeSource: tampered, channel })
   );

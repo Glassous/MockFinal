@@ -11,6 +11,7 @@
 - 通过 `check_page` 调用 Validator 做静态与浏览器自检；Builder 侧再做最终校验与最多 2 轮修复。
 - 将 Pi 事件映射为构建事件（`stage`/`text`/`tool`/`check`/`page_done`/`error`/`retry`），seq 递增、单条 ≤4 KB、总量 ≤200 条后折叠。
 - 只写文件、收集 bundle（manifest/html/css/js）并做路径/大小/扩展名/禁止序列检查；**不执行页面代码**。
+- **PageContent 2.0（2026-11-08）**：brief 带 `constraints.content_schema="2.0"` 时，Pi 只写 `content.json`；`src/page-kit/` 在构建期渲染 HTML + manifest（`design_system="2.0"`），Guard 白名单切换为仅 `content.json`，提示词为 `prompts/build-page-content.md`，角色骨架为 `templates/roles/<role>/content.json`。bundle 仍为 schema 1.1，`check_page`/最终校验链路不变。
 
 ```text
 builder/
@@ -43,7 +44,7 @@ builder/
 
 | 方法 | 路径 | 成功 | 说明 |
 | --- | --- | --- | --- |
-| GET | `/healthz` | 200 | `{status, version, mode, pi_version, harness_version, model_configured, validator_configured, queue}` |
+| GET | `/healthz` | 200 | `{status, version, mode, pi_version, harness_version, model_configured, validator_configured, session_mode, sessions, queue}` |
 | POST | `/v1/builds` | 202 新建 / 200 幂等 | `{build_id, status}`；body 指纹冲突 409 `BUILD_ID_CONFLICT`；未配置模型/校验器 503 |
 | GET | `/v1/builds/{id}` | 200 | 状态、stage、attempts、error、events_cursor、usage、validation |
 | GET | `/v1/builds/{id}/events?after_seq=` | 200 | `{events, next_seq, finished}` |
@@ -67,6 +68,13 @@ builder/
 | --- | --- |
 | `BUILDER_TOKEN` | 主 API 调用 Builder 的共享密钥；缺失时拒绝启动 |
 | `LLM_BASE_URL` / `LLM_API_KEY` / `PAGE_BUILDER_MODEL` | OpenAI 兼容网关与模型；缺失时服务仍启动，构建请求返回 503 |
+| `PAGE_BUILDER_THINKING` | Pi 思考档位：`off` / `minimal` / `low` / `medium` / `high` / `xhigh` / `max`；默认 `medium`，非法值回退 |
+| `PAGE_BUILDER_REASONING` | 声明模型支持 reasoning（`1/true/yes`）；默认关闭，避免不支持该参数的网关报错 |
+| `PAGE_BUILDER_PROMPT_PROFILE` | `zh`（默认，完整中文提示词）或 `compact`（紧凑英文技术规则 + 中文内容）；见 `prompts/build-page.compact.md` |
+| `BUILDER_SESSION_MODE` | `page`（默认，每页独立会话）或 `deck`（按 `session.key` 复用 lane 会话）；见 `docs/pageref/SESSION_REUSE.md` |
+| `BUILDER_SESSION_PAGES_PER_LANE` | 单 lane 会话最多构建页数，默认 `3`，达到后轮换 |
+| `BUILDER_SESSION_CONTEXT_RATIO` | 上下文使用率超过窗口比例时轮换，默认 `0.6`（钳制 0.1–0.9） |
+| `BUILDER_SESSION_TTL_SECONDS` | 空闲 lane 会话清理时间，默认 `1800`（最小 60） |
 | `PAGE_VALIDATOR_URL` / `PAGE_VALIDATOR_TOKEN` | Validator 地址与 token；缺失时构建 503（fail-closed） |
 | `PI_CODING_AGENT_DIR` | 只读 Harness agent 目录，默认 `./pi-harness/agent` |
 | `PI_HARNESS_DIR` | Harness 根目录，默认 agent 目录的上级 |
@@ -75,6 +83,7 @@ builder/
 | `BUILDER_BUILD_ROOT` | 构建工作目录根，默认 `{os.tmpdir()}/mockfinal-builds` |
 | `DECK_MAX_BUNDLE_BYTES` | bundle 上限，默认 2097152 |
 | `PAGE_BUILDER_MOCK` / `PAGE_BUILDER_MOCK_BUNDLE` | MOCK 模式开关与 bundle 绝对路径 |
+| `PAGE_BUILDER_COST_INPUT` / `OUTPUT` / `CACHE_READ` / `CACHE_WRITE` | 每 1M token 单价（与网关计费币种一致），用于 `usage.cost` 估算；默认 0 |
 | `BUILDER_TASK_TTL_SECONDS` | 已完成任务保留时间，默认 3600 |
 
 ## 5. 启动与验证

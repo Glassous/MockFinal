@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.1",
+  "design_system": "1.0",
+  "page_id": "page_template_001",
+  "title": "本页标题",
+  "subtitle": "一句话副标题",
+  "knowledge_point_ids": [
+    "kp_template"
+  ],
+  "importance": "core",
+  "estimated_minutes": 6,
+  "layout": "steps",
+  "interactions": [
+    {
+      "id": "template-step",
+      "type": "step_through",
+      "label": "推进讲解步骤",
+      "smoke": {
+        "action": "click",
+        "selector": "[data-mp-action='step']",
+        "expect": "[data-mp-state='stepped']"
+      }
+    }
+  ],
+  "teaching": {
+    "version": "1.0",
+    "role": "concept",
+    "objectives": [
+      "替换为目标 1",
+      "替换为目标 2"
+    ],
+    "prerequisites": [
+      "替换为先修概念"
+    ],
+    "hook": "替换为引发思考的问题",
+    "chain": [
+      {
+        "id": "c1",
+        "title": "第一步",
+        "block_id": "b1"
+      },
+      {
+        "id": "c2",
+        "title": "第二步",
+        "block_id": "b2"
+      },
+      {
+        "id": "c3",
+        "title": "第三步",
+        "block_id": "b3"
+      }
+    ],
+    "check": [
+      {
+        "id": "q1",
+        "objective_id": "o1",
+        "question": "替换为检查题",
+        "options": [
+          "选项 A",
+          "选项 B"
+        ],
+        "answer_index": 0,
+        "explanation": "替换为解析"
+      }
+    ],
+    "summary": {
+      "key_points": [
+        "替换为要点"
+      ],
+      "misconceptions": [
+        "替换为易错点"
+      ],
+      "next": "下一页标题"
+    }
+  },
+  "source_refs": [
+    {
+      "material_id": 0,
+      "section_id": 0,
+      "heading": "模板占位小节",
+      "quote": "替换为 brief 中真实 section 的原文片段。"
+    }
+  ],
+  "assistant": {
+    "summary": "替换为本页摘要。",
+    "key_facts": [
+      "要点 1"
+    ],
+    "suggested_questions": [
+      "为什么？"
+    ]
+  },
+  "a11y": {
+    "reduced_motion": true
+  }
+}

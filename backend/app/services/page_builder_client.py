@@ -119,6 +119,7 @@ class PageBuilderClient:
                 base_url=self.base_url,
                 timeout=self.timeout,
                 transport=self._transport,
+                trust_env=False,
             ) as client:
                 response = await client.request(
                     method,
@@ -159,9 +160,12 @@ class PageBuilderClient:
         brief: dict,
         feedback: str | None = None,
         timeout: int | float | None = None,
+        session: dict | None = None,
     ) -> dict:
         """创建构建（允许 200/202）；同 build_id 重复创建由 Builder 幂等处理。"""
         body: dict[str, Any] = {"build_id": build_id, "page_brief": brief}
+        if session is not None:
+            body["session"] = session
         if feedback:
             body["feedback"] = str(feedback)[:2000]
         if timeout:
@@ -171,10 +175,11 @@ class PageBuilderClient:
         if not isinstance(payload.get("build_id"), str):
             raise PageBuilderError("页面构建服务未返回 build_id，请稍后重试")
         logger.info(
-            "已创建 Builder 构建：build_id=%s status=%s http=%s",
+            "已创建 Builder 构建：build_id=%s status=%s http=%s session=%s",
             build_id,
             payload.get("status"),
             response.status_code,
+            (session or {}).get("key", "-"),
         )
         return payload
 
@@ -228,13 +233,26 @@ class PageBuilderClient:
             raise
         return self._json(response)
 
+    async def delete_session(self, key: str) -> dict:
+        """清理 Deck 会话（幂等）；不存在时 Builder 返回 not_found。"""
+        try:
+            response = await self._request("DELETE", f"/v1/sessions/{key}")
+        except PageBuilderRequestError as exc:
+            if exc.status == 404:
+                return {}
+            raise
+        return self._json(response)
+
     async def healthz(self) -> dict:
         """健康检查（无需鉴权）；不可用时抛 PageBuilderUnavailableError。"""
         if not self.base_url:
             raise PageBuilderUnavailableError("页面构建服务未配置")
         try:
             async with httpx.AsyncClient(
-                base_url=self.base_url, timeout=10, transport=self._transport
+                base_url=self.base_url,
+                timeout=10,
+                transport=self._transport,
+                trust_env=False,
             ) as client:
                 response = await client.get("/healthz")
         except httpx.HTTPError as exc:

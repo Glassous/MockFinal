@@ -187,6 +187,16 @@ def _page_summary(page: DeckPage) -> DeckPageSummary:
         issues = validation.get("issues")
         issue_count = len(issues) if isinstance(issues, list) else 0
     validation_status = validation.get("status")
+    teaching = manifest.get("teaching")
+    teaching = teaching if isinstance(teaching, dict) else {}
+    role = teaching.get("role")
+    checks = teaching.get("check")
+    check_count = len(checks) if isinstance(checks, list) else 0
+    estimated = manifest.get("estimated_minutes")
+    teaching_report = validation.get("teaching")
+    teaching_score = (
+        teaching_report.get("score") if isinstance(teaching_report, dict) else None
+    )
     return DeckPageSummary(
         id=page.id,
         ordinal=page.ordinal,
@@ -202,6 +212,10 @@ def _page_summary(page: DeckPage) -> DeckPageSummary:
         ),
         validation_status=str(validation_status) if validation_status else None,
         validation_issue_count=int(issue_count or 0),
+        teaching_role=str(role) if isinstance(role, str) and role else None,
+        estimated_minutes=int(estimated) if isinstance(estimated, (int, float)) else None,
+        check_count=check_count,
+        teaching_score=int(teaching_score) if isinstance(teaching_score, (int, float)) else None,
     )
 
 

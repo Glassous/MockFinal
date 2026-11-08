@@ -84,7 +84,7 @@ MockFinal/
 │   ├── scripts/p5-acceptance.mjs  # P5 浏览器验收（阅读器/工作台/响应式）
 │   ├── scripts/p6-acceptance.mjs  # P6 助手验收（SSE/引用/错误/XSS/移动端）
 │   └── scripts/fake-llm.mjs       # P6 验收用 OpenAI 兼容流式假 LLM
-├── docs/pageref/                  # 页面契约、内部 API、P2–P7 报告、发布/回滚与 PoC 验收
+├── docs/pageref/                  # 页面契约、内部 API、教学/会话规范、P2–P13 报告、发布/回滚与验收
 ├── docker-compose.pageref.yml     # P2 容器 overlay（草案；需 token 与 LLM）
 └── frontend/
     ├── index.html                   # 防 FOUC 主题内联脚本
@@ -212,7 +212,7 @@ pnpm build       # typecheck + vite build
 | `review_decks` | `workspace_id`、`title`、`status`、`style`、`outline`、`source_signature`、`last_page_id`、`completed_page_ids` | `draft → planning → building → ready/partial/failed`；可 `canceled` |
 | `knowledge_points` | `deck_id`、`parent_id`（章节自引用）、`ordinal`、`importance`、`difficulty`、`objectives`/`key_points`/`formulas`/`misconceptions`/`source_refs`、`interaction_idea` | 章节行 `parent_id` 为空，知识点行挂章节；资料正文不复制，只存 `section_id` 引用 |
 | `deck_pages` | `deck_id`、`knowledge_point_ids`、`primary_knowledge_point_id`、`ordinal`、`kind`、`status`、`current_version`、`bundle_key`、`thumbnail_key`、`manifest`、`validation`、`build_attempts`、`builder_build_id` | `planned → building → validating → ready / failed / canceled`；P4 由 Builder + 最终校验写 `ready` 并切换版本 |
-| `deck_build_jobs` | `deck_id`、`workspace_id`、`status`、`stage`、`progress`、`total_pages/ready_pages/failed_pages`、`cancel_requested`、`target_page_id`、`feedback` | `pending → planning → building → done/partial/failed/canceled`；`target_page_id` 非空表示单页重建；同一 Deck 最多一个活跃 job |
+| `deck_build_jobs` | `deck_id`、`workspace_id`、`status`、`stage`、`progress`、`total_pages/ready_pages/failed_pages`、`cancel_requested`、`target_page_id`、`feedback`、`usage` | `pending → planning → building → done/partial/failed/canceled`；`target_page_id` 非空表示单页重建；同一 Deck 最多一个活跃 job；`usage` 按 build_id 记录每次 Builder 尝试的 token/cache/cost |
 | `deck_build_events` | `job_id`、`page_id`、`type`、`payload`、`created_at` | `(job_id, id)` 索引；前端 `after_id` 游标；文本 ≤4KB、每 job ≤200 条 |
 | `page_chat_messages` | `user_id`、`deck_id`、`page_id`、`role`、`status`、`content`、`quote`、`context_refs` | P6：user/assistant 消息；assistant `streaming → done / failed`；启动自愈把遗留 `streaming` 置 failed |
 
@@ -312,6 +312,9 @@ POST /api/decks/{id}/build（或 .../pages/{page_id}/rebuild）
 - **总超时**：`DECK_JOB_TIMEOUT_SECONDS` 到点后取消在途 Builder 构建，未完成页面 failed（有旧 bundle 的重建页保持 ready），job failed 中文原因。
 - `source_signature` 是工作区分节 id+content 的稳定 sha256；`GET /api/decks/{id}` 的 `source_changed` 提示「资料已变更」。
 - 事件写 `deck_build_events`（stage/text/tool/validation/page_ready/error/retry），payload 带 `page_id`，单条 ≤4KB、每 job ≤200 条（页面级预算分配）。
+- **P9 教学契约（`DECK_TEACHING_ENABLED`）**：Page Brief 带 `role`、`merged_knowledge_points`、`deck_context`，开启时额外带 `teaching_contract`（目标/先修/hook/密度预算）并要求 `schema_version=1.1`、`runtime_version=1.1.0`、完整 `manifest.teaching`；关闭时行为与 P4 一致（1.0/1.0.0）。
+- 页面计划按教学角色序列生成（concept/mechanism/worked_example/practice/compare/summary），每章最后一页优先小结；合并知识点必须全部进入 Brief，不能只取 primary。
+- P8 起 Builder `usage` 含 `cache_read_tokens/cache_write_tokens/cost`；主 API 把每次尝试用量按 build_id 并入 `deck_build_jobs.usage`，仅供内部观测，不向前端展示金额。
 - 存储 key：`mockfinal/{user_id}/{workspace_id}/decks/{deck_id}/pages/{page_id}/v{version}/bundle.json` 与同目录 `thumbnail.png`。
 
 ### 5.6 复习页阅读器与工作台（P5）
@@ -328,10 +331,10 @@ POST /api/decks/{id}/build（或 .../pages/{page_id}/rebuild）
 - bundle 只保留当前页 iframe，相邻页只预取 JSON；shell 失败/超时 8s 显示错误卡片，不白屏。
 - 阅读进度：打开页面上报 `last_page_id`；页面 `emit('complete')` 或停留 ≥3s 后离开时标记已读；后端合并去重、只增不减。
 - 构建轮询：1s（页面隐藏时 5s），`after_id` 增量去重；进入 `/build` 依次取 `?job=` → `active_job_id` → `last_job_id`，因此完成/失败任务刷新后仍可查看原因。
-- 键盘：宿主处理 ←/→/空格/PageUp/PageDown；焦点在 iframe 内时由 runtime 转发未处理导航键（表单控件与按钮上的空格除外）。改动 runtime 后必须跑 `validator npm test`（含 shell/runtime 校验）。
+- 键盘：宿主处理 ←/→/空格/PageUp/PageDown；焦点在 iframe 内时由 runtime 转发未处理导航键（表单控件与按钮上的空格除外）。2.0 flow 页只拦截 ←/→ 翻页，空格/PageDown 交给 iframe 滚动。改动 runtime 后必须跑 `validator npm test`（含 shell/runtime 校验）。
 - AI 助手抽屉：只展示后端返回的内容与来源 refs；不要在前端伪造回答或引用，详见 5.7。
 - 验收：`validator/scripts/p5-acceptance.mjs` 覆盖总览/阅读器/构建工作台/深浅色/375–1920/reduced-motion；演示数据见 `backend/tests/fixtures/p5_seed.py`（仅本地）。
-- Validator 除三档桌面视口外，还强制校验阅读器内容视口（1254×638/1414×818/1894×998），调用方不能移除；页面在这些更小内容区也必须零滚动。
+- Validator 除三档桌面视口外，还强制校验阅读器内容视口（1254×638/1414×818/1894×998），调用方不能移除；1.0 页面在这些更小内容区也必须零滚动；2.0 的 flow 页允许纵向滚动，fit 页仍须零滚动且不得裁剪。
 
 ### 5.7 页面 AI 助手（P6）
 
@@ -361,6 +364,24 @@ POST /api/decks/{deck_id}/pages/{page_id}/messages  (fetch + SSE)
 - 提示词使用随机边界包裹资料/摘要；Builder 明确 `custom_prompt` 为偏好，不得覆盖安全/契约。
 - Builder HMAC 绑定 `method/path/body`（`{ts}.{method}.{path}.{raw_body}`）；主 API 与 Builder 必须同版本部署/回滚。
 - 发布/迁移/回滚与残留风险见 `docs/pageref/P7_RELEASE.md`。
+
+### 5.9 P8–P13（PageRef v2 教学与成本）
+
+- **教学契约（P9/P10）**：`DECK_TEACHING_ENABLED` 开启后，brief 携带 `teaching_contract`，页面为 schema 1.1 + `design_system=1.0` + `manifest.teaching`；角色/目标/讲解链/检查/误区缺失由 Validator fail-closed；规范见 `TEACHING_PAGE_SPEC.md`。
+- **设计系统**：Shell 注入 Deck Kit CSS；角色模板在 Builder `pi-harness/templates`；教学页 CSS 预算 ≤4 KiB（真实 14 页最大 4,082 B）。
+- **会话复用（P11）**：`DECK_SESSION_REUSE_ENABLED` + `DECK_LANE_COUNT` 让主 API 按章节分配 lane，Builder `BUILDER_SESSION_MODE=deck` 复用 lane；轮换写 handoff，`DELETE /v1/sessions/{key}` 幂等清理；失败注入见 `P11_FI_*.json`。
+- **阅读器（P12）**：学习面板四页签（本页/检查/依据/AI）、`focus_block` 高亮、显式“学完本页”、角色徽章与路线图；1.0 旧页面继续可读，不伪造教学目标。
+- **观测与成本（P8/P13）**：`deck_build_jobs.usage` 按 build_id 记录逐页 token/cache/duration；成功页也必须落库（P13 修复并有单测）。真实成本以 DeepSeek 余额差为准（Pi `cost` 为 0）。
+- **门禁证据**：P13 14 页 14/14 ready、首轮 14/14、教学分均 80、940.8s、¥1.63；累计 ¥3.59 / ¥6；回归与红队见 `P13_REPORT.md`、`P13_RESULTS.json`。
+
+### 5.10 PageContent 2.0（2026-11-08）
+
+- `design_system="2.0"`：Pi 只写 `content.json`，由 `builder/src/page-kit` 构建期渲染 HTML + manifest；bundle 仍是 1.1，shell 注入 page-kit，1.0 页面不变。
+- 角色与滚动：concept/mechanism/worked_example/compare 为 flow（允许页内滚动），practice/summary 为 fit（单屏、不裁剪）；图示只允许声明式 complex-plane/annulus，一页最多 1 个。
+- 公式：所有数学走 LaTeX → 构建期 KaTeX MathML；例题/检查支持展示公式，禁止页面自由写 HTML/CSS/JS。
+- 主线主题：workbench（左路线 sticky + 中央正文 + 右速查/图，亚克力卡片）；设计实验室在 `design_lab/`，决策见 `docs/pageref/P14_DESIGN_DECISION.md`。
+- 接入：Backend `DeckStyle.design_system/page_theme/outline_override`；brief 下发 `content_schema`；Validator 新增 `CONTENT_SPARSE/CONTENT_CLIPPED/FIGURE_TOO_LARGE/FLOW_PAGE_TOO_LONG/SCROLL_POLICY_VIOLATION`。规范见 `docs/pageref/PAGE_CONTENT_2.0.md`。
+- **不可破坏**：Builder/Validator fail-closed；LLM 输出不可信；iframe 无 `allow-same-origin`；lane 串行与 active-page Guard 不得绕过；旧 bundle 在新版本 ready 前保持可读。
 
 ## 6. API 地图（完整契约以 `/docs` 为准）
 

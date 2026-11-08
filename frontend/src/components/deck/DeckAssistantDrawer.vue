@@ -99,6 +99,11 @@ function insertQuickAction(text: string) {
   inputEl.value?.focus()
 }
 
+function setDraft(text: string) {
+  draft.value = text
+  void nextTick(() => inputEl.value?.focus())
+}
+
 function refsOf(message: PageChatMessage): PageMessageRef[] {
   return (message.context_refs ?? []) as unknown as PageMessageRef[]
 }
@@ -242,13 +247,13 @@ function onKeydown(event: KeyboardEvent) {
   if (canSend.value) void send()
 }
 
-defineExpose({ send })
+defineExpose({ send, setDraft })
 </script>
 
 <template>
   <teleport to="body">
     <transition name="drawer">
-      <div v-if="open" class="fixed inset-0 z-70">
+      <div v-if="open" class="fixed inset-0 z-drawer">
         <div class="absolute inset-0 bg-overlay" @click="emit('close')" />
         <aside
           class="absolute inset-y-0 right-0 flex w-full max-w-[420px] flex-col border-l border-border bg-panel shadow-pop"
@@ -263,7 +268,7 @@ defineExpose({ send })
                 <h2 class="text-sm font-semibold text-ink">页面 AI 助手</h2>
                 <span
                   v-if="streaming"
-                  class="rounded-full border border-border px-1.5 py-0.5 text-[10px] text-muted"
+                  class="rounded-full border border-border px-1.5 py-0.5 text-[11px] text-muted"
                 >
                   回答中
                 </span>
@@ -340,7 +345,7 @@ defineExpose({ send })
                       <span
                         v-for="label in uniqueRefLabels(refsOf(message))"
                         :key="label"
-                        class="rounded-full bg-raised px-2 py-0.5 text-[10px] text-muted"
+                        class="rounded-full bg-raised px-2 py-0.5 text-[11px] text-muted"
                       >
                         {{ label }}
                       </span>

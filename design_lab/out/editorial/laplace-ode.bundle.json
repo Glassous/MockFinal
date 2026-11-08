@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.1",
+  "runtime_version": "1.1.0",
+  "manifest": {
+    "schema_version": "1.1",
+    "page_id": "page_demo_laplace_ode",
+    "title": "拉普拉斯变换解 ODE：四步法",
+    "subtitle": "把微分方程变成代数方程，解出 $Y(s)$，再部分分式、反变换。四步固定，不需要猜特解。",
+    "knowledge_point_ids": [
+      "kp_demo"
+    ],
+    "importance": "core",
+    "estimated_minutes": 9,
+    "layout": "page-kit-editorial",
+    "interactions": [
+      {
+        "id": "check",
+        "type": "retrieve",
+        "label": "随堂检查",
+        "smoke": {
+          "action": "click",
+          "selector": "[data-pg-option]",
+          "expect": "[data-pg-check-state=\"answered\"]"
+        }
+      }
+    ],
+    "source_refs": [
+      {
+        "material_id": 0,
+        "section_id": 0,
+        "quote": "用拉普拉斯变换解微分方程：变换 → 解代数方程 → 部分分式 → 反变换。",
+        "heading": "5.2 拉普拉斯变换"
+      },
+      {
+        "material_id": 0,
+        "section_id": 0,
+        "quote": "用拉普拉斯变换解 y''−y=e^{4t}，y(0)=y'(0)=0。",
+        "heading": "期末题归档 24-25 Q17"
+      }
+    ],
+    "design_system": "2.0",
+    "renderer": {
+      "kit": "page-kit",
+      "version": "2.0.0",
+      "theme": "editorial"
+    },
+    "teaching": {
+      "version": "1.0",
+      "role": "worked_example",
+      "objectives": [
+        "记住 $\\mathcal{L}\\{y'\\}$、$\\mathcal{L}\\{y''\\}$ 的初值项",
+        "用四步法解二阶常系数初值问题"
+      ],
+      "prerequisites": [],
+      "hook": "把微分方程变成代数方程，解出 $Y(s)$，再部分分式、反变换。四步固定，不需要猜特解。",
+      "chain": [
+        {
+          "id": "c1",
+          "title": "变换",
+          "block_id": "b4"
+        },
+        {
+          "id": "c2",
+          "title": "解出 Y(s)",
+          "block_id": "b4"
+        },
+        {
+          "id": "c3",
+          "title": "部分分式",
+          "block_id": "b4"
+        },
+        {
+          "id": "c4",
+          "title": "反变换",
+          "block_id": "b4"
+        }
+      ],
+      "check": [
+        {
+          "id": "q1",
+          "objective_id": "o2",
+          "question": "对初值问题，$Y(s)$ 的正确形式是？",
+          "options": [
+            "$1/((s-4)(s^2-1))$",
+            "$1/((s-4)(s^2+1))$",
+            "$1/((s+4)(s^2-1))$"
+          ],
+          "answer_index": 0,
+          "explanation": "$\\mathcal{L}\\{y''-y\\}=(s^2-1)Y$；右边 $\\mathcal{L}\\{e^{4t}\\}=1/(s-4)$，所以 $Y=1/((s-4)(s^2-1))$。"
+        }
+      ],
+      "scroll": "flow",
+      "content_version": "2.0",
+      "worked_example": {
+        "problem": "用拉普拉斯变换解初值问题：",
+        "steps": [
+          {
+            "id": "s1",
+            "title": "变换",
+            "body": "设 $Y=\\mathcal{L}\\{y\\}$。对方程两边取拉普拉斯变换，初值项为 $0$，右边 $\\mathcal{L}\\{e^{4t}\\}=1/(s-4)$：\n\n$$(s^2-1)Y=\\frac{1}{s-4}$$"
+          },
+          {
+            "id": "s2",
+            "title": "解出 Y(s)",
+            "body": "把 $s^2-1$ 移过去，得到有理函数：\n\n$$Y(s)=\\frac{1}{(s-4)(s-1)(s+1)}$$"
+          },
+          {
+            "id": "s3",
+            "title": "部分分式",
+            "body": "设 $A/(s-4)+B/(s-1)+C/(s+1)$，用留数法求系数：\n\n$$A=\\frac{1}{15},\\quad B=-\\frac{1}{6},\\quad C=\\frac{1}{10}$$"
+          },
+          {
+            "id": "s4",
+            "title": "反变换",
+            "body": "逐项查表：$1/(s-a)\\leftrightarrow e^{at}$。\n\n$$y(t)=\\frac{1}{15}e^{4t}-\\frac{1}{6}e^{t}+\\frac{1}{10}e^{-t}$$"
+          }
+        ],
+        "answer": "$y(t)=e^{4t}/15-e^{t}/6+e^{-t}/10$",
+        "common_error": "$\\mathcal{L}\\{y''\\}$ 的初值项是 $s\\,y(0)+y'(0)$，不是只有 $y(0)$；部分分式系数用留数法最快，但要先确认分母已完全因式分解。"
+      },
+      "summary": {
+        "key_points": [
+          "$\\mathcal{L}\\{y'\\}=sY-y(0)$，$\\mathcal{L}\\{y''\\}=s^2Y-s\\,y(0)-y'(0)$",
+          "四步：变换 → 解 $Y$ → 部分分式 → 反变换",
+          "反变换后代回初值检查"
+        ],
+        "misconceptions": [
+          "漏掉 $y'(0)$",
+          "部分分式分母没完全分解"
+        ],
+        "next": "最后一页：全册公式与易错速查"
+      }
+    },
+    "assistant": {
+      "summary": "把微分方程变成代数方程，解出 $Y(s)$，再部分分式、反变换。四步固定，不需要猜特解。",
+      "key_facts": [
+        "记住 $\\mathcal{L}\\{y'\\}$、$\\mathcal{L}\\{y''\\}$ 的初值项",
+        "用四步法解二阶常系数初值问题",
+        "$\\mathcal{L}\\{y'\\}=sY-y(0)$，$\\mathcal{L}\\{y''\\}=s^2Y-s\\,y(0)-y'(0)$",
+        "四步：变换 → 解 $Y$ → 部分分式 → 反变换",
+        "反变换后代回初值检查"
+      ],
+      "suggested_questions": [
+        "拉普拉斯变换解 ODE：四步法的关键步骤是什么？",
+        "记住 $\\mathcal{L}\\{y'\\}$、$\\mathcal{L}\\{y''\\}$ 的初值项在考试里怎么考？",
+        "这道例题最容易错在哪一步？"
+      ]
+    },
+    "a11y": {
+      "reduced_motion": true
+    }
+  },
+  "html": "<div class=\"pg-page pg-role-worked_example\" data-pg-theme=\"editorial\" data-pg-scroll=\"flow\" data-pg-role=\"worked_example\" data-pg-title=\"拉普拉斯变换解 ODE：四步法\">\n<header class=\"pg-head\">\n<p class=\"pg-eyebrow\">第 5 讲 · 拉普拉斯变换</p>\n<h1 class=\"pg-title\">拉普拉斯变换解 ODE：四步法</h1>\n<p class=\"pg-lede\">把微分方程变成代数方程，解出 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>Y</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">Y(s)</annotation></semantics></math></span>，再部分分式、反变换。四步固定，不需要猜特解。</p>\n<ul class=\"pg-meta\">\n<li>例题</li>\n<li>约 9 分钟</li>\n<li>对应大题 17</li>\n<li>复变函数攻略 · 5.2 拉普拉斯变换</li>\n</ul>\n</header>\n<nav class=\"pg-outline\" aria-label=\"解题路线\">\n<p class=\"pg-outline-label\">解题路线</p>\n<ol>\n<li><button type=\"button\" class=\"pg-outline-link\" data-pg-action=\"goto\" data-pg-goto=\"b4-s1\">\n<span class=\"pg-outline-index\">01</span>\n<span>变换</span>\n</button></li>\n<li><button type=\"button\" class=\"pg-outline-link\" data-pg-action=\"goto\" data-pg-goto=\"b4-s2\">\n<span class=\"pg-outline-index\">02</span>\n<span>解出 Y(s)</span>\n</button></li>\n<li><button type=\"button\" class=\"pg-outline-link\" data-pg-action=\"goto\" data-pg-goto=\"b4-s3\">\n<span class=\"pg-outline-index\">03</span>\n<span>部分分式</span>\n</button></li>\n<li><button type=\"button\" class=\"pg-outline-link\" data-pg-action=\"goto\" data-pg-goto=\"b4-s4\">\n<span class=\"pg-outline-index\">04</span>\n<span>反变换</span>\n</button></li>\n</ol>\n</nav>\n<main class=\"pg-flow\">\n<section class=\"pg-block pg-prose\" data-mp-block=\"b1\" aria-label=\"什么时候用\">\n<h2 class=\"pg-prose-title\">什么时候用</h2>\n<p>常系数线性 ODE 加初值问题，用拉普拉斯变换最稳：变换把求导变成乘 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>s</mi></mrow><annotation encoding=\"application/x-tex\">s</annotation></semantics></math></span>，初值自动进入方程；解出 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>Y</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">Y(s)</annotation></semantics></math></span> 后只需做代数和部分分式，不用猜特解。</p>\n</section>\n<section class=\"pg-block pg-callout pg-callout-key\" data-mp-block=\"b2\" aria-label=\"两条变换公式\">\n<p class=\"pg-label\">核心</p>\n<h2>两条变换公式</h2>\n<p><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><msup><mi>y</mi><mo mathvariant=\"normal\" lspace=\"0em\" rspace=\"0em\">′</mo></msup><mo stretchy=\"false\">}</mo><mo>=</mo><mi>s</mi><mi>Y</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo stretchy=\"false\">)</mo><mo>−</mo><mi>y</mi><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">\\mathcal{L}\\{y&#x27;\\}=sY(s)-y(0)</annotation></semantics></math></span>；<span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><msup><mi>y</mi><mrow><mo mathvariant=\"normal\">′</mo><mo mathvariant=\"normal\">′</mo></mrow></msup><mo stretchy=\"false\">}</mo><mo>=</mo><msup><mi>s</mi><mn>2</mn></msup><mi>Y</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo stretchy=\"false\">)</mo><mo>−</mo><mi>s</mi><mtext> </mtext><mi>y</mi><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo><mo>−</mo><msup><mi>y</mi><mo mathvariant=\"normal\" lspace=\"0em\" rspace=\"0em\">′</mo></msup><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">\\mathcal{L}\\{y&#x27;&#x27;\\}=s^2Y(s)-s\\,y(0)-y&#x27;(0)</annotation></semantics></math></span>。右边减去的正是初值项，漏掉就会得到错误解。</p>\n</section>\n<section class=\"pg-block pg-formula-block\" data-mp-block=\"b3\" aria-label=\"二阶导的变换\">\n<p class=\"pg-label\">二阶导的变换</p>\n<div class=\"pg-formula-wrap\"><div class=\"pg-formula\"><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><msup><mi>y</mi><mrow><mo mathvariant=\"normal\">′</mo><mo mathvariant=\"normal\">′</mo></mrow></msup><mo stretchy=\"false\">}</mo><mo>=</mo><msup><mi>s</mi><mn>2</mn></msup><mi>Y</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo stretchy=\"false\">)</mo><mo>−</mo><mi>s</mi><mtext> </mtext><mi>y</mi><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo><mo>−</mo><msup><mi>y</mi><mo mathvariant=\"normal\" lspace=\"0em\" rspace=\"0em\">′</mo></msup><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">\\mathcal{L}\\{y&#x27;&#x27;\\}=s^2Y(s)-s\\,y(0)-y&#x27;(0)</annotation></semantics></math></span><span class=\"pg-formula-label\">初值项不能漏</span></div><span class=\"pg-formula-hint\">左右滑动查看完整公式</span></div>\n</section>\n<section class=\"pg-block pg-example\" data-mp-block=\"b4\" aria-label=\"例题 · 24-25 Q17\">\n<p class=\"pg-label\">例题 · 24-25 Q17</p>\n<p class=\"pg-example-problem\">用拉普拉斯变换解初值问题：</p>\n<div class=\"pg-formula-wrap\"><div class=\"pg-formula pg-example-formula\"><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><msup><mi>y</mi><mrow><mo mathvariant=\"normal\">′</mo><mo mathvariant=\"normal\">′</mo></mrow></msup><mo>−</mo><mi>y</mi><mo>=</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mo separator=\"true\">,</mo><mspace width=\"2em\"/><mi>y</mi><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo><mo>=</mo><msup><mi>y</mi><mo mathvariant=\"normal\" lspace=\"0em\" rspace=\"0em\">′</mo></msup><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding=\"application/x-tex\">y&#x27;&#x27;-y=e^{4t},\\qquad y(0)=y&#x27;(0)=0</annotation></semantics></math></span></div><span class=\"pg-formula-hint\">左右滑动查看完整公式</span></div>\n<ol class=\"pg-steps\">\n<li class=\"pg-step\" id=\"b4-s1\">\n<span class=\"pg-step-index\" aria-hidden=\"true\">1</span>\n<div class=\"pg-step-body\">\n<h3 class=\"pg-step-title\">变换</h3>\n<p class=\"pg-step-text\">设 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>Y</mi><mo>=</mo><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><mi>y</mi><mo stretchy=\"false\">}</mo></mrow><annotation encoding=\"application/x-tex\">Y=\\mathcal{L}\\{y\\}</annotation></semantics></math></span>。对方程两边取拉普拉斯变换，初值项为 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mn>0</mn></mrow><annotation encoding=\"application/x-tex\">0</annotation></semantics></math></span>，右边 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mo stretchy=\"false\">}</mo><mo>=</mo><mn>1</mn><mi mathvariant=\"normal\">/</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">\\mathcal{L}\\{e^{4t}\\}=1/(s-4)</annotation></semantics></math></span>：</p>\n<div class=\"pg-formula-wrap\"><div class=\"pg-formula pg-step-formula\"><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mo stretchy=\"false\">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn><mo stretchy=\"false\">)</mo><mi>Y</mi><mo>=</mo><mfrac><mn>1</mn><mrow><mi>s</mi><mo>−</mo><mn>4</mn></mrow></mfrac></mrow><annotation encoding=\"application/x-tex\">(s^2-1)Y=\\frac{1}{s-4}</annotation></semantics></math></span></div><span class=\"pg-formula-hint\">左右滑动查看完整公式</span></div>\n</div>\n</li>\n<li class=\"pg-step\" id=\"b4-s2\">\n<span class=\"pg-step-index\" aria-hidden=\"true\">2</span>\n<div class=\"pg-step-body\">\n<h3 class=\"pg-step-title\">解出 Y(s)</h3>\n<p class=\"pg-step-text\">把 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn></mrow><annotation encoding=\"application/x-tex\">s^2-1</annotation></semantics></math></span> 移过去，得到有理函数：</p>\n<div class=\"pg-formula-wrap\"><div class=\"pg-formula pg-step-formula\"><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>Y</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mo stretchy=\"false\">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mi>s</mi><mo>−</mo><mn>1</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mi>s</mi><mo>+</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mfrac></mrow><annotation encoding=\"application/x-tex\">Y(s)=\\frac{1}{(s-4)(s-1)(s+1)}</annotation></semantics></math></span></div><span class=\"pg-formula-hint\">左右滑动查看完整公式</span></div>\n</div>\n</li>\n<li class=\"pg-step\" id=\"b4-s3\">\n<span class=\"pg-step-index\" aria-hidden=\"true\">3</span>\n<div class=\"pg-step-body\">\n<h3 class=\"pg-step-title\">部分分式</h3>\n<p class=\"pg-step-text\">设 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>A</mi><mi mathvariant=\"normal\">/</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy=\"false\">)</mo><mo>+</mo><mi>B</mi><mi mathvariant=\"normal\">/</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo>−</mo><mn>1</mn><mo stretchy=\"false\">)</mo><mo>+</mo><mi>C</mi><mi mathvariant=\"normal\">/</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo>+</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">A/(s-4)+B/(s-1)+C/(s+1)</annotation></semantics></math></span>，用留数法求系数：</p>\n<div class=\"pg-formula-wrap\"><div class=\"pg-formula pg-step-formula\"><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>A</mi><mo>=</mo><mfrac><mn>1</mn><mn>15</mn></mfrac><mo separator=\"true\">,</mo><mspace width=\"1em\"/><mi>B</mi><mo>=</mo><mo>−</mo><mfrac><mn>1</mn><mn>6</mn></mfrac><mo separator=\"true\">,</mo><mspace width=\"1em\"/><mi>C</mi><mo>=</mo><mfrac><mn>1</mn><mn>10</mn></mfrac></mrow><annotation encoding=\"application/x-tex\">A=\\frac{1}{15},\\quad B=-\\frac{1}{6},\\quad C=\\frac{1}{10}</annotation></semantics></math></span></div><span class=\"pg-formula-hint\">左右滑动查看完整公式</span></div>\n</div>\n</li>\n<li class=\"pg-step\" id=\"b4-s4\">\n<span class=\"pg-step-index\" aria-hidden=\"true\">4</span>\n<div class=\"pg-step-body\">\n<h3 class=\"pg-step-title\">反变换</h3>\n<p class=\"pg-step-text\">逐项查表：<span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mn>1</mn><mi mathvariant=\"normal\">/</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo>−</mo><mi>a</mi><mo stretchy=\"false\">)</mo><mo>↔</mo><msup><mi>e</mi><mrow><mi>a</mi><mi>t</mi></mrow></msup></mrow><annotation encoding=\"application/x-tex\">1/(s-a)\\leftrightarrow e^{at}</annotation></semantics></math></span>。</p>\n<div class=\"pg-formula-wrap\"><div class=\"pg-formula pg-step-formula\"><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>y</mi><mo stretchy=\"false\">(</mo><mi>t</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mfrac><mn>1</mn><mn>15</mn></mfrac><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mo>−</mo><mfrac><mn>1</mn><mn>6</mn></mfrac><msup><mi>e</mi><mi>t</mi></msup><mo>+</mo><mfrac><mn>1</mn><mn>10</mn></mfrac><msup><mi>e</mi><mrow><mo>−</mo><mi>t</mi></mrow></msup></mrow><annotation encoding=\"application/x-tex\">y(t)=\\frac{1}{15}e^{4t}-\\frac{1}{6}e^{t}+\\frac{1}{10}e^{-t}</annotation></semantics></math></span></div><span class=\"pg-formula-hint\">左右滑动查看完整公式</span></div>\n</div>\n</li>\n</ol>\n<div class=\"pg-answer\"><span class=\"pg-answer-label\">答案</span><div><p><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>y</mi><mo stretchy=\"false\">(</mo><mi>t</mi><mo stretchy=\"false\">)</mo><mo>=</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mi mathvariant=\"normal\">/</mi><mn>15</mn><mo>−</mo><msup><mi>e</mi><mi>t</mi></msup><mi mathvariant=\"normal\">/</mi><mn>6</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>t</mi></mrow></msup><mi mathvariant=\"normal\">/</mi><mn>10</mn></mrow><annotation encoding=\"application/x-tex\">y(t)=e^{4t}/15-e^{t}/6+e^{-t}/10</annotation></semantics></math></span></p></div></div>\n<p class=\"pg-pitfall\"><strong>易错：</strong><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><msup><mi>y</mi><mrow><mo mathvariant=\"normal\">′</mo><mo mathvariant=\"normal\">′</mo></mrow></msup><mo stretchy=\"false\">}</mo></mrow><annotation encoding=\"application/x-tex\">\\mathcal{L}\\{y&#x27;&#x27;\\}</annotation></semantics></math></span> 的初值项是 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>s</mi><mtext> </mtext><mi>y</mi><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo><mo>+</mo><msup><mi>y</mi><mo mathvariant=\"normal\" lspace=\"0em\" rspace=\"0em\">′</mo></msup><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">s\\,y(0)+y&#x27;(0)</annotation></semantics></math></span>，不是只有 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>y</mi><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">y(0)</annotation></semantics></math></span>；部分分式系数用留数法最快，但要先确认分母已完全因式分解。</p>\n</section>\n<section class=\"pg-block pg-callout pg-callout-pitfall\" data-mp-block=\"b5\" aria-label=\"四步法的检查点\">\n<p class=\"pg-label\">易错</p>\n<h2>四步法的检查点</h2>\n<p>① 变换后代数式是否只含 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>Y</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">Y(s)</annotation></semantics></math></span> 与已知函数；② 部分分式前分母是否完全因式分解；③ 反变换后代回 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding=\"application/x-tex\">t=0</annotation></semantics></math></span>，检查 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>y</mi><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">y(0)</annotation></semantics></math></span>、<span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><msup><mi>y</mi><mo mathvariant=\"normal\" lspace=\"0em\" rspace=\"0em\">′</mo></msup><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">y&#x27;(0)</annotation></semantics></math></span> 是否满足。</p>\n</section>\n<section class=\"pg-block pg-check\" data-pg-check data-mp-block=\"q1\" aria-label=\"随堂检查\">\n<p class=\"pg-label\">随堂检查 · q1</p>\n<p class=\"pg-question\">对初值问题，<span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>Y</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">Y(s)</annotation></semantics></math></span> 的正确形式是？</p>\n<div class=\"pg-formula-wrap\"><div class=\"pg-formula pg-check-formula\"><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><msup><mi>y</mi><mrow><mo mathvariant=\"normal\">′</mo><mo mathvariant=\"normal\">′</mo></mrow></msup><mo>−</mo><mi>y</mi><mo>=</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mo separator=\"true\">,</mo><mspace width=\"2em\"/><mi>y</mi><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo><mo>=</mo><msup><mi>y</mi><mo mathvariant=\"normal\" lspace=\"0em\" rspace=\"0em\">′</mo></msup><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding=\"application/x-tex\">y&#x27;&#x27;-y=e^{4t},\\qquad y(0)=y&#x27;(0)=0</annotation></semantics></math></span></div><span class=\"pg-formula-hint\">左右滑动查看完整公式</span></div>\n<div class=\"pg-options\">\n<button type=\"button\" class=\"pg-option\" data-pg-option data-pg-correct=\"true\">\n<span class=\"pg-option-key\" aria-hidden=\"true\">A</span>\n<span><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mn>1</mn><mi mathvariant=\"normal\">/</mi><mo stretchy=\"false\">(</mo><mo stretchy=\"false\">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">1/((s-4)(s^2-1))</annotation></semantics></math></span></span>\n</button>\n<button type=\"button\" class=\"pg-option\" data-pg-option>\n<span class=\"pg-option-key\" aria-hidden=\"true\">B</span>\n<span><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mn>1</mn><mi mathvariant=\"normal\">/</mi><mo stretchy=\"false\">(</mo><mo stretchy=\"false\">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>+</mo><mn>1</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">1/((s-4)(s^2+1))</annotation></semantics></math></span></span>\n</button>\n<button type=\"button\" class=\"pg-option\" data-pg-option>\n<span class=\"pg-option-key\" aria-hidden=\"true\">C</span>\n<span><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mn>1</mn><mi mathvariant=\"normal\">/</mi><mo stretchy=\"false\">(</mo><mo stretchy=\"false\">(</mo><mi>s</mi><mo>+</mo><mn>4</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">1/((s+4)(s^2-1))</annotation></semantics></math></span></span>\n</button>\n</div>\n<p class=\"pg-check-result\" data-pg-result aria-live=\"polite\" hidden></p>\n<p class=\"pg-explanation\" data-pg-explanation aria-live=\"polite\" hidden><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><msup><mi>y</mi><mrow><mo mathvariant=\"normal\">′</mo><mo mathvariant=\"normal\">′</mo></mrow></msup><mo>−</mo><mi>y</mi><mo stretchy=\"false\">}</mo><mo>=</mo><mo stretchy=\"false\">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn><mo stretchy=\"false\">)</mo><mi>Y</mi></mrow><annotation encoding=\"application/x-tex\">\\mathcal{L}\\{y&#x27;&#x27;-y\\}=(s^2-1)Y</annotation></semantics></math></span>；右边 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mo stretchy=\"false\">}</mo><mo>=</mo><mn>1</mn><mi mathvariant=\"normal\">/</mi><mo stretchy=\"false\">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">\\mathcal{L}\\{e^{4t}\\}=1/(s-4)</annotation></semantics></math></span>，所以 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>Y</mi><mo>=</mo><mn>1</mn><mi mathvariant=\"normal\">/</mi><mo stretchy=\"false\">(</mo><mo stretchy=\"false\">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">Y=1/((s-4)(s^2-1))</annotation></semantics></math></span>。</p>\n</section>\n</main>\n<aside class=\"pg-rail\" aria-label=\"图示与速查\">\n\n\n<section class=\"pg-quickfacts\">\n<p class=\"pg-label\">本页目标</p>\n<ul><li>记住 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><msup><mi>y</mi><mo mathvariant=\"normal\" lspace=\"0em\" rspace=\"0em\">′</mo></msup><mo stretchy=\"false\">}</mo></mrow><annotation encoding=\"application/x-tex\">\\mathcal{L}\\{y&#x27;\\}</annotation></semantics></math></span>、<span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><msup><mi>y</mi><mrow><mo mathvariant=\"normal\">′</mo><mo mathvariant=\"normal\">′</mo></mrow></msup><mo stretchy=\"false\">}</mo></mrow><annotation encoding=\"application/x-tex\">\\mathcal{L}\\{y&#x27;&#x27;\\}</annotation></semantics></math></span> 的初值项</li><li>用四步法解二阶常系数初值问题</li></ul>\n<p class=\"pg-label\">记住</p><ul><li><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><msup><mi>y</mi><mo mathvariant=\"normal\" lspace=\"0em\" rspace=\"0em\">′</mo></msup><mo stretchy=\"false\">}</mo><mo>=</mo><mi>s</mi><mi>Y</mi><mo>−</mo><mi>y</mi><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">\\mathcal{L}\\{y&#x27;\\}=sY-y(0)</annotation></semantics></math></span>，<span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi mathvariant=\"script\">L</mi><mo stretchy=\"false\">{</mo><msup><mi>y</mi><mrow><mo mathvariant=\"normal\">′</mo><mo mathvariant=\"normal\">′</mo></mrow></msup><mo stretchy=\"false\">}</mo><mo>=</mo><msup><mi>s</mi><mn>2</mn></msup><mi>Y</mi><mo>−</mo><mi>s</mi><mtext> </mtext><mi>y</mi><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo><mo>−</mo><msup><mi>y</mi><mo mathvariant=\"normal\" lspace=\"0em\" rspace=\"0em\">′</mo></msup><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">\\mathcal{L}\\{y&#x27;&#x27;\\}=s^2Y-s\\,y(0)-y&#x27;(0)</annotation></semantics></math></span></li><li>四步：变换 → 解 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>Y</mi></mrow><annotation encoding=\"application/x-tex\">Y</annotation></semantics></math></span> → 部分分式 → 反变换</li><li>反变换后代回初值检查</li></ul>\n<p class=\"pg-label\">易错</p><ul><li>漏掉 <span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><msup><mi>y</mi><mo mathvariant=\"normal\" lspace=\"0em\" rspace=\"0em\">′</mo></msup><mo stretchy=\"false\">(</mo><mn>0</mn><mo stretchy=\"false\">)</mo></mrow><annotation encoding=\"application/x-tex\">y&#x27;(0)</annotation></semantics></math></span></li><li>部分分式分母没完全分解</li></ul>\n<p class=\"pg-label\">答案速记</p><p class=\"pg-quick-answer\"><span class=\"katex\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><mi>y</mi><mo stretchy=\"false\">(</mo><mi>t</mi><mo stretchy=\"false\">)</mo><mo>=</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mi mathvariant=\"normal\">/</mi><mn>15</mn><mo>−</mo><msup><mi>e</mi><mi>t</mi></msup><mi mathvariant=\"normal\">/</mi><mn>6</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>t</mi></mrow></msup><mi mathvariant=\"normal\">/</mi><mn>10</mn></mrow><annotation encoding=\"application/x-tex\">y(t)=e^{4t}/15-e^{t}/6+e^{-t}/10</annotation></semantics></math></span></p>\n<p class=\"pg-label\">下一步</p><p class=\"pg-quick-answer\">最后一页：全册公式与易错速查</p>\n</section>\n</aside>\n<footer class=\"pg-foot\">\n<p class=\"pg-source\">依据：5.2 拉普拉斯变换 · 用拉普拉斯变换解微分方程：变换 → 解代数方程 → 部分分式 → 反变换。 等 2 条</p>\n<div class=\"pg-controls\">\n<button type=\"button\" class=\"pg-btn\" data-pg-action=\"prev\">上一页</button>\n<button type=\"button\" class=\"pg-btn\" data-pg-action=\"reset\">重置</button>\n<button type=\"button\" class=\"pg-btn pg-btn-primary\" data-pg-action=\"next\">下一页</button>\n</div>\n</footer>\n</div>",
+  "css": "",
+  "js": ""
+}

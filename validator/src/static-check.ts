@@ -13,9 +13,9 @@ import { parse as parseJs } from 'acorn';
 import { fullAncestor } from 'acorn-walk';
 
 import {
-  BUNDLE_SCHEMA_VERSION,
+  BUNDLE_SCHEMA_VERSIONS,
   MAX_BUNDLE_BYTES,
-  RUNTIME_VERSION,
+  RUNTIME_VERSIONS,
   type Bundle,
   type Issue,
   type StaticCheckResult
@@ -971,8 +971,8 @@ function checkManifest(manifest: unknown, issues: Issue[]): void {
   }
   const limits = MANIFEST_LIMITS;
 
-  if (manifest.schema_version !== BUNDLE_SCHEMA_VERSION) {
-    report(`manifest.schema_version 必须为 "${BUNDLE_SCHEMA_VERSION}"`, 'schema_version');
+  if (typeof manifest.schema_version !== 'string' || !BUNDLE_SCHEMA_VERSIONS.includes(manifest.schema_version)) {
+    report(`manifest.schema_version 必须为 ${BUNDLE_SCHEMA_VERSIONS.map((v) => `"${v}"`).join(' 或 ')}`, 'schema_version');
   }
   if (!isNonEmptyString(manifest.page_id) || manifest.page_id.length > limits.pageIdMax) {
     report(`manifest.page_id 必须是非空字符串且长度 ≤ ${limits.pageIdMax}`, 'page_id');
@@ -1176,6 +1176,150 @@ function checkManifest(manifest: unknown, issues: Issue[]): void {
   }
 }
 
+const TEACHING_ROLES = new Set([
+  'concept',
+  'mechanism',
+  'worked_example',
+  'practice',
+  'compare',
+  'summary'
+]);
+
+function collectBlockIds(html: string): Set<string> {
+  const ids = new Set<string>();
+  for (const match of html.matchAll(/data-mp-block\s*=\s*["']([^"']+)["']/gi)) {
+    if (match[1]) ids.add(match[1].trim());
+  }
+  return ids;
+}
+
+/**
+ * 教学结构检查（P9）：manifest.schema_version = "1.1" 时必须提供完整 teaching。
+ * 质量评分在浏览器检查中完成；这里只判定结构是否可教。
+ */
+function checkTeaching(manifest: unknown, html: string, issues: Issue[]): void {
+  if (!isPlainObject(manifest) || manifest.schema_version !== '1.1') return;
+  const report = (message: string, code = 'TEACHING_INVALID'): void => {
+    pushCapped(issues, { severity: 'error', code, message }, code);
+  };
+  if (manifest.design_system !== '1.0' && manifest.design_system !== '2.0') {
+    report('manifest.design_system 必须为 "1.0" 或 "2.0"', 'TEACHING_INVALID');
+  }
+  const teaching = manifest.teaching;
+  if (!isPlainObject(teaching)) {
+    report('manifest.teaching 缺失：1.1 页面必须提供教学结构', 'TEACHING_MISSING');
+    return;
+  }
+  if (teaching.version !== '1.0') report('teaching.version 必须为 "1.0"');
+  if (manifest.design_system === '2.0') {
+    if (teaching.scroll !== 'flow' && teaching.scroll !== 'fit') {
+      report('2.0 页面 teaching.scroll 必须为 "flow" 或 "fit"', 'TEACHING_INVALID');
+    }
+    if (teaching.content_version !== '2.0') {
+      report('2.0 页面 teaching.content_version 必须为 "2.0"', 'TEACHING_INVALID');
+    }
+    const renderer = manifest.renderer;
+    if (!isPlainObject(renderer) || renderer.kit !== 'page-kit' || typeof renderer.version !== 'string') {
+      report('2.0 页面 manifest.renderer 必须声明 kit="page-kit" 与 version', 'TEACHING_INVALID');
+    } else if (!['editorial', 'workbench', 'problem'].includes(String(renderer.theme))) {
+      report('manifest.renderer.theme 只能为 editorial / workbench / problem', 'TEACHING_INVALID');
+    }
+  }
+  const role = String(teaching.role ?? '');
+  if (!TEACHING_ROLES.has(role)) report('teaching.role 取值不合法');
+
+  const objectives = Array.isArray(teaching.objectives) ? teaching.objectives : [];
+  if (objectives.length < 1 || objectives.length > 3) report('teaching.objectives 必须为 1–3 条');
+  if (objectives.some((item) => !isNonEmptyString(item))) {
+    report('teaching.objectives 每项必须是非空字符串');
+  }
+  if (teaching.hook !== undefined && (typeof teaching.hook !== 'string' || teaching.hook.length > 300)) {
+    report('teaching.hook 必须是 ≤300 字字符串');
+  }
+
+  const chain = Array.isArray(teaching.chain) ? teaching.chain : [];
+  if (['concept', 'mechanism', 'compare'].includes(role) && (chain.length < 3 || chain.length > 5)) {
+    report('concept/mechanism/compare 页的 teaching.chain 必须为 3–5 步');
+  }
+  const blockIds = collectBlockIds(html);
+  const seenChain = new Set<string>();
+  chain.forEach((step, index) => {
+    if (!isPlainObject(step)) {
+      report(`teaching.chain[${index}] 必须是对象`);
+      return;
+    }
+    const id = String(step.id ?? '');
+    if (!id || seenChain.has(id)) report(`teaching.chain[${index}].id 缺失或重复`);
+    seenChain.add(id);
+    if (!isNonEmptyString(step.title)) report(`teaching.chain[${index}].title 不能为空`);
+    const blockId = String(step.block_id ?? '');
+    if (!blockId) {
+      report(`teaching.chain[${index}].block_id 缺失`);
+    } else if (!blockIds.has(blockId)) {
+      report(
+        `teaching.chain[${index}].block_id（${blockId}）在 page.html 中找不到 data-mp-block`,
+        'TEACHING_BLOCK_MISSING'
+      );
+    }
+  });
+
+  if (role === 'worked_example') {
+    const example = teaching.worked_example;
+    if (!isPlainObject(example)) {
+      report('worked_example 页必须提供 teaching.worked_example');
+    } else {
+      const steps = Array.isArray(example.steps) ? example.steps : [];
+      if (!isNonEmptyString(example.problem)) report('teaching.worked_example.problem 不能为空');
+      if (steps.length < 3 || steps.length > 5) report('teaching.worked_example.steps 必须为 3–5 步');
+      if (!isNonEmptyString(example.answer)) report('teaching.worked_example.answer 不能为空');
+    }
+  }
+
+  const checks = Array.isArray(teaching.check) ? teaching.check : [];
+  if (checks.length > 3) report('teaching.check 最多 3 题');
+  if (role !== 'summary' && checks.length < 1) {
+    report('除 summary 外，教学页必须至少包含 1 道检查题', 'TEACHING_CHECK_MISSING');
+  }
+  checks.forEach((item, index) => {
+    if (!isPlainObject(item)) {
+      report(`teaching.check[${index}] 必须是对象`);
+      return;
+    }
+    if (!isNonEmptyString(item.question)) report(`teaching.check[${index}].question 不能为空`);
+    const options = Array.isArray(item.options) ? item.options : [];
+    if (options.length < 2 || options.length > 6) {
+      report(`teaching.check[${index}].options 必须为 2–6 项`);
+    }
+    if (
+      typeof item.answer_index !== 'number' ||
+      !Number.isInteger(item.answer_index) ||
+      item.answer_index < 0 ||
+      item.answer_index >= options.length
+    ) {
+      report(`teaching.check[${index}].answer_index 必须落在 options 范围内`);
+    }
+    if (!isNonEmptyString(item.explanation)) {
+      report(`teaching.check[${index}].explanation 不能为空`);
+    }
+    const match = /^o(\d+)$/.exec(String(item.objective_id ?? ''));
+    if (!match || Number(match[1]) < 1 || Number(match[1]) > objectives.length) {
+      report(
+        `teaching.check[${index}].objective_id 必须指向 objectives（o1–o${Math.max(1, objectives.length)}）`,
+        'TEACHING_OBJECTIVE_MISMATCH'
+      );
+    }
+  });
+
+  if (role === 'summary') {
+    const summary = teaching.summary;
+    if (!isPlainObject(summary)) {
+      report('summary 页必须提供 teaching.summary');
+    } else if (!Array.isArray(summary.key_points) || summary.key_points.length < 1) {
+      report('teaching.summary.key_points 至少 1 条');
+    }
+  }
+}
+
 /** 冒烟选择器是否真的存在于页面（静态可判定部分）。 */
 function checkSmokeSelectors(manifest: unknown, html: string, js: string, issues: Issue[]): void {
   if (!isPlainObject(manifest) || !Array.isArray(manifest.interactions)) return;
@@ -1224,19 +1368,19 @@ export function staticCheck(rawBundle: unknown): StaticCheckResult {
       return false;
     }
     let ok = true;
-    if (rawBundle.schema_version !== BUNDLE_SCHEMA_VERSION) {
+    if (typeof rawBundle.schema_version !== 'string' || !BUNDLE_SCHEMA_VERSIONS.includes(rawBundle.schema_version)) {
       pushCapped(issues, {
         severity: 'error',
         code: 'BUNDLE_SCHEMA_INVALID',
-        message: `bundle.schema_version 必须为 "${BUNDLE_SCHEMA_VERSION}"`
+        message: `bundle.schema_version 必须为 ${BUNDLE_SCHEMA_VERSIONS.map((v) => `"${v}"`).join(' 或 ')}`
       }, 'BUNDLE_SCHEMA_INVALID');
       ok = false;
     }
-    if (rawBundle.runtime_version !== RUNTIME_VERSION) {
+    if (typeof rawBundle.runtime_version !== 'string' || !RUNTIME_VERSIONS.includes(rawBundle.runtime_version)) {
       pushCapped(issues, {
         severity: 'error',
         code: rawBundle.runtime_version === undefined ? 'BUNDLE_SCHEMA_INVALID' : 'RUNTIME_VERSION_MISMATCH',
-        message: `bundle.runtime_version 必须为 "${RUNTIME_VERSION}"，实际为 ${String(rawBundle.runtime_version)}`
+        message: `bundle.runtime_version 必须为 ${RUNTIME_VERSIONS.join(' / ')} 之一，实际为 ${String(rawBundle.runtime_version)}`
       }, 'BUNDLE_SCHEMA_INVALID');
       ok = false;
     }
@@ -1293,8 +1437,83 @@ export function staticCheck(rawBundle: unknown): StaticCheckResult {
     checkCss(bundle.css, issues);
     checkJs(bundle.js, issues);
     checkManifest(bundle.manifest as unknown, issues);
+    checkTeaching(bundle.manifest as unknown, bundle.html, issues);
     checkSmokeSelectors(bundle.manifest as unknown, bundle.html, bundle.js, issues);
+
+    const manifest = bundle.manifest as unknown;
+    if (
+      isPlainObject(manifest) &&
+      manifest.schema_version === '1.1' &&
+      manifest.design_system === '1.0' &&
+      byteLength(bundle.css) > 4096
+    ) {
+      pushCapped(issues, {
+        severity: 'warning',
+        code: 'CSS_BUDGET_WARNING',
+        message: `page.css 为 ${byteLength(bundle.css)} 字节，超过教学页 4 KiB 预算；Kit 已提供基础样式，请只追加页面专属差异，不要重定义 .mp-page/.mp-head/.mp-body/.mp-card/.mp-btn 等基础类`
+      }, 'CSS_BUDGET_WARNING');
+    }
   }
 
   return { issues, bundle };
+}
+
+/**
+ * 教学评分（0–100，P9）：结构缺失已由 checkTeaching 报 error；这里只量化质量并给 warning。
+ * 评分项与 TEACHING_PAGE_SPEC §6 一致；P11 校准后再作为 Builder 重试条件。
+ */
+export function teachingScore(manifest: unknown): {
+  score: number;
+  criteria: Record<string, number>;
+  warnings: string[];
+} | null {
+  if (!isPlainObject(manifest) || manifest.schema_version !== '1.1') return null;
+  const teaching = isPlainObject(manifest.teaching) ? manifest.teaching : {};
+  const warnings: string[] = [];
+  const criteria: Record<string, number> = {
+    objectives: 0,
+    chain: 0,
+    example: 0,
+    misconceptions: 0,
+    check: 0,
+    sources: 0
+  };
+
+  const objectives = Array.isArray(teaching.objectives) ? teaching.objectives : [];
+  if (objectives.length >= 1 && objectives.length <= 3) criteria.objectives = 20;
+  else warnings.push('学习目标缺失或超过 3 条');
+
+  const chain = Array.isArray(teaching.chain) ? teaching.chain : [];
+  if (chain.length >= 3) criteria.chain = 20;
+  else warnings.push('讲解链少于 3 步');
+
+  const role = String(teaching.role ?? '');
+  const example = isPlainObject(teaching.worked_example) ? teaching.worked_example : null;
+  if (role === 'worked_example') {
+    criteria.example = example && Array.isArray(example.steps) && example.steps.length >= 3 ? 20 : 0;
+    if (criteria.example === 0) warnings.push('例题页缺少完整分步解答');
+  } else {
+    criteria.example = example ? 10 : 0;
+  }
+
+  const summary = isPlainObject(teaching.summary) ? teaching.summary : {};
+  const misconceptions = Array.isArray(summary.misconceptions) ? summary.misconceptions : [];
+  if (misconceptions.length >= 1) criteria.misconceptions = 15;
+  else warnings.push('缺少易错点');
+
+  const checks = Array.isArray(teaching.check) ? teaching.check : [];
+  const validCheck = checks.some(
+    (item) => isPlainObject(item) && isNonEmptyString(item.question) && isNonEmptyString(item.explanation)
+  );
+  if (validCheck) criteria.check = 15;
+  else if (role !== 'summary') warnings.push('缺少带解析的检查题');
+  else criteria.check = 15;
+
+  const refs = Array.isArray(manifest.source_refs) ? manifest.source_refs : [];
+  if (refs.length > 0) criteria.sources += 6;
+  else warnings.push('缺少来源引用');
+  if (isNonEmptyString(summary.next)) criteria.sources += 4;
+
+  const score = Object.values(criteria).reduce((sum, value) => sum + value, 0);
+  return { score, criteria, warnings };
 }

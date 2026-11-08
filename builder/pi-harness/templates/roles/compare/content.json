@@ -1,0 +1,82 @@
+{
+  "content_version": "2.0",
+  "role": "compare",
+  "title": "【替换】A 与 B：什么时候用哪一个",
+  "eyebrow": "【替换：brief.deck_context.chapter_title · 小主题】",
+  "lede": "【替换】一句话说明两个对象最容易混淆的地方。",
+  "objectives": [
+    "【替换】能说出两者的适用条件差异",
+    "【替换】能在题目中选对工具"
+  ],
+  "scroll": "flow",
+  "blocks": [
+    {
+      "type": "prose",
+      "title": "先给结论",
+      "text": "【替换：用 60–100 字给出选择规则，不要等读者看完表格才明白。】"
+    },
+    {
+      "type": "compare",
+      "title": "逐项对照",
+      "columns": [
+        {
+          "title": "【对象 A】",
+          "items": [
+            "【定义/条件】",
+            "【典型题】",
+            "【常见错误】"
+          ]
+        },
+        {
+          "title": "【对象 B】",
+          "items": [
+            "【定义/条件】",
+            "【典型题】",
+            "【常见错误】"
+          ]
+        }
+      ],
+      "verdict": "【替换：一句话选择规则】"
+    },
+    {
+      "type": "callout",
+      "kind": "pitfall",
+      "title": "最容易混的一步",
+      "text": "【替换：写清混淆点与纠正方法。】"
+    }
+  ],
+  "check": [
+    {
+      "objective_id": "o1",
+      "question": "【替换：给一个题干，问该用 A 还是 B】",
+      "options": [
+        "【选项 A】",
+        "【选项 B】",
+        "【选项 C】"
+      ],
+      "answer_index": 1,
+      "explanation": "【替换：解析。】"
+    }
+  ],
+  "summary": {
+    "key_points": [
+      "【替换：选择规则】"
+    ],
+    "misconceptions": [
+      "【替换：易错点】"
+    ],
+    "next": "【替换：下一页承接】"
+  },
+  "source_refs": [
+    {
+      "section_id": 1,
+      "heading": "【替换：资料标题】",
+      "quote": "【替换：资料原文片段】"
+    }
+  ],
+  "meta": {
+    "exam": "【替换：对应题号】",
+    "minutes": 7,
+    "source": "【替换：资料出处】"
+  }
+}

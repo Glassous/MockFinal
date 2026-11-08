@@ -316,6 +316,8 @@ class DeckBuildJob(Base):
     target_page_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # 单页重建的用户反馈（≤2000 字），首次尝试时传给 Builder；重试时追加问题摘要
     feedback: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # P8：按 build_id 聚合的 Builder 用量（token/cache/cost/duration），仅供内部观测
+    usage: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

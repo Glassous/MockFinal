@@ -12,7 +12,7 @@
 | Validator | `cd validator && npm run build && npm test` | 全部通过 |
 | Builder | `cd builder && npm test` | 全部通过 |
 | 红队 | 启动 Validator 后 `VALIDATOR_TOKEN=... node scripts/red-team.mjs` | 16/16 拦截 |
-| P5 回归 | `node validator/scripts/p5-acceptance.mjs`（演示数据） | 34/34 |
+| P5 回归 | `node validator/scripts/p5-acceptance.mjs`（演示数据） | 41/41（P12 更新后） |
 | P6 回归 | 假 LLM + `node validator/scripts/p6-acceptance.mjs` | 24/24 |
 | 真实 Pi 门禁 / 多页 E2E | `builder npm run gate:run` + 真实 LLM 构建 | **P2 3/3；P4 14 页 14/14 ready、0 issues、911s；成本 ¥0.14 + ¥1.69（¥10 预算内）** |
 | 工作区 | `git status` | 无 `.env`、密钥、`backend/data/`、构建产物；未 commit/push |
@@ -35,6 +35,23 @@ PAGE_BUILDER_URL=
 PAGE_BUILDER_TOKEN=
 PAGE_VALIDATOR_URL=
 PAGE_VALIDATOR_TOKEN=
+
+# 教学契约（P9/P10；门禁通过后开启）
+DECK_TEACHING_ENABLED=false
+DECK_TEACHING_MIN_SCORE=70
+DECK_VISIBLE_LAYER_CHARS=450
+DECK_TOTAL_PAGE_CHARS=700
+
+# Deck lane 会话复用（P11；与 Builder 成对开启）
+DECK_SESSION_REUSE_ENABLED=false
+DECK_LANE_COUNT=2
+
+# Builder 会话/提示词（P11）
+BUILDER_SESSION_MODE=page          # 回退值；启用复用设为 deck
+BUILDER_SESSION_PAGES_PER_LANE=3
+BUILDER_SESSION_TTL_SECONDS=1800
+PAGE_BUILDER_PROMPT_PROFILE=zh     # 目标方案 compact
+PAGE_BUILDER_REASONING=0           # 网关支持 reasoning 时设 1
 ```
 
 `PAGE_BUILDER_TOKEN` 与 Builder 的 `BUILDER_TOKEN` 必须一致；`PAGE_VALIDATOR_TOKEN` 与 Validator 的 `VALIDATOR_TOKEN` 必须一致。缺失时 Deck 构建/重建返回 503 或页面失败（fail-closed），不会跳过校验。
@@ -76,6 +93,9 @@ PAGE_VALIDATOR_TOKEN=
 | 数据损坏/误删 | 从 `pg_dump` 恢复；Deck 页面 bundle 在 OSS/本地存储按 key 保留，恢复 DB 后仍需对应对象 |
 | 全量回滚 | 回退应用镜像到上一 tag；保留 `.env` 中新增变量（空值不启用）；旧版功能不依赖新表 |
 | HMAC 协议回滚 | 主 API 与 Builder 必须成对回退；禁止只回退一侧，否则所有构建请求 401 |
+| 教学契约异常 | `DECK_TEACHING_ENABLED=false` 回到旧契约；已生成 1.1 页面继续可读（前端/Validator 双版本兼容），不删除 |
+| 会话复用异常 | 主 API `DECK_SESSION_REUSE_ENABLED=false` + Builder `BUILDER_SESSION_MODE=page`；已生成页面不受影响，构建恢复逐页会话 |
+| 成本异常 | 回退 `PAGE_BUILDER_PROMPT_PROFILE=zh` 或提高 `BUILDER_SESSION_PAGES_PER_LANE` 前先核对 `P13_RESULTS.json.usage` 与网关余额 |
 
 回滚后执行：`/api/health`、登录、资料列表、旧版生成/模拟卷、Deck 阅读、助手 503/可用性检查。
 
@@ -109,13 +129,15 @@ PAGE_VALIDATOR_TOKEN=
 ## 8. 发布结论模板
 
 ```text
-版本：feat/pageref @ <commit>
-后端：pytest 87 passed；P4 集成 6 passed（含 12 页断线恢复、启动自愈）
+版本：feat/pageref @ <commit>（P8–P13）
+后端：单元 101 passed；Deck 集成 6 passed（Linux 容器，含 12 页断线恢复、启动自愈）
 前端：typecheck/test 20 passed/build ok
-Validator：44 passed；红队 16/16
-Builder：22 passed
-浏览器：P5 34/34、P6 24/24（假 LLM）
-真实模型：P2 Gate 3/3、P4 14 页 E2E 14/14（DeepSeek `deepseek-flash`，合计 ¥1.83）；12 页编排/断线恢复另由隔离库集成覆盖
+Validator：50 passed；红队 16/16
+Builder：31 passed
+浏览器：P5 41/41（P12）；P6 24/24（假 LLM，沿用未变更路径）
+真实模型：P10 三页样本 ¥0.37；P11 A/B 与失败注入；P13 14 页整册 14/14 ready、0 failed、940.8s、首轮 14/14、教学分均 80、schema 1.1、CSS ≤4K
+成本：P13 ¥1.63（预算 ≤¥2）；P8–P13 累计 ¥3.76（总预算 ≤¥6，按余额 116.19 → 112.43）
+开关：DECK_TEACHING_ENABLED / DECK_SESSION_REUSE_ENABLED 可一键关闭回退
 已知残留：见 §6.1
-结论：待人类维护者审阅，未 push/merge
+结论：待人类维护者审阅，未 commit/push/merge
 ```

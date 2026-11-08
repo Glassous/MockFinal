@@ -4,6 +4,7 @@ import { FileImage, RotateCcw } from 'lucide-vue-next'
 import type { DeckPageSummary } from '@/types'
 import { loadPageThumbnail } from '@/api/decks'
 import { pageDisplayTitle } from '@/lib/deck'
+import DeckRoleBadge from './DeckRoleBadge.vue'
 import DeckStatusPill from './DeckStatusPill.vue'
 
 const props = defineProps<{
@@ -101,6 +102,12 @@ function open() {
         </p>
         <DeckStatusPill kind="page" :status="page.status" />
       </div>
+      <DeckRoleBadge
+        :role="page.teaching_role"
+        :checks="page.check_count"
+        :minutes="page.estimated_minutes"
+        :score="page.teaching_score"
+      />
       <div class="mt-auto flex items-center justify-between gap-2 text-[11px] text-faint">
         <span>
           v{{ page.current_version || 0 }}

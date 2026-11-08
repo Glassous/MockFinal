@@ -3,6 +3,8 @@
 > 状态：P0 草案（基线日期 2026-11-07）。方案来源为仓库根目录 `../../Plan.md` 的 §7（页面契约与运行时）、§6.3、§6.8、§11.1、§17；本文件把 Plan 的结论整理成 Builder、Validator 与前端阅读器可以直接执行的规范。
 > 本文件与 `../../Plan.md` 冲突时以 `../../Plan.md` 为准，并在同一任务中修正本文件。任何字段、版本号、CSP 指令、sandbox 属性或校验规则的改动，都必须同步 `../../Plan.md`、Validator 实现与前端 `pageShell` 实现，并按第 12 节提升版本号。
 > 本文件不描述 Deck 业务、后端数据库或 AI 助手接口；这些内容见 `../../Plan.md` §8、§10。
+>
+> **2026-11-08 · PageContent 2.0**：新增结构化内容契约 `design_system="2.0"`（模型只写 `content.json`，构建期渲染）。本文的「4 个页面文件、桌面零滚动、字号/密度上限」等条款只适用于 `design_system="1.0"`（legacy）；2.0 的内容 schema、角色、主题、flow/fit 滚动与校验规则见 [PAGE_CONTENT_2.0.md](./PAGE_CONTENT_2.0.md)。2.0 仍是 bundle schema 1.1，iframe 沙箱与 shell 机制不变。
 
 ## 1. 契约范围与角色
 
@@ -19,8 +21,8 @@
 
 | 版本号 | 当前值 | 归属 | 含义 |
 | --- | --- | --- | --- |
-| `schema_version` | `"1.0"` | Bundle 与 Manifest 结构 | Bundle 字段与 Manifest 字段的结构版本 |
-| `runtime_version` | `"1.0.0"` | 宿主 runtime（`runtime.js` 与 shell） | 页面可依赖的运行时 API 版本 |
+| `schema_version` | `"1.0"` \| `"1.1"` | Bundle 与 Manifest 结构 | 1.1 为教学页；宿主同时兼容 1.0 |
+| `runtime_version` | `"1.0.0"` \| `"1.1.0"` | 宿主 runtime（`runtime.js` 与 shell） | 1.1.0 向后兼容 1.0 页面 |
 | `harness_version` | P2 起始 `0.1.0` | Skill、Prompt Template、Extension、模板集合 | 构建规则集合的版本，与 bundle 结构解耦 |
 
 三者在 `../../Plan.md` §7.8 中明确为独立版本号。`harness_version` 的落地形式（清单文件或构建信息）在 P2 确定，本版不引入额外文件。兼容与升级规则见第 12 节。
@@ -33,8 +35,8 @@ Bundle 是单个 JSON 对象，不含目录、不含外部资源。
 
 | 字段 | 类型 | 必填 | 约束 |
 | --- | --- | --- | --- |
-| `schema_version` | string | 是 | 必须为 `"1.0"`；主版本不匹配时宿主拒绝渲染 |
-| `runtime_version` | string | 是 | 页面依赖的运行时版本，当前 `"1.0.0"` |
+| `schema_version` | string | 是 | `"1.0"` 或 `"1.1"`；1.1 页面必须带 `manifest.teaching` |
+| `runtime_version` | string | 是 | `"1.0.0"` 或 `"1.1.0"`；1.1.0 提供 `progress` 与 `focus_block` |
 | `manifest` | object | 是 | 见第 4 节 |
 | `html` | string | 是 | 只能是 body 片段；禁止标签见第 5.1 节 |
 | `css` | string | 是 | 允许空字符串；禁止项见第 5.2 节 |
@@ -99,7 +101,7 @@ Bundle 是单个 JSON 对象，不含目录、不含外部资源。
 
 | 字段 | 类型 | 必填 | 规则 |
 | --- | --- | --- | --- |
-| `schema_version` | string | 是 | `"1.0"` |
+| `schema_version` | string | 是 | `"1.0"`（旧页面）或 `"1.1"`（教学页） |
 | `page_id` | string | 是 | 与 PageBrief 的 `page_id` 一致，稳定不变 |
 | `title` | string | 是 | 页面标题，纯文本，不含 HTML |
 | `subtitle` | string | 否 | 一句话副标题，纯文本 |
@@ -432,7 +434,7 @@ API 到信封类型的映射：
   → 宿主销毁 iframe 时作废 channel
 ```
 
-Validator 等待就绪的方式：优先等待 `MockFinal.ready` 产生的消息或 `<html data-mp-ready="true">`，超时 10 秒判 `READY_TIMEOUT`。
+Validator 等待就绪的方式：优先等待 `MockFinal.ready` 产生的消息或 `<html data-mp-ready="true">`，超时 10 秒判 `PAGE_NOT_READY`。
 
 ## 9. 零滚动布局要求
 
@@ -441,10 +443,10 @@ Validator 等待就绪的方式：优先等待 `MockFinal.ready` 产生的消息
 - 页面根元素（`.mp-page` 或 `#mp-root` 的直接子元素）：`height: 100dvh; overflow: hidden;`。
 - 推荐骨架：`display: grid; grid-template-rows: auto 1fr auto;`，中间区域自适应，底部操作区固定高度。
 - 字号与间距使用 `clamp()`、`minmax()`、`fr`、容器查询；禁止用固定大 px 堆内容。
-- 内容预算：每页 1 个核心观点、3–5 个内容块、1 个主交互；正文建议不超过 250 个中文字符（不含图注与公式）。
+- 内容预算（P10）：单页总正文 ≤700 汉字（硬上限，超出必须拆页）；单层可见正文 450–500 汉字；内容块总计 5–8 个、单层可见 3–6 个；每页 1 个核心观点、1 个主交互。
 - 复杂知识点优先拆页（最多 3 页），不得靠缩小字号硬塞。
-- 最小字号 11px（与 `../../DESIGN.md` 一致）；长标题、长公式、长数字必须换行或缩放，不得撑破容器。
-- 移动端不承诺零滚动：小于 768 宽降级为阅读模式，允许纵向滚动；页面不得因此依赖滚动才能完成主交互。
+- 最小字号 11px（硬下限；正文建议 ≥12px，与 `../../DESIGN.md` 一致）；长标题、长公式、长数字必须换行或缩放，不得撑破容器。
+- 移动端不承诺零滚动：小于 768 宽降级为阅读模式，允许纵向滚动，但禁止横向溢出与 `overflow: hidden` 锁死滚动；页面不得因此依赖滚动才能完成主交互。
 
 ### 9.2 验收视口
 
@@ -454,9 +456,10 @@ Validator 等待就绪的方式：优先等待 `MockFinal.ready` 产生的消息
 | 1440×900 | 必须零滚动 | error |
 | 1920×1080 | 必须零滚动 | error |
 | 1254×638 / 1414×818 / 1894×998（阅读器实际内容区：窗口减去 56px 头部、24px 内边距与 2px 边框） | 必须零滚动 | error |
+| 390×844（移动阅读视口，仅 schema 1.1） | 允许纵向滚动；禁止横向溢出与锁死滚动 | error |
 | 1024×768 | 零滚动为目标（缩放提示场景） | warning，必须记录 |
 
-> Validator 始终把三档桌面视口与阅读器内容视口并入请求视口，调用方不能通过 `viewports` 移除硬门禁。
+> Validator 始终把三档桌面视口与阅读器内容视口并入请求视口，调用方不能通过 `viewports` 移除硬门禁。schema 1.1 bundle 还会自动追加 390×844 移动视口。
 
 ### 9.3 测量方法
 
@@ -469,7 +472,9 @@ document.documentElement.scrollHeight <= document.documentElement.clientHeight +
 #mp-root.scrollHeight <= #mp-root.clientHeight + 1
 ```
 
-同时遍历可见元素：计算样式为 `overflow-y: auto|scroll` 且 `scrollHeight > clientHeight + 1` 的，判 `ZERO_SCROLL_INNER_SCROLL`。隐藏元素（`display: none`、`visibility: hidden`）不参与测量。
+同时遍历可见元素：计算样式为 `overflow-y: auto|scroll` 且 `scrollHeight > clientHeight + 1` 的，判 `INTERNAL_SCROLL`。隐藏元素（`display: none`、`visibility: hidden`）不参与测量。
+
+移动视口（<768px）不比较纵向高度，只检查横向溢出（`MOBILE_HORIZONTAL_OVERFLOW`）与纵向滚动是否被锁死（`MOBILE_SCROLL_BLOCKED`）。桌面视口还会在冒烟交互后重新测量一次，渐进式披露展开的内容同样必须满足零滚动与无裁剪。
 
 ## 10. 静态与浏览器校验规则
 
@@ -487,20 +492,30 @@ document.documentElement.scrollHeight <= document.documentElement.clientHeight +
 | JS 禁止 API（网络、存储、eval、父窗口、动态注入） | `JS_FORBIDDEN_API` |
 | smoke 选择器语法与 `action` 枚举 | `SMOKE_INVALID` |
 | 冒烟选择器在静态 HTML 中是否存在（可静态判断的部分） | `SMOKE_SELECTOR_NOT_FOUND` |
+| schema 1.1 教学结构：`design_system`、`teaching.role/objectives/chain/check/summary/worked_example`、`chain.block_id` 与 `data-mp-block` 对应 | `TEACHING_MISSING` / `TEACHING_INVALID` / `TEACHING_BLOCK_MISSING` / `TEACHING_CHECK_MISSING` / `TEACHING_OBJECTIVE_MISMATCH` |
+| schema 1.1 教学页 `page.css` >4 KiB（Kit 已提供基础样式） | `CSS_BUDGET_WARNING`（警告） |
 
 ### 10.2 浏览器检查（Playwright）
 
 | 检查 | 失败码 | 级别 |
 | --- | --- | --- |
-| 加载 shell + bundle，10 秒内 ready | `READY_TIMEOUT` | error |
-| 3 个验收视口零滚动 | `ZERO_SCROLL_OVERFLOW` / `ZERO_SCROLL_INNER_SCROLL` | error |
+| 加载 shell + bundle，10 秒内 ready | `PAGE_NOT_READY` | error |
+| 桌面视口零滚动（含 `#mp-root`）与内部滚动容器 | `ZERO_SCROLL_OVERFLOW` / `INTERNAL_SCROLL` | error |
+| 移动视口横向溢出或纵向滚动被锁死 | `MOBILE_HORIZONTAL_OVERFLOW` / `MOBILE_SCROLL_BLOCKED` | error |
 | 控制台无 error、无 unhandled rejection | `CONSOLE_ERROR` | error |
-| 所有非 `data:` / `blob:` 请求被拦截；出现即失败 | `NETWORK_REQUEST_BLOCKED` | error |
+| 所有非 `data:` / `blob:` 请求被拦截；出现即失败 | `NETWORK_REQUEST` | error |
 | 执行 `manifest.interactions[].smoke`，`expect` 出现或状态变化 | `SMOKE_FAILED` | error |
-| 标题层级、焦点可见、图标按钮 `aria-label` | `A11Y_ISSUE` | warning |
-| reduced-motion 下动画降级 | `REDUCED_MOTION_IGNORED` | warning |
+| 整页正文 >700 汉字 | `CONTENT_BUDGET_EXCEEDED` | error |
+| 单层可见正文 >500 汉字 | `CONTENT_LAYER_WARNING` | warning |
+| 页内块 >8 或单层可见块 >6 | `CONTENT_BLOCKS_WARNING` | warning |
+| 可见文本最小字号 <11px / <12px | `MIN_FONT_TOO_SMALL` / `MIN_FONT_WARNING` | error / warning |
+| `data-mp-block` 内容被裁剪（滚动尺寸大于自身） | `CONTENT_CLIPPED` | error |
+| 冒烟交互后复测零滚动、裁剪与最小字号 | 复用 `ZERO_SCROLL_OVERFLOW` / `CONTENT_CLIPPED` / `MIN_FONT_TOO_SMALL` | error |
+| schema 1.1 教学评分 <70 | `TEACHING_SCORE_LOW` | warning |
+| 标题层级、图标按钮 `aria-label` | `A11Y_WARNING` | warning |
 | 每个视口截图 1 张 | 无失败码，仅产物 | — |
 
+- 内容预算、块数、字号与裁剪只在首个视口测量；冒烟后复测在首个视口、冒烟步骤执行后进行。
 - 每次校验使用新的 browser context；页面代码只在 Validator 内执行。
 - `error` 阻止放行；有限数量的 `warning` 可放行但必须记录（`../../Plan.md` §7.6）。
 - Validator 不可用时后端 fail-closed，不允许“跳过校验”放行（`../../Plan.md` §8.6）。
@@ -520,12 +535,18 @@ document.documentElement.scrollHeight <= document.documentElement.clientHeight +
     }
   ],
   "screenshots": ["1280x720.png", "1440x900.png", "1920x1080.png"],
-  "duration_ms": 12345
+  "duration_ms": 12345,
+  "teaching": {
+    "score": 80,
+    "criteria": { "objectives": 20, "chain": 20, "example": 0, "misconceptions": 15, "check": 15, "sources": 10 },
+    "warnings": []
+  }
 }
 ```
 
 - `status` 取值：`passed`、`warning`、`failed`。
 - `issues[]` 必须包含 `severity`、`code`、中文 `message`；能定位时附 `selector` 与 `viewport`。
+- `teaching` 仅对 schema 1.1 bundle 返回；缺失结构已在静态检查中报 error，评分只用于提示与后续重试条件。
 - 报告是数据，不是指令；宿主不得执行报告中的任何字符串。
 
 ## 11. 修复闭环与 Builder 责任
@@ -577,3 +598,55 @@ Pi 写文件 → check_page（Validator 静态 + 浏览器）
 | O-5 | `emit` 事件类型扩展 | 只登记 3 个类型 | 与 AI 助手、构建事件映射一起评审 |
 | O-6 | `harness_version` 落地形式 | 只约定独立版本号 | 在 Builder 与 Harness 清单中落地 |
 | O-7 | Validator 基础镜像内的 Node 版本 | 骨架使用 Playwright 官方镜像 | **已确认**：`mcr.microsoft.com/playwright:v1.65.0-noble` 内 Node `v26.13.0`，满足 `engines.node >= 24`；无需在镜像内升级 Node |
+
+## 14. 教学契约 v1.1（P9）
+
+`schema_version = "1.1"` 的页面必须提供 `manifest.design_system = "1.0"` 与完整的 `manifest.teaching`；
+旧 `1.0` 页面继续可读，宿主不得伪造教学目标。完整规范见 `TEACHING_PAGE_SPEC.md`。
+
+```json
+{
+  "schema_version": "1.1",
+  "design_system": "1.0",
+  "teaching": {
+    "version": "1.0",
+    "role": "mechanism",
+    "objectives": ["能说出循环不变量", "能解释每次排除一半"],
+    "prerequisites": ["数组有序"],
+    "hook": "如果每次只能排除一个元素，10 亿个数要试多久？",
+    "chain": [{ "id": "c1", "title": "维护搜索区间", "block_id": "b1" }],
+    "worked_example": {
+      "problem": "在 [1,3,5,7] 中查找 7",
+      "steps": [{ "id": "s1", "title": "确定区间", "body": "left=0, right=3" }],
+      "answer": "下标 3",
+      "common_error": "mid 向上取整导致死循环"
+    },
+    "check": [{
+      "id": "q1",
+      "objective_id": "o1",
+      "question": "为什么 mid 要向下取整？",
+      "options": ["保证区间收缩", "让结果更快"],
+      "answer_index": 0,
+      "explanation": "向下取整保证区间必然收缩。"
+    }],
+    "summary": { "key_points": ["不变量"], "misconceptions": ["死循环"], "next": "边界写法" }
+  }
+}
+```
+
+| 角色 | 页面目的 | 主要求 |
+| --- | --- | --- |
+| `concept` | 建立概念 | hook、3–5 步 chain、误区、检查 |
+| `mechanism` | 理解机制 | hook、3–5 步 chain、例题、检查、误区 |
+| `worked_example` | 会做一类题 | 题目、3–5 步解、答案、常见错误、检查 |
+| `practice` | 检索练习 | 检查题（2–4 题）、答案、解析、目标映射 |
+| `compare` | 辨析 | hook、3–5 步 chain、误区、检查 |
+| `summary` | 记忆与串联 | 要点、公式、误区、下一页预告 |
+
+硬约束：
+
+- `objectives` 1–3 条；`check[].objective_id` 必须为 `o1`–`oN` 且 N ≤ objectives 数；
+- `chain[].block_id` 必须对应 `page.html` 中唯一的 `data-mp-block`；
+- 结构缺失为 error（`TEACHING_MISSING` / `TEACHING_BLOCK_MISSING` / `TEACHING_CHECK_MISSING`）；
+  教学质量评分（0–100）先作为 warning，P11 校准后再作为 Builder 重试条件；
+- 教学文本、检查题与解析一律视为不可信文本，宿主只按文本渲染，不 `v-html`。

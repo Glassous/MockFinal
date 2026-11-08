@@ -112,6 +112,47 @@ async def test_builder_client_signs_actual_request_body() -> None:
     assert json.loads(captured["body"])["build_id"] == "bld_1"
 
 
+async def test_builder_client_sends_session_metadata() -> None:
+    captured: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = request.content
+        return httpx.Response(202, json={"build_id": "bld_1", "status": "queued"})
+
+    client = PageBuilderClient(
+        base_url="http://builder.local", token="tok", transport=httpx.MockTransport(handler)
+    )
+    await client.create_build(
+        "bld_1",
+        {"page_id": "page_1", "knowledge_point": {"title": "x"}},
+        session={"key": "deck_1_lane_0", "lane": 0, "page_index": 1, "page_total": 3, "first": False},
+    )
+    payload = json.loads(captured["body"])
+    assert payload["session"] == {
+        "key": "deck_1_lane_0",
+        "lane": 0,
+        "page_index": 1,
+        "page_total": 3,
+        "first": False,
+    }
+
+
+async def test_builder_client_delete_session() -> None:
+    captured: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["method"] = request.method
+        captured["path"] = request.url.path
+        return httpx.Response(202, json={"key": "deck_1_lane_0", "status": "closed"})
+
+    client = PageBuilderClient(
+        base_url="http://builder.local", token="tok", transport=httpx.MockTransport(handler)
+    )
+    result = await client.delete_session("deck_1_lane_0")
+    assert captured == {"method": "DELETE", "path": "/v1/sessions/deck_1_lane_0"}
+    assert result["status"] == "closed"
+
+
 async def test_builder_client_get_signs_empty_body() -> None:
     captured: dict = {}
 

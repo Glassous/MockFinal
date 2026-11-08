@@ -29,6 +29,7 @@ export interface BuildEvent {
 
 export interface SourceExcerpt {
   section_id: number | string;
+  material_id?: number;
   heading?: string;
   text: string;
 }
@@ -40,6 +41,7 @@ export interface KnowledgePoint {
   key_points?: string[];
   formulas?: string[];
   misconceptions?: string[];
+  importance?: string;
 }
 
 export interface PageStyle {
@@ -47,6 +49,8 @@ export interface PageStyle {
   content?: string[];
   custom_prompt?: string;
   density?: string;
+  design_system?: string;
+  page_theme?: string;
 }
 
 export interface PageConstraints {
@@ -55,16 +59,62 @@ export interface PageConstraints {
   no_network?: boolean;
   max_bundle_bytes?: number;
   runtime_version?: string;
+  schema_version?: string;
   language?: string;
+  content_schema?: string;
+  design_system?: string;
+  page_theme?: string;
+}
+
+export interface TeachingDensity {
+  visible_layer_chars?: number;
+  total_page_chars?: number;
+  visible_blocks?: number;
+  total_blocks?: number;
+  primary_interactions?: number;
+  checks?: number;
+}
+
+export interface TeachingContract {
+  objectives?: string[];
+  prerequisites?: string[];
+  hook?: string;
+  check_idea?: string;
+  worked_example_idea?: string;
+  required?: string[];
+  density?: TeachingDensity;
+}
+
+export interface DeckContext {
+  previous_learning?: string;
+  next_hook?: string;
+  chapter_index?: number | null;
+  chapter_total?: number | null;
+  chapter_title?: string;
+}
+
+/** Deck lane 会话元数据（P11）；缺省时走逐页模式。 */
+export interface BuildSessionMeta {
+  key: string;
+  lane?: number;
+  page_index?: number;
+  page_total?: number;
+  first?: boolean;
 }
 
 export interface PageBrief {
   page_id: string;
   deck_title?: string;
+  role?: string;
   knowledge_point: KnowledgePoint;
+  knowledge_point_ids?: string[];
+  estimated_minutes?: number;
+  merged_knowledge_points?: KnowledgePoint[];
   source_excerpts?: SourceExcerpt[];
   style?: PageStyle;
   interaction_idea?: string;
+  teaching_contract?: TeachingContract;
+  deck_context?: DeckContext;
   constraints?: PageConstraints;
   previous_page?: unknown;
   next_page?: unknown;
@@ -73,6 +123,7 @@ export interface PageBrief {
 export interface CreateBuildRequest {
   build_id: string;
   page_brief: PageBrief;
+  session?: BuildSessionMeta;
   feedback?: string | null;
   deadline_seconds?: number;
 }
@@ -100,6 +151,8 @@ export interface Manifest {
   layout: string;
   interactions: ManifestInteraction[];
   source_refs: Array<Record<string, unknown>>;
+  design_system?: string;
+  teaching?: Record<string, unknown>;
   assistant?: {
     summary?: string;
     key_facts?: string[];
@@ -141,6 +194,10 @@ export interface Viewport {
 export interface BuildUsage {
   input_tokens: number;
   output_tokens: number;
+  cache_read_tokens: number;
+  cache_write_tokens: number;
+  /** 按 PAGE_BUILDER_COST_* 单价估算，币种与模型网关计费币种一致。 */
+  cost: number;
   duration_ms: number;
 }
 
@@ -159,6 +216,8 @@ export interface BuildSnapshot {
   started_at: string | null;
   finished_at: string | null;
   page_id: string;
+  session_key?: string;
+  lane?: number;
 }
 
 /** 单个文件的收集结果，用于事件与报告（不包含文件正文）。 */
@@ -180,8 +239,13 @@ export interface BundleIssue {
  * 因此扩展不需要导入 dist，也不会读取宿主配置。
  */
 export interface GuardContext {
+  /** 当前活动页面的产物目录；write/edit 只允许这里的产物文件。 */
   buildDir: string;
+  /** 会话可读根目录（lane 模式为 deck 根）；缺省等于 buildDir。 */
+  readRoot?: string;
   harnessDir: string;
+  /** content 2.0 模式：只允许写 content.json。 */
+  contentMode?: boolean;
   checkPage: (args: {
     note?: string;
     page_id?: string;

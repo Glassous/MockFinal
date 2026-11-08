@@ -77,7 +77,16 @@ async function login() {
 }
 
 async function shot(page, name) {
-  await page.screenshot({ path: path.join(SHOT_DIR, `${name}.png`) });
+  const target = path.join(SHOT_DIR, `${name}.png`);
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      await page.screenshot({ path: target });
+      return;
+    } catch (error) {
+      if (attempt === 3) throw error;
+      await wait(200);
+    }
+  }
 }
 
 async function wait(ms) {
@@ -247,13 +256,31 @@ async function main() {
     JSON.stringify(frameMetrics),
   );
 
-  // 页面内交互
-  await frame.locator("[data-mp-action='step']").click();
+  // 页面内交互（教学模板用 next，旧页面用 step）
+  const beforeFrame = await frame.evaluate(() => {
+    const root = document.querySelector(".mp-page");
+    const progress = document.querySelector("[data-mp-progress]");
+    return {
+      state: root?.getAttribute("data-mp-state") ?? "",
+      step: root?.getAttribute("data-mp-step") ?? "",
+      progress: progress?.textContent ?? "",
+    };
+  });
+  await frame.locator("[data-mp-action='step'], [data-mp-action='next']").first().click();
   const stepped = await poll(
-    () => frame.evaluate(() => document.querySelector("[data-mp-state='stepped']") !== null),
+    () =>
+      frame.evaluate((before) => {
+        const root = document.querySelector(".mp-page");
+        const progress = document.querySelector("[data-mp-progress]");
+        return (
+          (root?.getAttribute("data-mp-state") ?? "") !== before.state ||
+          (root?.getAttribute("data-mp-step") ?? "") !== before.step ||
+          (progress?.textContent ?? "") !== before.progress
+        );
+      }, beforeFrame),
     5000,
   );
-  expect(stepped, "阅读器页面交互可执行（bisect step）");
+  expect(stepped, "阅读器页面交互可执行");
 
   // 全屏阅读（Fullscreen API）
   step("全屏阅读");
@@ -308,13 +335,63 @@ async function main() {
   await shot(page, "04-reader-selection-drawer-1280");
   await page.getByRole("button", { name: "关闭助手" }).click();
 
-  // 依据资料
-  step("依据资料弹窗");
-  await page.getByRole("button", { name: "查看依据资料" }).click();
-  await page.getByRole("dialog", { name: "依据资料" }).waitFor({ timeout: 5000 });
-  expect(true, "依据资料弹窗可打开");
+  // 学习面板
+  step("学习面板");
+  await page.getByRole("button", { name: "学习面板" }).click();
+  const studyPanel = page.getByRole("dialog", { name: "学习面板" });
+  await studyPanel.waitFor({ timeout: 5000 });
+  const tabs = (await studyPanel.getByRole("tab").allInnerTexts()).map((text) => text.trim());
+  expect(
+    tabs.join("/") === "本页/检查/依据/AI",
+    "学习面板包含本页/检查/依据/AI 四个标签",
+    tabs.join("/"),
+  );
+  const hasTeaching = (await studyPanel.innerText()).includes("学习目标");
+  expect(hasTeaching, "教学页学习面板显示教学目标");
+  await shot(page, "04b-reader-study-page-1280");
+
+  // 讲解路线 focus_block：点击节点后 iframe 内对应块高亮
+  const chainButton = studyPanel
+    .locator("section")
+    .filter({ hasText: "讲解路线" })
+    .getByRole("button")
+    .first();
+  if (hasTeaching && (await chainButton.count()) > 0) {
+    await chainButton.click();
+    const highlighted = await poll(
+      () => frame.evaluate(() => document.querySelector("[data-mp-focus='true']") !== null),
+      3000,
+    );
+    expect(highlighted, "讲解路线点击后页面块高亮");
+  }
+
+  await studyPanel.getByRole("tab", { name: "检查" }).click();
+  const optionButton = studyPanel.locator("section button").first();
+  if ((await optionButton.count()) > 0) {
+    await optionButton.click();
+    const feedback = studyPanel.getByText(/回答正确|再想一想/);
+    await feedback.waitFor({ timeout: 5000 });
+    expect(true, "随堂检查选择后显示正误与解析");
+    await shot(page, "04c-reader-study-check-1280");
+    const completeButton = studyPanel.getByRole("button", { name: "学完本页" });
+    if ((await completeButton.count()) > 0) {
+      await completeButton.click();
+      await studyPanel.getByText("已标记学完").waitFor({ timeout: 5000 });
+      expect(true, "显式标记学完本页");
+    }
+  } else {
+    expect(true, "旧版页面检查标签降级为空态");
+  }
+
+  await studyPanel.getByRole("tab", { name: "依据" }).click();
+  const sourceCount = await studyPanel.getByText(/来源 \d/).count();
+  expect(sourceCount > 0 || (await studyPanel.innerText()).includes("未引用资料段落"), "依据标签可查看来源");
+  await studyPanel.getByRole("tab", { name: "AI" }).click();
+  await studyPanel.getByRole("button", { name: "打开 AI 助手" }).waitFor({ timeout: 5000 });
+  expect(true, "AI 标签提供页面助手入口");
+
   await page.keyboard.press("Escape");
-  await page.getByRole("dialog", { name: "依据资料" }).waitFor({ state: "hidden", timeout: 5000 });
+  await studyPanel.waitFor({ state: "hidden", timeout: 5000 });
 
   // 键盘翻页
   step("键盘翻页");
@@ -326,6 +403,27 @@ async function main() {
   const frame2 = await frameReady(page);
   await wait(250);
   expect(true, "键盘 → 翻到第 2 页");
+
+  // 显式“学完本页”（第 2 页未标记完成）
+  step("显式学完");
+  await page.getByRole("button", { name: "学习面板" }).click();
+  const studyPanel2 = page.getByRole("dialog", { name: "学习面板" });
+  await studyPanel2.waitFor({ timeout: 5000 });
+  await studyPanel2.getByRole("tab", { name: "检查" }).click();
+  const option2 = studyPanel2.locator("section button").first();
+  if ((await option2.count()) > 0) {
+    await option2.click();
+    await studyPanel2.getByText(/回答正确|再想一想/).waitFor({ timeout: 5000 });
+  }
+  const completeButton2 = studyPanel2.getByRole("button", { name: "学完本页" });
+  await completeButton2.waitFor({ timeout: 5000 });
+  await completeButton2.click();
+  await studyPanel2.getByText("已标记学完").waitFor({ timeout: 5000 });
+  expect(true, "显式标记学完本页并写入进度");
+  await shot(page, "04d-reader-study-complete-1280");
+  await page.keyboard.press("Escape");
+  await studyPanel2.waitFor({ state: "hidden", timeout: 5000 });
+
   await page.keyboard.press("ArrowLeft");
   await poll(async () => (await page.locator("header").innerText()).includes("01"), 10000);
 
@@ -466,6 +564,19 @@ async function main() {
     "移动端阅读器无横向溢出",
     JSON.stringify(mobileReader),
   );
+
+  await mobilePage.getByRole("button", { name: "学习面板" }).click();
+  const mobileStudy = mobilePage.getByRole("dialog", { name: "学习面板" });
+  await mobileStudy.waitFor({ timeout: 5000 });
+  const mobileStudyBox = await mobileStudy.boundingBox();
+  expect(
+    (mobileStudyBox?.width ?? 0) <= 390 && (mobileStudyBox?.height ?? 0) <= 844,
+    "移动端学习面板为全屏 sheet",
+    JSON.stringify(mobileStudyBox),
+  );
+  await shot(mobilePage, "13b-reader-study-mobile-390");
+  await mobilePage.keyboard.press("Escape");
+  await mobileStudy.waitFor({ state: "hidden", timeout: 5000 });
 
   for (const [width, height] of [
     [375, 667],

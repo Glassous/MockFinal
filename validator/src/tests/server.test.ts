@@ -1,6 +1,6 @@
 /**
  * 内部 HTTP 接口测试：真实启动 dist/server.js，验证鉴权、错误体与报告结构。
- * 端口固定 9200；若本机已有服务占用该端口，测试会失败并提示。
+ * 默认端口 9300（避开开发用的 9200）；可用 VALIDATOR_TEST_PORT 覆盖。
  */
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,7 +8,8 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const TOKEN = 'test-validator-token-0123456789';
-const BASE = 'http://127.0.0.1:9200';
+const PORT = Number(process.env.VALIDATOR_TEST_PORT ?? 9300);
+const BASE = `http://127.0.0.1:${PORT}`;
 let child: ChildProcess | null = null;
 
 async function waitForServer(): Promise<void> {
@@ -27,7 +28,7 @@ async function waitForServer(): Promise<void> {
 before(async () => {
   const entry = fileURLToPath(new URL('../server.js', import.meta.url));
   child = spawn(process.execPath, [entry], {
-    env: { ...process.env, VALIDATOR_TOKEN: TOKEN },
+    env: { ...process.env, VALIDATOR_TOKEN: TOKEN, VALIDATOR_PORT: String(PORT) },
     stdio: 'ignore',
     windowsHide: true
   });
@@ -51,7 +52,7 @@ test('/healthz 返回版本信息', async () => {
   assert.equal(response.status, 200);
   const body = (await response.json()) as { status: string; version: string; runtime_version: string };
   assert.equal(body.status, 'ok');
-  assert.equal(body.runtime_version, '1.0.0');
+  assert.equal(body.runtime_version, '1.1.0');
   assert.ok(body.version.length > 0);
 });
 

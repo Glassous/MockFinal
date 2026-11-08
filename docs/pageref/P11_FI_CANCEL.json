@@ -1,0 +1,177 @@
+{
+  "generated_at": "2026-11-08T05:28:22.160Z",
+  "base": "http://127.0.0.1:9100",
+  "role": "mechanism",
+  "session_key": "deck_fi_cancel2_1794115701",
+  "build_id": "probe_mechanism_1794115702115",
+  "first": true,
+  "cancel_after_ms": 8000,
+  "create": {
+    "status": 202,
+    "body": {
+      "build_id": "probe_mechanism_1794115702115",
+      "status": "running"
+    }
+  },
+  "final": {
+    "build_id": "probe_mechanism_1794115702115",
+    "status": "canceled",
+    "stage": "构建已取消",
+    "attempts": 1,
+    "error": "构建已取消，未交付任何产物。",
+    "events_cursor": 23,
+    "usage": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost": 0,
+      "duration_ms": 0
+    },
+    "validation": null,
+    "harness_version": "0.1.0",
+    "runtime_version": "1.1.0",
+    "created_at": "2026-11-08T05:28:22.154Z",
+    "started_at": "2026-11-08T05:28:22.154Z",
+    "finished_at": "2026-11-08T05:28:30.165Z",
+    "page_id": "page_sample_mechanism_tcp",
+    "session_key": "deck_fi_cancel2_1794115701",
+    "lane": 0
+  },
+  "events": [
+    {
+      "seq": 12,
+      "type": "stage",
+      "payload": {
+        "text": "模型开始新一轮输出"
+      },
+      "at": "2026-11-08T05:28:24.952Z"
+    },
+    {
+      "seq": 13,
+      "type": "tool",
+      "payload": {
+        "tool": "read",
+        "text": "读取文件：manifest.json"
+      },
+      "at": "2026-11-08T05:28:25.953Z"
+    },
+    {
+      "seq": 14,
+      "type": "tool",
+      "payload": {
+        "tool": "read",
+        "text": "读取文件：page.html"
+      },
+      "at": "2026-11-08T05:28:25.954Z"
+    },
+    {
+      "seq": 15,
+      "type": "stage",
+      "payload": {
+        "text": "模型开始新一轮输出"
+      },
+      "at": "2026-11-08T05:28:25.957Z"
+    },
+    {
+      "seq": 16,
+      "type": "tool",
+      "payload": {
+        "tool": "read",
+        "text": "读取文件：page.css"
+      },
+      "at": "2026-11-08T05:28:27.149Z"
+    },
+    {
+      "seq": 17,
+      "type": "tool",
+      "payload": {
+        "tool": "read",
+        "text": "读取文件：page.js"
+      },
+      "at": "2026-11-08T05:28:27.149Z"
+    },
+    {
+      "seq": 18,
+      "type": "stage",
+      "payload": {
+        "text": "模型开始新一轮输出"
+      },
+      "at": "2026-11-08T05:28:27.154Z"
+    },
+    {
+      "seq": 19,
+      "type": "tool",
+      "payload": {
+        "tool": "read",
+        "text": "读取文件：context.json"
+      },
+      "at": "2026-11-08T05:28:29.995Z"
+    },
+    {
+      "seq": 20,
+      "type": "tool",
+      "payload": {
+        "tool": "read",
+        "text": "读取文件：index.md"
+      },
+      "at": "2026-11-08T05:28:29.995Z"
+    },
+    {
+      "seq": 21,
+      "type": "stage",
+      "payload": {
+        "text": "模型开始新一轮输出"
+      },
+      "at": "2026-11-08T05:28:29.999Z"
+    },
+    {
+      "seq": 22,
+      "type": "error",
+      "payload": {
+        "text": "构建已取消，未交付任何产物。",
+        "code": "BUILD_CANCELED"
+      },
+      "at": "2026-11-08T05:28:30.165Z"
+    },
+    {
+      "seq": 23,
+      "type": "page_done",
+      "payload": {
+        "text": "Pi 会话被中断",
+        "aborted": true
+      },
+      "at": "2026-11-08T05:28:30.168Z"
+    }
+  ],
+  "cancel_result": {
+    "status": 202,
+    "body": {
+      "build_id": "probe_mechanism_1794115702115",
+      "status": "canceled",
+      "stage": "构建已取消",
+      "attempts": 1,
+      "error": "构建已取消，未交付任何产物。",
+      "events_cursor": 22,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 0
+      },
+      "validation": null,
+      "harness_version": "0.1.0",
+      "runtime_version": "1.1.0",
+      "created_at": "2026-11-08T05:28:22.154Z",
+      "started_at": "2026-11-08T05:28:22.154Z",
+      "finished_at": "2026-11-08T05:28:30.165Z",
+      "page_id": "page_sample_mechanism_tcp",
+      "session_key": "deck_fi_cancel2_1794115701",
+      "lane": 0
+    }
+  },
+  "cancelled_at_ms": 1794115710162,
+  "duration_ms": 8111
+}

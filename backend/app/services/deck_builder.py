@@ -24,7 +24,8 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import cast, delete, func, literal, select, update
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
@@ -52,6 +53,7 @@ from .deck_planner import (
     build_outline,
     build_page_brief,
     default_llm_call,
+    parse_outline,
     plan_pages,
     resolve_source_refs,
 )
@@ -363,6 +365,16 @@ def _friendly_error(exc: Exception) -> str:
     return f"构建失败（{name}）：{detail}" if detail else f"构建失败（{name}）"
 
 
+def _parse_outline_override(style: Mapping | None) -> dict | None:
+    """style.outline_override → 校验后的大纲；非法时抛 DeckPlanningError。"""
+    if not isinstance(style, Mapping):
+        return None
+    raw = style.get("outline_override")
+    if not isinstance(raw, dict):
+        return None
+    return parse_outline(raw).model_dump()
+
+
 def _attach_source_refs(outline: dict, sections: Mapping[int, Mapping]) -> int:
     """为每个知识点解析 source_refs，返回 unverified 的知识点数量。"""
     unverified_count = 0
@@ -409,6 +421,8 @@ class _PageOutcome:
     message: str = ""
     feedback: str | None = None
     validation: dict | None = None
+    build_id: str | None = None
+    usage: dict | None = None
 
 
 # ===== 后台任务入口 =====
@@ -622,21 +636,33 @@ async def _plan_and_create_pages(
     section_count = len(flat_sections)
 
     async with SessionLocal() as db:
+        deck_for_style = await db.get(ReviewDeck, ctx.deck_id)
+        deck_style = dict(deck_for_style.style or {}) if deck_for_style is not None else {}
+    outline_override = _parse_outline_override(deck_style)
+
+    async with SessionLocal() as db:
         job = await db.get(DeckBuildJob, ctx.job_id)
         if job is None:
             return False
         if job.cancel_requested:
             await _cancel_job(ctx.job_id)
             return False
-        job.stage = f"已读取 {len(grouped)} 份资料 / {section_count} 个分节，正在调用 LLM 规划大纲…"
+        job.stage = (
+            "已读取预设大纲，正在按资料分节校验…"
+            if outline_override is not None
+            else f"已读取 {len(grouped)} 份资料 / {section_count} 个分节，正在调用 LLM 规划大纲…"
+        )
         job.progress = 20
         await _append_event(db, ctx.job_id, "stage", {"text": job.stage})
         await db.commit()
 
-    # LLM 规划期间不持有 DB session
-    outline = await build_outline(
-        default_llm_call, workspace_name, workspace_description, material_index
-    )
+    # LLM 规划期间不持有 DB session；预设大纲仍走同一套 Pydantic/业务校验
+    if outline_override is not None:
+        outline = outline_override
+    else:
+        outline = await build_outline(
+            default_llm_call, workspace_name, workspace_description, material_index
+        )
     unverified_count = _attach_source_refs(outline, flat_sections)
     plans = plan_pages(outline["chapters"], deck_density)
 
@@ -839,6 +865,35 @@ async def _load_pages(ctx: _BuildContext, mode: str) -> list[_PageRef] | None:
         ]
 
 
+def assign_lanes(
+    pages: Sequence[_PageRef],
+    lane_count: int,
+    chapter_of: Mapping[int, object],
+) -> list[list[_PageRef]]:
+    """按章节把页面分到 lane：章节不拆分，lane 内按 ordinal 排序，页数尽量均衡。"""
+    if not pages:
+        return []
+    lanes: list[list[_PageRef]] = [[] for _ in range(max(1, lane_count))]
+    groups: list[list[_PageRef]] = []
+    for page in sorted(pages, key=lambda item: item.ordinal):
+        chapter = chapter_of.get(page.id)
+        if chapter is None:
+            groups.append([page])
+            continue
+        for group in groups:
+            if chapter_of.get(group[0].id) == chapter:
+                group.append(page)
+                break
+        else:
+            groups.append([page])
+    for group in groups:
+        target = min(range(len(lanes)), key=lambda index: (len(lanes[index]), index))
+        lanes[target].extend(group)
+    for lane in lanes:
+        lane.sort(key=lambda item: item.ordinal)
+    return [lane for lane in lanes if lane]
+
+
 async def _build_pages(
     ctx: _BuildContext,
     pages: list[_PageRef],
@@ -846,42 +901,99 @@ async def _build_pages(
     *,
     rebuild: bool,
 ) -> list[tuple[str, str]]:
-    """按 page_builder_concurrency 并发构建页面；单页失败不影响其他页。"""
-    semaphore = asyncio.Semaphore(max(1, int(settings.page_builder_concurrency)))
+    """构建页面；P11 开启时按章节分配 Deck lane 会话，否则保持逐页并发。"""
     failures: list[tuple[str, str]] = []
+    semaphore = asyncio.Semaphore(max(1, int(settings.page_builder_concurrency)))
 
-    async def worker(page: _PageRef) -> None:
-        async with semaphore:
-            if await _is_cancel_requested(ctx.job_id):
-                await _cancel_page(ctx, page)
-                return
-            brief = brief_map.get(page.id)
-            if brief is None:
-                message = "页面缺少知识点关联，无法组装构建 brief，请重新规划该知识点"
-                await _commit_page_failure(ctx, page, message)
-                failures.append((page.title, message))
-                return
-            try:
-                outcome = await _build_one_page(ctx, page, brief, rebuild=rebuild)
-            except asyncio.CancelledError:
-                raise
-            except Exception:  # noqa: BLE001 —— 单页异常不得阻断其他页
-                logger.exception("页面 %s 构建异常", page.id)
-                message = "页面构建发生内部错误，请稍后重试"
-                await _commit_page_failure(ctx, page, message)
-                failures.append((page.title, message))
-                return
-            if outcome.status == "failed":
-                failures.append((page.title, outcome.message))
+    async def process_page(page: _PageRef, session: dict | None = None) -> _PageOutcome | None:
+        if await _is_cancel_requested(ctx.job_id):
+            await _cancel_page(ctx, page)
+            return _PageOutcome("canceled", "任务已取消")
+        brief = brief_map.get(page.id)
+        if brief is None:
+            message = "页面缺少知识点关联，无法组装构建 brief，请重新规划该知识点"
+            await _commit_page_failure(ctx, page, message)
+            failures.append((page.title, message))
+            return None
+        try:
+            outcome = await _build_one_page(ctx, page, brief, rebuild=rebuild, session=session)
+        except asyncio.CancelledError:
+            raise
+        except Exception:  # noqa: BLE001 —— 单页异常不得阻断其他页
+            logger.exception("页面 %s 构建异常", page.id)
+            message = "页面构建发生内部错误，请稍后重试"
+            await _commit_page_failure(ctx, page, message)
+            failures.append((page.title, message))
+            return None
+        if outcome.status == "failed":
+            failures.append((page.title, outcome.message))
+        return outcome
 
     if not pages:
         return failures
+
+    if settings.deck_session_reuse_enabled:
+        lane_count = max(
+            1,
+            min(
+                int(settings.deck_lane_count),
+                int(settings.page_builder_concurrency),
+                len(pages),
+            ),
+        )
+        chapter_of = {
+            page.id: (brief_map.get(page.id) or {}).get("deck_context", {}).get("chapter_index")
+            for page in pages
+        }
+        lanes = assign_lanes(pages, lane_count, chapter_of)
+
+        async def lane_worker(lane: int, lane_pages: list[_PageRef]) -> None:
+            session_key = f"deck_{ctx.deck_id}_job_{ctx.job_id}_lane_{lane}"[:120]
+            total = len(lane_pages)
+            try:
+                for index, page in enumerate(lane_pages):
+                    if await _is_cancel_requested(ctx.job_id):
+                        await _cancel_page(ctx, page)
+                        break
+                    session = {
+                        "key": session_key,
+                        "lane": lane,
+                        "page_index": index,
+                        "page_total": total,
+                        "first": index == 0,
+                    }
+                    outcome = await process_page(page, session)
+                    if outcome is not None and outcome.status == "canceled":
+                        break
+            finally:
+                await _cleanup_builder_session(session_key)
+
+        await asyncio.gather(*(lane_worker(index, lane) for index, lane in enumerate(lanes)))
+        return failures
+
+    async def worker(page: _PageRef) -> None:
+        async with semaphore:
+            await process_page(page)
+
     await asyncio.gather(*(worker(page) for page in pages))
     return failures
 
 
+async def _cleanup_builder_session(session_key: str) -> None:
+    """尽力清理 Builder Deck 会话；失败只记录，不影响已 ready 页面。"""
+    try:
+        await make_builder_client().delete_session(session_key)
+    except Exception:  # noqa: BLE001 —— 清理失败不改变 job 结果
+        logger.warning("清理 Builder 会话失败（已忽略）：%s", session_key, exc_info=True)
+
+
 async def _build_one_page(
-    ctx: _BuildContext, page: _PageRef, brief: dict, *, rebuild: bool
+    ctx: _BuildContext,
+    page: _PageRef,
+    brief: dict,
+    *,
+    rebuild: bool,
+    session: dict | None = None,
 ) -> _PageOutcome:
     """单页构建（含最终校验失败重试）；返回终态结果。"""
     max_attempts = max(1, int(settings.deck_page_max_attempts))
@@ -914,7 +1026,7 @@ async def _build_one_page(
 
         try:
             outcome = await asyncio.wait_for(
-                _attempt_page(ctx, page, brief, feedback, attempt_no),
+                _attempt_page(ctx, page, brief, feedback, attempt_no, session=session),
                 timeout=float(
                     settings.page_builder_timeout_seconds
                     + settings.page_validator_timeout_seconds
@@ -938,6 +1050,9 @@ async def _build_one_page(
         except Exception:  # noqa: BLE001 —— 单页兜底，绝不把异常外溢到 gather
             logger.exception("页面 %s 构建过程异常", page.id)
             outcome = _PageOutcome("failed", "页面构建发生内部错误，请稍后重试")
+
+        if outcome.build_id and outcome.usage:
+            await _record_page_usage(ctx.job_id, page.id, outcome.build_id, outcome.usage)
 
         if outcome.status in ("ready", "aborted"):
             if outcome.status == "ready":
@@ -965,6 +1080,62 @@ async def _build_one_page(
         return outcome
 
 
+# ===== 用量观测（P8） =====
+def _extract_builder_usage(snapshot: dict, page_id: int, attempt_no: int) -> dict | None:
+    """从 Builder 快照提取可落库的用量子集；缺失或非法时返回 None。"""
+    raw = snapshot.get("usage")
+    if not isinstance(raw, dict):
+        return None
+
+    def _int(key: str) -> int:
+        try:
+            return max(0, int(raw.get(key) or 0))
+        except (TypeError, ValueError):
+            return 0
+
+    try:
+        cost = max(0.0, float(raw.get("cost") or 0))
+    except (TypeError, ValueError):
+        cost = 0.0
+    return {
+        "page_id": page_id,
+        "attempt": attempt_no,
+        "input_tokens": _int("input_tokens"),
+        "output_tokens": _int("output_tokens"),
+        "cache_read_tokens": _int("cache_read_tokens"),
+        "cache_write_tokens": _int("cache_write_tokens"),
+        "cost": cost,
+        "duration_ms": _int("duration_ms"),
+    }
+
+
+async def _record_page_usage(
+    job_id: int, page_id: int, build_id: str, usage: dict
+) -> None:
+    """把单次 Builder 尝试的用量并入 job.usage（按 build_id 合并，观测失败不影响构建）。"""
+    try:
+        payload = json.dumps({str(build_id): usage}, ensure_ascii=False)
+        async with SessionLocal() as db:
+            await db.execute(
+                update(DeckBuildJob)
+                .where(DeckBuildJob.id == job_id)
+                .values(
+                    usage=func.coalesce(DeckBuildJob.usage, cast("{}", JSONB)).op("||")(
+                        cast(literal(payload), JSONB)
+                    )
+                )
+            )
+            await db.commit()
+    except Exception:  # noqa: BLE001 —— 用量观测是 best-effort，不得影响页面交付
+        logger.warning(
+            "记录页面构建用量失败（已忽略）：job_id=%s page_id=%s build_id=%s",
+            job_id,
+            page_id,
+            build_id,
+            exc_info=True,
+        )
+
+
 # ===== 单页构建流程 =====
 async def _attempt_page(
     ctx: _BuildContext,
@@ -972,6 +1143,8 @@ async def _attempt_page(
     brief: dict,
     feedback: str | None,
     attempt_no: int,
+    *,
+    session: dict | None = None,
 ) -> _PageOutcome:
     """一次尝试：创建 Builder 构建 → 轮询事件 → 取 bundle → Validator 门禁 → 保存/落库。"""
     builder = make_builder_client()
@@ -983,9 +1156,11 @@ async def _attempt_page(
             brief,
             feedback=feedback,
             timeout=settings.page_builder_timeout_seconds,
+            session=session,
         )
 
         after_seq = 0
+        usage: dict | None = None
         mirror_state = {
             "count": 0,
             "text": 0,
@@ -994,8 +1169,9 @@ async def _attempt_page(
         while True:
             if await _is_cancel_requested(ctx.job_id):
                 await _cancel_builder_build(builder, build_id)
-                return _PageOutcome("canceled", "任务已取消")
+                return _PageOutcome("canceled", "任务已取消", build_id=build_id, usage=usage)
             snapshot = await builder.get_build(build_id)
+            usage = _extract_builder_usage(snapshot, page.id, attempt_no) or usage
             events_payload = await builder.get_events(build_id, after_seq)
             after_seq = int(events_payload.get("next_seq") or after_seq)
             await _mirror_builder_events(ctx, page, events_payload.get("events") or [], mirror_state)
@@ -1007,16 +1183,24 @@ async def _attempt_page(
                 message = str(snapshot.get("error") or "").strip()
                 if status == "canceled":
                     message = "页面构建被上游取消，请稍后重试"
-                return _PageOutcome("failed", message or "页面构建失败，请稍后重试")
+                return _PageOutcome(
+                    "failed",
+                    message or "页面构建失败，请稍后重试",
+                    build_id=build_id,
+                    usage=usage,
+                )
             await asyncio.sleep(EVENT_POLL_INTERVAL_SECONDS)
 
         bundle_payload = await builder.get_bundle(build_id)
         bundle = bundle_payload.get("bundle")
         if not isinstance(bundle, dict):
-            return _PageOutcome("failed", "页面构建服务未返回有效 bundle，请稍后重试")
+            return _PageOutcome(
+                "failed", "页面构建服务未返回有效 bundle，请稍后重试", build_id=build_id, usage=usage
+            )
+        await _normalize_teaching(bundle, page)
 
         if not await _set_page_validating(ctx, page):
-            return _PageOutcome("aborted")
+            return _PageOutcome("aborted", build_id=build_id, usage=usage)
 
         validator = make_validator_client()
         report = await validator.validate(bundle, viewports=None, screenshot=True)
@@ -1027,11 +1211,13 @@ async def _attempt_page(
                 message=_report_issue_message(report),
                 feedback=_feedback_from_report(report),
                 validation=summary,
+                build_id=build_id,
+                usage=usage,
             )
 
         version = await _next_page_version(page.id)
         if version is None:
-            return _PageOutcome("aborted")
+            return _PageOutcome("aborted", build_id=build_id, usage=usage)
         bundle_key = await save_bundle(
             user_id=ctx.user_id,
             workspace_id=ctx.workspace_id,
@@ -1062,7 +1248,7 @@ async def _attempt_page(
             # 页面/job 已被删除：清理刚写入的对象，避免孤儿数据
             await delete_page_objects(bundle_key, thumbnail_key)
             return _PageOutcome("aborted")
-        return _PageOutcome("ready", validation=summary)
+        return _PageOutcome("ready", validation=summary, build_id=build_id, usage=usage)
     finally:
         # job 总超时/任务取消时保留登记，由 _fail_job_timeout 统一取消 Builder
         if not _current_task_cancelling():
@@ -1163,6 +1349,86 @@ async def _begin_page_attempt(ctx: _BuildContext, page: _PageRef) -> int | None:
         )
         await db.commit()
         return attempt_no
+
+
+def _unique_texts(values: Iterable[Any], limit: int) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        text = str(value or "").strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        result.append(text)
+        if len(result) >= limit:
+            break
+    return result
+
+
+async def _normalize_teaching(bundle: dict, page: _PageRef) -> None:
+    """用知识点权威数据补全 manifest.teaching 的空缺（不改页面实际讲解）。
+
+    只填补 objectives / summary.key_points / summary.misconceptions / role 等结构字段；
+    chain / check 属于页面内容，缺失时交给 Builder/Validator 拦截，后端不伪造。
+    """
+    if not settings.deck_teaching_enabled:
+        return
+    manifest = bundle.get("manifest")
+    if not isinstance(manifest, dict):
+        return
+    teaching = manifest.get("teaching")
+    if not isinstance(teaching, dict):
+        return
+    try:
+        async with SessionLocal() as db:
+            row = await db.get(DeckPage, page.id)
+            if row is None:
+                return
+            kp_ids = [int(kp_id) for kp_id in (row.knowledge_point_ids or [])]
+            kps = (
+                (
+                    await db.execute(
+                        select(KnowledgePoint)
+                        .where(KnowledgePoint.id.in_(kp_ids))
+                        .order_by(KnowledgePoint.id)
+                    )
+                )
+                .scalars()
+                .all()
+                if kp_ids
+                else []
+            )
+    except Exception:  # noqa: BLE001 —— 教学补全失败不阻断页面交付
+        logger.warning("读取知识点用于教学补全失败（已忽略）：page_id=%s", page.id, exc_info=True)
+        return
+
+    role = str(teaching.get("role") or "").strip()
+    if role not in ("concept", "mechanism", "worked_example", "practice", "compare", "summary"):
+        teaching["role"] = {
+            "interactive": "mechanism",
+            "summary": "summary",
+        }.get(page.kind, "concept")
+    teaching["version"] = str(teaching.get("version") or "1.0")
+
+    objectives = teaching.get("objectives")
+    objectives = objectives if isinstance(objectives, list) else []
+    kp_objectives = [item for kp in kps for item in (kp.objectives or [])]
+    teaching["objectives"] = _unique_texts([*objectives, *kp_objectives], 3)
+
+    summary = teaching.get("summary")
+    if not isinstance(summary, dict):
+        summary = {}
+        teaching["summary"] = summary
+    key_points = summary.get("key_points")
+    key_points = key_points if isinstance(key_points, list) else []
+    summary["key_points"] = _unique_texts(
+        [*key_points, *(item for kp in kps for item in (kp.key_points or []))], 8
+    )
+    misconceptions = summary.get("misconceptions")
+    misconceptions = misconceptions if isinstance(misconceptions, list) else []
+    summary["misconceptions"] = _unique_texts(
+        [*misconceptions, *(item for kp in kps for item in (kp.misconceptions or []))], 6
+    )
 
 
 async def _set_page_validating(ctx: _BuildContext, page: _PageRef) -> bool:
@@ -1322,9 +1588,9 @@ async def _record_retry_event(
 
 
 def _validation_summary(report: dict) -> dict:
-    """页面 validation 摘要：状态、问题数、至多 20 条问题、耗时与检查视口。"""
+    """页面 validation 摘要：状态、问题数、至多 20 条问题、耗时、视口与教学评分。"""
     issues = report.get("issues") or []
-    return {
+    summary = {
         "status": report.get("status"),
         "issue_count": len(issues),
         "issues": issues[:20],
@@ -1332,6 +1598,13 @@ def _validation_summary(report: dict) -> dict:
         "viewports": [f"{width}x{height}" for width, height in DEFAULT_VIEWPORTS],
         "checked_at": utcnow().isoformat(),
     }
+    teaching = report.get("teaching")
+    if isinstance(teaching, dict) and isinstance(teaching.get("score"), int):
+        summary["teaching"] = {
+            "score": int(teaching["score"]),
+            "warnings": list(teaching.get("warnings") or [])[:10],
+        }
+    return summary
 
 
 def _report_issue_message(report: dict) -> str:
@@ -1463,6 +1736,22 @@ async def build_page_briefs(deck_id: int, *, page_ids: Sequence[int] | None = No
         workspace_id = deck.workspace_id
 
     kp_by_id = {kp.id: kp for kp in kps}
+    chapter_rows = sorted(
+        (kp for kp in kps if kp.parent_id is None),
+        key=lambda kp: (kp.ordinal, kp.id),
+    )
+    chapter_index_by_id = {chapter.id: index for index, chapter in enumerate(chapter_rows)}
+    chapter_title_by_id = {chapter.id: chapter.title for chapter in chapter_rows}
+    plan_roles: dict[int, str] = {}
+    for plan in (deck.outline or {}).get("page_plan") or []:
+        if not isinstance(plan, dict):
+            continue
+        role = plan.get("role")
+        if isinstance(role, str) and role:
+            try:
+                plan_roles[int(plan.get("ordinal"))] = role
+            except (TypeError, ValueError):
+                continue
     page_dicts: list[dict] = []
     page_objects: list[DeckPage] = []
     for page in pages:
@@ -1491,7 +1780,23 @@ async def build_page_briefs(deck_id: int, *, page_ids: Sequence[int] | None = No
         if kp is None:
             logger.warning("页面 %s 找不到关联知识点，跳过 brief 组装", page.id)
             continue
-        brief = build_page_brief(deck, kp, page_dicts, flat_sections, current_page=page_dict)
+        merged_kps = [
+            kp_by_id[int(kp_id)]
+            for kp_id in (page.knowledge_point_ids or [])
+            if int(kp_id) in kp_by_id and int(kp_id) != kp.id
+        ]
+        brief = build_page_brief(
+            deck,
+            kp,
+            page_dicts,
+            flat_sections,
+            current_page=page_dict,
+            role=plan_roles.get(int(page.ordinal)),
+            merged_kps=merged_kps,
+            chapter_index=chapter_index_by_id.get(kp.parent_id),
+            chapter_total=len(chapter_rows),
+            chapter_title=chapter_title_by_id.get(kp.parent_id),
+        )
         brief["page_id"] = f"page_{page.id}"
         briefs.append(brief)
     return briefs

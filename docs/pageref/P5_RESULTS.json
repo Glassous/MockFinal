@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-07T10:13:36.999Z",
+  "generated_at": "2026-11-08T05:55:22.231Z",
   "base_url": "http://localhost:5173",
   "viewport_checks": [
     {
@@ -36,6 +36,11 @@
       "name": "移动端阅读器无横向溢出",
       "ok": true,
       "detail": "{\"scrollWidth\":390,\"clientWidth\":390,\"scrollHeight\":844,\"clientHeight\":844}"
+    },
+    {
+      "name": "移动端学习面板为全屏 sheet",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":194.25,\"width\":390,\"height\":673.75}"
     }
   ],
   "results": [
@@ -80,7 +85,7 @@
       "detail": "{\"scrollWidth\":1254,\"clientWidth\":1254,\"scrollHeight\":638,\"clientHeight\":638}"
     },
     {
-      "name": "阅读器页面交互可执行（bisect step）",
+      "name": "阅读器页面交互可执行",
       "ok": true,
       "detail": ""
     },
@@ -105,12 +110,42 @@
       "detail": ""
     },
     {
-      "name": "依据资料弹窗可打开",
+      "name": "学习面板包含本页/检查/依据/AI 四个标签",
+      "ok": true,
+      "detail": "本页/检查/依据/AI"
+    },
+    {
+      "name": "教学页学习面板显示教学目标",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "讲解路线点击后页面块高亮",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "随堂检查选择后显示正误与解析",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "依据标签可查看来源",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "AI 标签提供页面助手入口",
       "ok": true,
       "detail": ""
     },
     {
       "name": "键盘 → 翻到第 2 页",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "显式标记学完本页并写入进度",
       "ok": true,
       "detail": ""
     },
@@ -142,7 +177,7 @@
     {
       "name": "失效 ?job= 查询参数被清理",
       "ok": true,
-      "detail": "http://localhost:5173/workspace/8/decks/4/build"
+      "detail": "http://localhost:5173/workspace/16/decks/31/build"
     },
     {
       "name": "失败页面卡片提供重试入口",
@@ -185,6 +220,11 @@
       "detail": "{\"scrollWidth\":390,\"clientWidth\":390,\"scrollHeight\":844,\"clientHeight\":844}"
     },
     {
+      "name": "移动端学习面板为全屏 sheet",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":194.25,\"width\":390,\"height\":673.75}"
+    },
+    {
       "name": "375×667 总览无横向溢出",
       "ok": true,
       "detail": "{\"scrollWidth\":375,\"clientWidth\":375,\"scrollHeight\":667,\"clientHeight\":667}"
@@ -211,7 +251,7 @@
     }
   ],
   "console_errors": [],
-  "passed": 34,
+  "passed": 41,
   "failed": 0,
   "screenshots": "E:\\AIWorkspace\\Qoder\\MockFinal\\docs\\pageref\\p5-screenshots"
 }

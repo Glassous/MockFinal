@@ -1,0 +1,1828 @@
+<!doctype html>
+<html lang="zh-CN" data-mp-theme="dark" data-mp-scroll="flow">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; media-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<style>
+:root {
+  color-scheme: light;
+  --mp-surface: #f4f4f5;
+  --mp-panel: #ffffff;
+  --mp-raised: #fafafb;
+  --mp-border: #e4e4e7;
+  --mp-border-strong: #d4d4d8;
+  --mp-ink: #16161a;
+  --mp-muted: #6b6b73;
+  --mp-faint: #9a9aa2;
+  --mp-invert: #16161a;
+  --mp-invert-ink: #ffffff;
+  --mp-code-bg: #f4f4f5;
+  --mp-font-sans: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --mp-font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+html[data-mp-theme="dark"] {
+  color-scheme: dark;
+  --mp-surface: #09090b;
+  --mp-panel: #131316;
+  --mp-raised: #1c1c20;
+  --mp-border: #26262b;
+  --mp-border-strong: #3a3a41;
+  --mp-ink: #f5f5f6;
+  --mp-muted: #a0a0a8;
+  --mp-faint: #6e6e77;
+  --mp-invert: #f5f5f6;
+  --mp-invert-ink: #09090b;
+  --mp-code-bg: #0e0e11;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--mp-panel); color: var(--mp-ink); font-family: var(--mp-font-sans); }
+#mp-root { height: 100dvh; overflow: hidden; }
+/* flow 页：由 html 承担纵向滚动，body 保持 visible，页面内的 sticky 才有效 */
+html[data-mp-scroll="flow"] { height: auto; overflow-x: hidden; overflow-y: auto; }
+html[data-mp-scroll="flow"] body { height: auto; overflow: visible; }
+html[data-mp-scroll="flow"] #mp-root { height: auto; min-height: 100dvh; overflow: visible; }
+#mp-root :focus-visible { outline: 2px solid var(--mp-invert); outline-offset: 2px; }
+#mp-root [data-mp-focus="true"] { outline: 2px solid var(--mp-invert); outline-offset: 3px; border-radius: 6px; }
+/* 移动端阅读模式：允许页面纵向滚动，禁止横向溢出；桌面零滚动规则不变 */
+@media (max-width: 767px) {
+  html, body { height: auto !important; overflow-y: auto !important; overflow-x: hidden !important; }
+  #mp-root { height: auto !important; min-height: 100dvh; overflow: visible !important; }
+  #mp-root > *, #mp-root .mp-page {
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
+  }
+}
+/* 移动端同样由 html 滚动，避免 body 变成非滚动容器导致 sticky 失效 */
+html[data-mp-scroll="flow"] body { overflow: visible !important; }
+
+
+.pg-page {
+  --pg-body-size: 16px;
+  --pg-body-lh: 1.75;
+  --pg-content: 44rem;
+  --pg-rail-w: 18rem;
+  --pg-gap: clamp(16px, 2.2vh, 26px);
+  --pg-pad-y: clamp(22px, 3.2vh, 44px);
+  --pg-pad-x: clamp(22px, 3.4vw, 56px);
+  --pg-radius: 16px;
+  --pg-font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Songti SC", "STSong", "SimSun", Georgia, serif;
+  --pg-glass-bg: rgba(255, 255, 255, .58);
+  --pg-glass-bg-strong: rgba(255, 255, 255, .78);
+  --pg-glass-border: rgba(255, 255, 255, .65);
+  --pg-glass-shadow:
+    0 24px 60px -30px rgba(15, 15, 20, .45),
+    0 2px 8px rgba(15, 15, 20, .05),
+    inset 0 1px 0 rgba(255, 255, 255, .85);
+  --pg-glass-blur: blur(24px) saturate(120%);
+
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  padding: var(--pg-pad-y) var(--pg-pad-x);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--pg-rail-w);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head head"
+    "outline outline"
+    "main rail"
+    "foot foot";
+  gap: var(--pg-gap);
+  background: var(--mp-panel);
+  background:
+    radial-gradient(900px 620px at 5% -10%, rgba(20, 20, 26, .09), transparent 62%),
+    radial-gradient(680px 480px at 100% 4%, rgba(20, 20, 26, .07), transparent 60%),
+    radial-gradient(760px 540px at 86% 62%, rgba(20, 20, 26, .055), transparent 64%),
+    linear-gradient(180deg, #fbfbfc, #f0f0f3);
+  color: var(--mp-ink);
+  font-family: var(--mp-font-sans);
+  font-size: var(--pg-body-size);
+  line-height: var(--pg-body-lh);
+  font-feature-settings: "kern" 1, "liga" 1, "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+html[data-mp-theme="dark"] .pg-page {
+  --pg-glass-bg: rgba(30, 30, 35, .56);
+  --pg-glass-bg-strong: rgba(38, 38, 44, .76);
+  --pg-glass-border: rgba(255, 255, 255, .12);
+  --pg-glass-shadow:
+    0 24px 70px -30px rgba(0, 0, 0, .9),
+    0 2px 10px rgba(0, 0, 0, .3),
+    inset 0 1px 0 rgba(255, 255, 255, .08);
+  background:
+    radial-gradient(900px 620px at 5% -10%, rgba(255, 255, 255, .06), transparent 64%),
+    radial-gradient(700px 500px at 100% 4%, rgba(255, 255, 255, .05), transparent 62%),
+    radial-gradient(760px 540px at 86% 62%, rgba(255, 255, 255, .035), transparent 66%),
+    linear-gradient(180deg, #111114, #0b0b0d);
+}
+
+html[data-mp-scroll="fit"] .pg-page { height: 100dvh; overflow: hidden; }
+html[data-mp-scroll="flow"] .pg-page { height: auto; overflow: visible; }
+/* 移动端 shell 会给 #mp-root 直接子元素强制 overflow-x:hidden，会把 overflow-y 计算成 auto；flow 页需覆盖回 visible 以保住 sticky */
+html[data-mp-scroll="flow"] #mp-root > .pg-page { overflow: visible !important; }
+html[data-mp-scroll="flow"] { scrollbar-width: thin; scrollbar-color: var(--mp-border-strong) transparent; }
+
+.pg-page ::selection { background: var(--mp-invert); color: var(--mp-invert-ink); }
+.pg-page :focus-visible { outline: 2px solid var(--mp-invert); outline-offset: 2px; }
+.pg-page [data-mp-focus="true"] {
+  outline: 2px solid var(--mp-invert);
+  outline-offset: 6px;
+  border-radius: 8px;
+}
+
+/* ---------- 页头 ---------- */
+.pg-head { grid-area: head; display: grid; gap: 9px; max-width: 64rem; }
+.pg-eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  color: var(--mp-faint);
+}
+.pg-title {
+  margin: 0;
+  font-family: var(--pg-font-display);
+  font-size: clamp(30px, 3.1vw, 42px);
+  line-height: 1.12;
+  letter-spacing: -.018em;
+  font-weight: 700;
+  color: var(--mp-ink);
+  text-wrap: balance;
+}
+.pg-lede {
+  margin: 0;
+  max-width: 56ch;
+  font-size: clamp(15px, 1.2vw, 17.5px);
+  line-height: 1.65;
+  color: var(--mp-muted);
+  text-wrap: pretty;
+}
+.pg-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 0;
+  margin: 1px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--mp-faint);
+}
+.pg-meta li { display: inline-flex; align-items: center; gap: 7px; }
+.pg-meta li + li::before {
+  content: "";
+  width: 1px;
+  height: 11px;
+  margin: 0 12px;
+  background: var(--mp-border-strong);
+}
+
+/* ---------- 本页路线 ---------- */
+.pg-outline {
+  grid-area: outline;
+  display: grid;
+  gap: 7px;
+  align-content: start;
+  padding: 2px 0 2px 14px;
+  border-left: 1px solid var(--mp-border);
+  min-width: 0;
+}
+.pg-outline-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  color: var(--mp-faint);
+}
+.pg-outline ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+}
+.pg-outline-link {
+  display: grid;
+  grid-template-columns: 1.2em minmax(0, 1fr);
+  gap: 6px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--mp-muted);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: left;
+  cursor: pointer;
+}
+.pg-outline-link:hover { color: var(--mp-ink); }
+.pg-outline-link[data-pg-current="true"] { color: var(--mp-ink); font-weight: 600; }
+.pg-outline-link[data-pg-current="true"] .pg-outline-index { color: var(--mp-ink); }
+.pg-outline-index { color: var(--mp-faint); font-family: var(--mp-font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* ---------- 正文与侧栏 ---------- */
+.pg-flow {
+  grid-area: main;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(17px, 2.2vh, 26px);
+}
+.pg-rail {
+  grid-area: rail;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+html[data-mp-scroll="flow"] .pg-rail { position: sticky; top: 22px; align-self: start; }
+.pg-block { min-width: 0; }
+
+/* ---------- 页脚 ---------- */
+.pg-foot {
+  grid-area: foot;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--mp-border);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--mp-faint);
+}
+.pg-source { margin: 0; max-width: 74ch; }
+.pg-controls { display: flex; gap: 8px; flex-shrink: 0; }
+.pg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 14px;
+  border: 1px solid var(--mp-border);
+  border-radius: 10px;
+  background: var(--mp-panel);
+  color: var(--mp-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.pg-btn:hover { border-color: var(--mp-border-strong); background: var(--mp-raised); }
+.pg-btn-primary { border-color: var(--mp-invert); background: var(--mp-invert); color: var(--mp-invert-ink); }
+.pg-btn-primary:hover { background: var(--mp-invert); color: var(--mp-invert-ink); opacity: .9; }
+.pg-btn-sm { min-height: 27px; padding: 3px 10px; border-radius: 8px; font-size: 12px; }
+.pg-btn[disabled] { opacity: .4; cursor: not-allowed; }
+
+/* ---------- 文本块 ---------- */
+.pg-label {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .11em;
+  color: var(--mp-faint);
+}
+.pg-prose p {
+  margin: 0 0 12px;
+  max-width: var(--pg-content);
+  font-size: var(--pg-body-size);
+  line-height: var(--pg-body-lh);
+  letter-spacing: .008em;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+.pg-prose-title { margin: 0 0 7px; font-size: 19px; line-height: 1.35; font-weight: 650; letter-spacing: -.012em; }
+.pg-prose p:last-child { margin-bottom: 0; }
+.pg-prose strong { font-weight: 650; }
+.pg-prose code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--mp-code-bg);
+  font-family: var(--mp-font-mono);
+  font-size: .92em;
+}
+
+/* ---------- 公式 ---------- */
+.pg-formula-wrap { min-width: 0; }
+.pg-formula { max-width: 100%; overflow-wrap: anywhere; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+.pg-formula-hint { display: none; margin: 5px 0 0; font-size: 12px; line-height: 1.5; color: var(--mp-faint); }
+.pg-formula math { font-size: 1.08em; }
+.pg-formula math[display="block"] { display: block; margin: 11px 0; }
+.pg-formula-block { max-width: var(--pg-content); }
+.pg-example-formula,
+.pg-check-formula {
+  margin: 10px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--pg-glass-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mp-raised) 55%, transparent);
+}
+.pg-check-formula { margin: 8px 0 10px; }
+.pg-page math { font-size: 1.02em; }
+.pg-page .pg-formula math { font-size: 1.08em; }
+.pg-formula-label { margin-left: 10px; font-size: 12px; color: var(--mp-faint); }
+
+/* ---------- 提示块 ---------- */
+.pg-callout {
+  max-width: var(--pg-content);
+  padding: 10px 0 10px 16px;
+  border-left: 2px solid var(--mp-border-strong);
+}
+.pg-callout h2 { margin: 0 0 6px; font-size: 18px; line-height: 1.35; font-weight: 650; letter-spacing: -.01em; }
+.pg-callout p { margin: 0; font-size: calc(var(--pg-body-size) - 1px); line-height: 1.75; }
+.pg-callout-key,
+.pg-callout-definition,
+.pg-callout-theorem {
+  padding: 14px 16px;
+  border: 1px solid var(--mp-border);
+  border-left: 2px solid var(--mp-ink);
+  border-radius: 12px;
+  background: var(--mp-raised);
+}
+.pg-callout-pitfall { border-left: 2px solid var(--mp-ink); }
+.pg-callout-note { border-left: 1px solid var(--mp-border-strong); }
+.pg-callout-note p { color: var(--mp-muted); font-size: 13.5px; }
+
+/* ---------- 例题 ---------- */
+.pg-example {
+  max-width: calc(var(--pg-content) + 2rem);
+  padding: 17px 19px;
+  border: 1px solid var(--mp-border);
+  border-radius: var(--pg-radius);
+  background: var(--mp-panel);
+}
+.pg-example-problem {
+  margin: 8px 0 14px;
+  font-size: calc(var(--pg-body-size) + .5px);
+  line-height: 1.75;
+  font-weight: 550;
+}
+.pg-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.pg-step { position: relative; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; }
+.pg-step-index {
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border: 1px solid var(--mp-border-strong);
+  border-radius: 50%;
+  background: var(--mp-panel);
+  color: var(--mp-muted);
+  font-family: var(--mp-font-mono);
+  font-size: 12px;
+}
+.pg-step-body { min-width: 0; }
+.pg-step-title { margin: 0 0 4px; font-size: 15px; line-height: 1.45; font-weight: 650; }
+.pg-step-text { margin: 0; font-size: calc(var(--pg-body-size) - 1px); line-height: 1.75; }
+.pg-step-formula { margin: 6px 0 0; }
+.pg-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 12.5px;
+  top: 30px;
+  bottom: -14px;
+  width: 1px;
+  background: var(--mp-border);
+}
+.pg-answer {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--mp-border-strong);
+  border-radius: 10px;
+  background: var(--mp-raised);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.pg-answer-label { flex-shrink: 0; font-size: 12px; font-weight: 600; letter-spacing: .1em; color: var(--mp-faint); }
+.pg-pitfall {
+  margin: 12px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--mp-border-strong);
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--mp-muted);
+}
+
+/* ---------- 对照 / 表格 / 小结 ---------- */
+.pg-compare { display: grid; gap: 12px; max-width: calc(var(--pg-content) + 2rem); }
+.pg-compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.pg-compare-col { min-width: 0; padding: 12px 14px; border: 1px solid var(--mp-border); border-radius: 12px; }
+.pg-compare-col h3 { margin: 0 0 7px; font-size: 15.5px; line-height: 1.4; }
+.pg-compare-col ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 14px; line-height: 1.65; color: var(--mp-muted); }
+.pg-verdict { margin: 0; padding: 9px 12px; border: 1px solid var(--mp-ink); border-radius: 10px; font-size: 14px; line-height: 1.65; font-weight: 600; }
+
+.pg-table { width: 100%; max-width: calc(var(--pg-content) + 2rem); border-collapse: collapse; table-layout: fixed; font-size: 14px; line-height: 1.6; }
+.pg-table th, .pg-table td { padding: 7px 8px; border-bottom: 1px solid var(--mp-border); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.pg-table th { font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--mp-faint); }
+.pg-table caption { caption-side: bottom; padding-top: 6px; font-size: 12px; color: var(--mp-muted); text-align: left; }
+
+.pg-summary { display: grid; gap: 12px; }
+.pg-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pg-summary-card { min-width: 0; padding: 12px 14px; border: 1px solid var(--mp-border); border-radius: 12px; }
+.pg-summary-card h3 { margin: 0 0 6px; font-size: 14px; line-height: 1.4; }
+.pg-summary-card ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 13.5px; line-height: 1.65; color: var(--mp-muted); }
+/* summary 页把「记住/易错/下一步」放进右栏，正文只保留公式与表格，保证 fit 一屏 */
+.pg-rail .pg-summary-grid { grid-template-columns: 1fr; }
+.pg-rail .pg-summary { gap: 8px; }
+.pg-rail .pg-summary-card { padding: 9px 11px; }
+.pg-rail .pg-summary-card h3 { margin-bottom: 3px; font-size: 13px; }
+.pg-rail .pg-summary-card ul { gap: 2px; font-size: 12.5px; line-height: 1.55; }
+
+/* ---------- 检查 ---------- */
+.pg-check {
+  max-width: calc(var(--pg-content) + 2rem);
+  padding: 16px 18px;
+  border: 1px solid var(--mp-border);
+  border-radius: var(--pg-radius);
+  background: var(--mp-panel);
+}
+.pg-question { margin: 8px 0 10px; font-size: calc(var(--pg-body-size) + .5px); line-height: 1.7; font-weight: 550; }
+.pg-options { display: grid; gap: 8px; }
+.pg-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--mp-border);
+  border-radius: 10px;
+  background: var(--mp-panel);
+  color: var(--mp-ink);
+  font: inherit;
+  font-size: 14.5px;
+  line-height: 1.6;
+  text-align: left;
+  cursor: pointer;
+}
+.pg-option:hover { border-color: var(--mp-border-strong); background: var(--mp-raised); }
+.pg-option[data-pg-state="correct"] { border-color: var(--mp-ink); background: var(--mp-raised); }
+.pg-option[data-pg-state="wrong"] { border-style: dashed; color: var(--mp-muted); }
+.pg-option[data-pg-state="correct"]::after { content: "✓"; margin-left: auto; font-weight: 600; color: var(--mp-ink); }
+.pg-option[data-pg-state="wrong"]::after { content: "✕"; margin-left: auto; color: var(--mp-faint); }
+.pg-option-key {
+  flex-shrink: 0;
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  border: 1px solid var(--mp-border-strong);
+  border-radius: 6px;
+  color: var(--mp-muted);
+  font-family: var(--mp-font-mono);
+  font-size: 12px;
+}
+.pg-option[data-pg-state="correct"] .pg-option-key { border-color: var(--mp-ink); background: var(--mp-ink); color: var(--mp-invert-ink); }
+.pg-check-result { margin: 10px 0 0; font-size: 13.5px; font-weight: 600; line-height: 1.6; color: var(--mp-ink); }
+.pg-explanation {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-left: 2px solid var(--mp-ink);
+  background: var(--mp-raised);
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--mp-muted);
+}
+
+/* ---------- 图示 ---------- */
+.pg-figure {
+  margin: 0;
+  min-width: 0;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--mp-border);
+  border-radius: var(--pg-radius);
+  background: var(--mp-raised);
+}
+.pg-figure-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pg-figure-label { font-size: 12px; font-weight: 600; letter-spacing: .1em; color: var(--mp-faint); }
+.pg-figure-controls { display: flex; align-items: center; gap: 6px; }
+.pg-figure-state { min-width: 2.2em; text-align: center; font-family: var(--mp-font-mono); font-size: 12px; color: var(--mp-faint); }
+.pg-figure-svg { display: block; width: 100%; height: auto; max-height: 250px; color: var(--mp-ink); }
+.pg-figure svg text { fill: var(--mp-ink); font-family: var(--mp-font-sans); font-size: 14px; }
+.pg-figure svg .pg-fig-muted { fill: var(--mp-muted); }
+.pg-figure svg .pg-fig-faint { fill: var(--mp-muted); }
+.pg-figure svg .pg-fig-line { fill: none; stroke: var(--mp-border-strong); }
+.pg-figure svg .pg-fig-ink { fill: none; stroke: var(--mp-ink); stroke-width: 1.4; }
+.pg-figure svg .pg-fig-ink-fill { fill: var(--mp-ink); stroke: none; }
+.pg-figure svg .pg-fig-grid { fill: none; stroke: var(--mp-border); stroke-width: .6; }
+.pg-figure svg .pg-fig-axis { fill: none; stroke: var(--mp-border-strong); stroke-width: 1; }
+.pg-figure svg .pg-fig-arrow { fill: var(--mp-ink); stroke: none; }
+.pg-figure svg .pg-fig-dashed { stroke-dasharray: 4 4; }
+.pg-figure svg .pg-fig-raised { fill: var(--mp-raised); }
+.pg-figure svg .pg-fig-panel { fill: var(--mp-panel); }
+.pg-figure svg .pg-fig-invert { fill: var(--mp-invert); }
+.pg-figure svg .pg-fig-invert-text { fill: var(--mp-invert-ink); }
+.pg-figure svg .pg-fig-panel { fill: var(--mp-panel); }
+.pg-figure svg circle, .pg-figure svg line, .pg-figure svg path { vector-effect: non-scaling-stroke; }
+.pg-figure g[data-pg-state-group] { display: none; }
+.pg-figure g[data-pg-state-group][data-pg-active="true"] { display: inline; }
+.pg-figure-caption { margin: 0; font-size: 13px; line-height: 1.55; color: var(--mp-muted); }
+.pg-figure-takeaway { margin: 0; padding-top: 8px; border-top: 1px dashed var(--mp-border); font-size: 13px; line-height: 1.6; }
+.pg-figure-note { margin: 0; font-size: 13px; line-height: 1.6; color: var(--mp-muted); }
+.pg-figure-note[hidden] { display: none !important; }
+
+/* ---------- 速查 ---------- */
+.pg-quickfacts { padding: 12px 14px; border: 1px solid var(--mp-border); border-radius: var(--pg-radius); background: var(--mp-panel); }
+.pg-quickfacts ul { margin: 6px 0 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: 13px; line-height: 1.65; color: var(--mp-muted); }
+.pg-quickfacts ul + .pg-label { margin-top: 12px; }
+.pg-quickfacts li::marker { color: var(--mp-faint); }
+.pg-quick-answer { margin: 6px 0 0; font-size: 13px; line-height: 1.65; color: var(--mp-ink); }
+
+/* ---------- 动效 / 响应式 ---------- */
+html[data-mp-reduced-motion="true"] .pg-page *,
+html[data-mp-reduced-motion="true"] .pg-page *::before,
+html[data-mp-reduced-motion="true"] .pg-page *::after {
+  transition: none !important;
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pg-page *, .pg-page *::before, .pg-page *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (max-width: 1120px) {
+  .pg-page { --pg-rail-w: 16rem; grid-template-columns: minmax(0, 1fr) var(--pg-rail-w); }
+  .pg-title { font-size: clamp(27px, 3.2vw, 36px); }
+  .pg-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 960px) {
+  .pg-page {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto auto auto !important;
+    grid-template-areas: "head" "outline" "main" "rail" "foot" !important;
+    height: auto !important;
+    min-height: 100dvh;
+    overflow: visible !important;
+    padding: 20px 18px 28px;
+    row-gap: 16px;
+  }
+  .pg-rail, .pg-flow, .pg-outline { position: static !important; }
+  .pg-rail { grid-template-columns: 1fr; }
+  .pg-outline { display: grid !important; padding-left: 12px; }
+  .pg-title { font-size: clamp(26px, 7vw, 34px); }
+  .pg-lede { font-size: 15px; }
+  .pg-summary-grid, .pg-compare-grid { grid-template-columns: 1fr; }
+  .pg-figure-svg { max-height: 300px; }
+  .pg-foot { flex-wrap: wrap; align-items: center; }
+}
+
+@media (max-width: 600px) {
+  .pg-page { --pg-body-size: 16px; --pg-body-lh: 1.8; padding: 18px 14px 24px; }
+  .pg-title { font-size: 23px; word-break: keep-all; overflow-wrap: anywhere; }
+  .pg-meta { font-size: 12px; gap: 4px 12px; }
+  .pg-meta li + li::before { content: none; }
+  .pg-formula-wrap[data-pg-scrollable] .pg-formula-hint { display: block; }
+  .pg-example { padding: 14px 14px; }
+  .pg-check { padding: 14px 14px; }
+  .pg-option { font-size: 14px; }
+}
+
+
+.pg-page[data-pg-theme="editorial"] {
+  --pg-body-size: 17px;
+  --pg-body-lh: 1.85;
+  --pg-content: 44rem;
+  --pg-rail-w: 19rem;
+  grid-template-columns:
+    minmax(28px, 1fr)
+    minmax(0, 44rem)
+    minmax(17rem, 20rem)
+    minmax(28px, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    ". head head ."
+    ". outline outline ."
+    ". main rail ."
+    ". foot foot .";
+  column-gap: clamp(24px, 3vw, 56px);
+  row-gap: var(--pg-gap);
+  padding-top: clamp(30px, 4.4vh, 56px);
+}
+
+.pg-page[data-pg-theme="editorial"] .pg-head { max-width: none; }
+.pg-page[data-pg-theme="editorial"] .pg-outline { display: none; }
+.pg-page[data-pg-theme="editorial"] .pg-flow { max-width: 44rem; gap: clamp(18px, 2.4vh, 28px); }
+.pg-page[data-pg-theme="editorial"] .pg-rail { position: sticky; top: 26px; align-self: start; }
+.pg-page[data-pg-theme="editorial"] .pg-title { font-weight: 700; }
+
+.pg-page[data-pg-theme="editorial"] .pg-lede { max-width: 48ch; }
+
+/* 讲义里少用卡片：提示块改成上下规则线 */
+.pg-page[data-pg-theme="editorial"] .pg-callout-key,
+.pg-page[data-pg-theme="editorial"] .pg-callout-definition,
+.pg-page[data-pg-theme="editorial"] .pg-callout-theorem {
+  padding: 14px 0;
+  border: 0;
+  border-top: 1px solid var(--mp-border-strong);
+  border-bottom: 1px solid var(--mp-border);
+  border-radius: 0;
+  background: transparent;
+}
+.pg-page[data-pg-theme="editorial"] .pg-callout-pitfall {
+  padding: 8px 0 8px 14px;
+  border-left: 2px solid var(--mp-ink);
+}
+.pg-page[data-pg-theme="editorial"] .pg-callout h2 { font-size: 17.5px; }
+
+.pg-page[data-pg-theme="editorial"] .pg-example {
+  padding: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--mp-border-strong);
+  border-bottom: 1px solid var(--mp-border);
+  border-radius: 0;
+  background: transparent;
+}
+.pg-page[data-pg-theme="editorial"] .pg-answer {
+  padding: 8px 0 8px 12px;
+  border: 0;
+  border-left: 2px solid var(--mp-ink);
+  border-radius: 0;
+  background: transparent;
+}
+
+.pg-page[data-pg-theme="editorial"] .pg-check {
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--mp-border-strong);
+  border-radius: 0;
+  background: transparent;
+}
+.pg-page[data-pg-theme="editorial"] .pg-option {
+  border-radius: 8px;
+  background: transparent;
+}
+.pg-page[data-pg-theme="editorial"] .pg-explanation {
+  border-radius: 0;
+  border-left: 2px solid var(--mp-ink);
+  background: transparent;
+}
+
+.pg-page[data-pg-theme="editorial"] .pg-figure {
+  padding: 10px;
+  border: 1px solid var(--mp-border);
+  border-radius: 4px;
+  background: var(--mp-raised);
+}
+.pg-page[data-pg-theme="editorial"] .pg-figure-svg { max-height: 230px; }
+.pg-page[data-pg-theme="editorial"] .pg-quickfacts {
+  padding: 8px 0 0;
+  border: 0;
+  border-top: 1px solid var(--mp-border);
+  border-radius: 0;
+  background: transparent;
+}
+.pg-page[data-pg-theme="editorial"] .pg-quickfacts ul { font-size: 12.5px; }
+
+.pg-page[data-pg-theme="editorial"] .pg-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pg-page[data-pg-theme="editorial"] .pg-summary-card { border: 0; border-top: 1px solid var(--mp-border-strong); border-radius: 0; padding: 10px 0; }
+
+.pg-page[data-pg-theme="editorial"] .pg-foot { font-size: 12px; }
+
+@media (max-width: 1120px) {
+  .pg-page[data-pg-theme="editorial"] {
+    grid-template-columns:
+      minmax(20px, 1fr)
+      minmax(0, 40rem)
+      minmax(15rem, 18rem)
+      minmax(20px, 1fr);
+    column-gap: clamp(18px, 2.4vw, 36px);
+    --pg-body-size: 16.5px;
+  }
+  .pg-page[data-pg-theme="editorial"] .pg-figure-svg { max-height: 200px; }
+}
+
+
+.pg-page[data-pg-theme="workbench"] {
+  --pg-body-size: 16px;
+  --pg-body-lh: 1.75;
+  --pg-content: 46rem;
+  --pg-rail-w: 20rem;
+  grid-template-columns: 11rem minmax(0, 1fr) 20rem;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head head head"
+    "outline main rail"
+    "outline main rail"
+    "foot foot foot";
+  column-gap: clamp(16px, 2vw, 28px);
+  row-gap: var(--pg-gap);
+  padding-top: 22px;
+}
+
+html[data-mp-scroll="fit"] .pg-page[data-pg-theme="workbench"] {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head head head"
+    "outline main rail"
+    "foot foot foot";
+}
+
+.pg-page[data-pg-theme="workbench"] .pg-head {
+  gap: 7px;
+  max-width: none;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--mp-border);
+}
+.pg-page[data-pg-theme="workbench"] .pg-title { font-size: clamp(30px, 2.7vw, 38px); }
+.pg-page[data-pg-theme="workbench"] .pg-prose-title,
+.pg-page[data-pg-theme="workbench"] .pg-callout h2 {
+  font-family: var(--pg-font-display);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.pg-page[data-pg-theme="workbench"] .pg-lede { font-size: 15.5px; line-height: 1.7; max-width: 48rem; }
+
+.pg-page[data-pg-theme="workbench"] .pg-outline {
+  position: sticky;
+  top: 18px;
+  align-self: start;
+  z-index: 5;
+  padding: 14px 16px;
+  border: 1px solid var(--pg-glass-border);
+  border-radius: 16px;
+  background: var(--pg-glass-bg);
+  -webkit-backdrop-filter: var(--pg-glass-blur);
+  backdrop-filter: var(--pg-glass-blur);
+  box-shadow: var(--pg-glass-shadow);
+}
+.pg-page[data-pg-theme="workbench"] .pg-outline-link { font-size: 13px; line-height: 1.6; }
+.pg-page[data-pg-theme="workbench"] .pg-outline-index { font-size: 12px; }
+
+.pg-page[data-pg-theme="workbench"] .pg-flow { gap: 16px; max-width: 46rem; }
+.pg-page[data-pg-theme="workbench"] .pg-prose p { font-size: 16px; line-height: 1.82; }
+.pg-page[data-pg-theme="workbench"] .pg-rail { position: sticky; top: 20px; align-self: start; gap: 12px; }
+
+/* 工作台用紧凑卡片承载讲解块 */
+.pg-page[data-pg-theme="workbench"] .pg-callout-key,
+.pg-page[data-pg-theme="workbench"] .pg-callout-definition,
+.pg-page[data-pg-theme="workbench"] .pg-callout-theorem,
+.pg-page[data-pg-theme="workbench"] .pg-callout-pitfall {
+  padding: 12px 14px;
+  border: 1px solid var(--mp-border);
+  border-left: 2px solid var(--mp-ink);
+  border-radius: 12px;
+  background: var(--mp-panel);
+}
+.pg-page[data-pg-theme="workbench"] .pg-callout-key { border-left: 2px solid var(--mp-ink); }
+.pg-page[data-pg-theme="workbench"] .pg-callout h2 { font-size: 17px; }
+.pg-page[data-pg-theme="workbench"] .pg-callout p { font-size: 15px; line-height: 1.78; }
+
+.pg-page[data-pg-theme="workbench"] .pg-example {
+  padding: 16px 18px;
+  border-radius: 14px;
+}
+.pg-page[data-pg-theme="workbench"] .pg-example-problem { font-size: 16px; margin: 6px 0 12px; }
+.pg-page[data-pg-theme="workbench"] .pg-step-title { font-size: 15px; }
+.pg-page[data-pg-theme="workbench"] .pg-step-text { font-size: 15px; line-height: 1.78; }
+.pg-page[data-pg-theme="workbench"] .pg-steps { gap: 12px; }
+.pg-page[data-pg-theme="workbench"] .pg-step { scroll-margin-top: 24px; }
+.pg-page[data-pg-theme="workbench"] .pg-step:not(:last-child)::after { bottom: -12px; }
+
+.pg-page[data-pg-theme="workbench"] .pg-check { padding: 16px 18px; border-radius: 14px; }
+.pg-page[data-pg-theme="workbench"] .pg-question { font-size: 16.5px; line-height: 1.65; }
+.pg-page[data-pg-theme="workbench"] .pg-option { font-size: 15px; line-height: 1.65; padding: 9px 11px; }
+
+.pg-page[data-pg-theme="workbench"] .pg-figure { padding: 8px; border-radius: 14px; }
+.pg-page[data-pg-theme="workbench"] .pg-figure-svg { max-height: 240px; }
+.pg-page[data-pg-theme="workbench"] .pg-figure-caption { font-size: 13px; line-height: 1.6; }
+.pg-page[data-pg-theme="workbench"] .pg-figure-takeaway { font-size: 13px; line-height: 1.6; }
+.pg-page[data-pg-theme="workbench"] .pg-quickfacts { padding: 12px 14px; border-radius: 14px; }
+.pg-page[data-pg-theme="workbench"] .pg-quickfacts ul { font-size: 13px; line-height: 1.65; }
+
+/* 亚克力：右栏、题解、检查与核心卡浮在纸面上，而不是嵌进页面 */
+.pg-page[data-pg-theme="workbench"] .pg-figure,
+.pg-page[data-pg-theme="workbench"] .pg-quickfacts,
+.pg-page[data-pg-theme="workbench"] .pg-example,
+.pg-page[data-pg-theme="workbench"] .pg-check,
+.pg-page[data-pg-theme="workbench"] .pg-callout-key {
+  border: 1px solid var(--pg-glass-border);
+  background: var(--pg-glass-bg);
+  -webkit-backdrop-filter: var(--pg-glass-blur);
+  backdrop-filter: var(--pg-glass-blur);
+  box-shadow: var(--pg-glass-shadow);
+}
+.pg-page[data-pg-theme="workbench"] .pg-example,
+.pg-page[data-pg-theme="workbench"] .pg-check,
+.pg-page[data-pg-theme="workbench"] .pg-callout-key {
+  background: var(--pg-glass-bg-strong);
+}
+.pg-page[data-pg-theme="workbench"] .pg-callout-key { border-left: 2px solid var(--mp-ink); }
+
+.pg-page[data-pg-theme="workbench"] .pg-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pg-page[data-pg-theme="workbench"] .pg-summary-card { padding: 10px 12px; }
+.pg-page[data-pg-theme="workbench"] .pg-foot { font-size: 12px; }
+
+/* 矮屏下右栏高于视口，吸顶会让底部内容永远看不到；改为随正文滚动 */
+@media (max-height: 860px) and (min-width: 961px) {
+  .pg-page[data-pg-theme="workbench"] .pg-rail { position: static; }
+}
+
+@media (max-width: 1240px) {
+  .pg-page[data-pg-theme="workbench"] {
+    grid-template-columns: 9rem minmax(0, 1fr) 17rem;
+    --pg-body-size: 15.5px;
+  }
+  .pg-page[data-pg-theme="workbench"] .pg-figure-svg { max-height: 210px; }
+}
+@media (max-width: 1060px) {
+  .pg-page[data-pg-theme="workbench"] {
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    grid-template-areas:
+      "head head"
+      "main rail"
+      "main rail"
+      "foot foot";
+  }
+  .pg-page[data-pg-theme="workbench"] .pg-outline { display: none; }
+}
+@media (max-width: 960px) {
+  .pg-page[data-pg-theme="workbench"] .pg-outline {
+    position: sticky !important;
+    top: 8px !important;
+    z-index: 9;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: var(--pg-glass-bg-strong);
+    -webkit-backdrop-filter: var(--pg-glass-blur);
+    backdrop-filter: var(--pg-glass-blur);
+    box-shadow: var(--pg-glass-shadow);
+  }
+  .pg-page[data-pg-theme="workbench"] .pg-block { scroll-margin-top: 150px; }
+  .pg-page[data-pg-theme="workbench"] .pg-step { scroll-margin-top: 150px; }
+}
+@media (max-width: 600px) {
+  .pg-page[data-pg-theme="workbench"] .pg-outline ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 12px;
+  }
+}
+
+
+.pg-page[data-pg-theme="problem"] {
+  --pg-body-size: 16.5px;
+  --pg-body-lh: 1.8;
+  --pg-content: 45rem;
+  --pg-rail-w: 19rem;
+  grid-template-columns: 9rem minmax(0, 1fr) 19rem;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head head head"
+    "outline main rail"
+    "outline main rail"
+    "foot foot foot";
+  column-gap: clamp(16px, 2vw, 30px);
+  row-gap: var(--pg-gap);
+  padding-top: 24px;
+}
+
+html[data-mp-scroll="fit"] .pg-page[data-pg-theme="problem"] {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head head head"
+    "outline main rail"
+    "foot foot foot";
+}
+
+.pg-page[data-pg-theme="problem"] .pg-head {
+  gap: 8px;
+  max-width: none;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--mp-border);
+}
+.pg-page[data-pg-theme="problem"] .pg-title { font-size: clamp(28px, 2.8vw, 38px); }
+.pg-page[data-pg-theme="problem"] .pg-lede { font-size: 15px; max-width: 64ch; }
+
+.pg-page[data-pg-theme="problem"] .pg-outline {
+  position: sticky;
+  top: 22px;
+  align-self: start;
+  padding: 12px 0 0 12px;
+  border-left: 2px solid var(--mp-ink);
+}
+.pg-page[data-pg-theme="problem"] .pg-outline-link { font-size: 12px; color: var(--mp-muted); }
+.pg-page[data-pg-theme="problem"] .pg-outline-link:hover { color: var(--mp-ink); }
+
+.pg-page[data-pg-theme="problem"] .pg-flow { gap: 18px; max-width: 45rem; }
+.pg-page[data-pg-theme="problem"] .pg-rail { position: sticky; top: 22px; align-self: start; gap: 12px; }
+
+/* 真题 hero：粗上边、深色题面 */
+.pg-page[data-pg-theme="problem"] .pg-example {
+  padding: 18px 20px 16px;
+  border: 1px solid var(--mp-border-strong);
+  border-top: 3px solid var(--mp-ink);
+  border-radius: 0 0 14px 14px;
+  background: var(--mp-panel);
+}
+.pg-page[data-pg-theme="problem"] .pg-example-problem {
+  font-size: calc(var(--pg-body-size) + 1px);
+  line-height: 1.8;
+  font-weight: 600;
+}
+.pg-page[data-pg-theme="problem"] .pg-step-index {
+  border-color: var(--mp-ink);
+  color: var(--mp-ink);
+  font-weight: 600;
+}
+.pg-page[data-pg-theme="problem"] .pg-answer {
+  border: 0;
+  border-top: 2px solid var(--mp-ink);
+  border-radius: 0;
+  background: transparent;
+  padding: 10px 0 0;
+}
+.pg-page[data-pg-theme="problem"] .pg-pitfall {
+  border-left: 2px dashed var(--mp-border-strong);
+}
+
+.pg-page[data-pg-theme="problem"] .pg-callout-key,
+.pg-page[data-pg-theme="problem"] .pg-callout-definition,
+.pg-page[data-pg-theme="problem"] .pg-callout-theorem {
+  padding: 10px 0 10px 14px;
+  border: 0;
+  border-left: 2px solid var(--mp-ink);
+  border-radius: 0;
+  background: transparent;
+}
+.pg-page[data-pg-theme="problem"] .pg-callout h2 { font-size: 16.5px; }
+.pg-page[data-pg-theme="problem"] .pg-callout p { font-size: 15px; line-height: 1.78; }
+
+.pg-page[data-pg-theme="problem"] .pg-check {
+  padding: 16px 18px;
+  border: 1px solid var(--mp-border-strong);
+  border-radius: 12px;
+  background: var(--mp-raised);
+}
+.pg-page[data-pg-theme="problem"] .pg-figure { padding: 10px; border-radius: 12px; }
+.pg-page[data-pg-theme="problem"] .pg-figure-svg { max-height: 220px; }
+.pg-page[data-pg-theme="problem"] .pg-quickfacts { padding: 10px 12px; border-radius: 12px; }
+.pg-page[data-pg-theme="problem"] .pg-quickfacts ul { font-size: 12.5px; }
+
+@media (max-width: 1180px) {
+  .pg-page[data-pg-theme="problem"] {
+    grid-template-columns: 8rem minmax(0, 1fr) 16rem;
+    --pg-body-size: 16px;
+  }
+  .pg-page[data-pg-theme="problem"] .pg-figure-svg { max-height: 190px; }
+}
+@media (max-width: 1040px) {
+  .pg-page[data-pg-theme="problem"] {
+    grid-template-columns: minmax(0, 1fr) 16rem;
+    grid-template-areas:
+      "head head"
+      "main rail"
+      "main rail"
+      "foot foot";
+  }
+  .pg-page[data-pg-theme="problem"] .pg-outline { display: none; }
+}
+
+</style>
+<style>
+
+</style>
+</head>
+<body>
+<div id="mp-root">
+<div class="pg-page pg-role-worked_example" data-pg-theme="workbench" data-pg-scroll="flow" data-pg-role="worked_example" data-pg-title="拉普拉斯变换解 ODE：四步法">
+<header class="pg-head">
+<p class="pg-eyebrow">第 5 讲 · 拉普拉斯变换</p>
+<h1 class="pg-title">拉普拉斯变换解 ODE：四步法</h1>
+<p class="pg-lede">把微分方程变成代数方程，解出 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">Y(s)</annotation></semantics></math></span>，再部分分式、反变换。四步固定，不需要猜特解。</p>
+<ul class="pg-meta">
+<li>例题</li>
+<li>约 9 分钟</li>
+<li>对应大题 17</li>
+<li>复变函数攻略 · 5.2 拉普拉斯变换</li>
+</ul>
+</header>
+<nav class="pg-outline" aria-label="解题路线">
+<p class="pg-outline-label">解题路线</p>
+<ol>
+<li><button type="button" class="pg-outline-link" data-pg-action="goto" data-pg-goto="b4-s1">
+<span class="pg-outline-index">01</span>
+<span>变换</span>
+</button></li>
+<li><button type="button" class="pg-outline-link" data-pg-action="goto" data-pg-goto="b4-s2">
+<span class="pg-outline-index">02</span>
+<span>解出 Y(s)</span>
+</button></li>
+<li><button type="button" class="pg-outline-link" data-pg-action="goto" data-pg-goto="b4-s3">
+<span class="pg-outline-index">03</span>
+<span>部分分式</span>
+</button></li>
+<li><button type="button" class="pg-outline-link" data-pg-action="goto" data-pg-goto="b4-s4">
+<span class="pg-outline-index">04</span>
+<span>反变换</span>
+</button></li>
+</ol>
+</nav>
+<main class="pg-flow">
+<section class="pg-block pg-prose" data-mp-block="b1" aria-label="什么时候用">
+<h2 class="pg-prose-title">什么时候用</h2>
+<p>常系数线性 ODE 加初值问题，用拉普拉斯变换最稳：变换把求导变成乘 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span>，初值自动进入方程；解出 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">Y(s)</annotation></semantics></math></span> 后只需做代数和部分分式，不用猜特解。</p>
+</section>
+<section class="pg-block pg-callout pg-callout-key" data-mp-block="b2" aria-label="两条变换公式">
+<p class="pg-label">核心</p>
+<h2>两条变换公式</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><msup><mi>y</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">}</mo><mo>=</mo><mi>s</mi><mi>Y</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo><mo>−</mo><mi>y</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}\{y&#x27;\}=sY(s)-y(0)</annotation></semantics></math></span>；<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><msup><mi>y</mi><mrow><mo mathvariant="normal">′</mo><mo mathvariant="normal">′</mo></mrow></msup><mo stretchy="false">}</mo><mo>=</mo><msup><mi>s</mi><mn>2</mn></msup><mi>Y</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo><mo>−</mo><mi>s</mi><mtext> </mtext><mi>y</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo><mo>−</mo><msup><mi>y</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}\{y&#x27;&#x27;\}=s^2Y(s)-s\,y(0)-y&#x27;(0)</annotation></semantics></math></span>。右边减去的正是初值项，漏掉就会得到错误解。</p>
+</section>
+<section class="pg-block pg-formula-block" data-mp-block="b3" aria-label="二阶导的变换">
+<p class="pg-label">二阶导的变换</p>
+<div class="pg-formula-wrap"><div class="pg-formula"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><msup><mi>y</mi><mrow><mo mathvariant="normal">′</mo><mo mathvariant="normal">′</mo></mrow></msup><mo stretchy="false">}</mo><mo>=</mo><msup><mi>s</mi><mn>2</mn></msup><mi>Y</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo><mo>−</mo><mi>s</mi><mtext> </mtext><mi>y</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo><mo>−</mo><msup><mi>y</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}\{y&#x27;&#x27;\}=s^2Y(s)-s\,y(0)-y&#x27;(0)</annotation></semantics></math></span><span class="pg-formula-label">初值项不能漏</span></div><span class="pg-formula-hint">左右滑动查看完整公式</span></div>
+</section>
+<section class="pg-block pg-example" data-mp-block="b4" aria-label="例题 · 24-25 Q17">
+<p class="pg-label">例题 · 24-25 Q17</p>
+<p class="pg-example-problem">用拉普拉斯变换解初值问题：</p>
+<div class="pg-formula-wrap"><div class="pg-formula pg-example-formula"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>y</mi><mrow><mo mathvariant="normal">′</mo><mo mathvariant="normal">′</mo></mrow></msup><mo>−</mo><mi>y</mi><mo>=</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mo separator="true">,</mo><mspace width="2em"/><mi>y</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo><mo>=</mo><msup><mi>y</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y&#x27;&#x27;-y=e^{4t},\qquad y(0)=y&#x27;(0)=0</annotation></semantics></math></span></div><span class="pg-formula-hint">左右滑动查看完整公式</span></div>
+<ol class="pg-steps">
+<li class="pg-step" id="b4-s1">
+<span class="pg-step-index" aria-hidden="true">1</span>
+<div class="pg-step-body">
+<h3 class="pg-step-title">变换</h3>
+<p class="pg-step-text">设 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>=</mo><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><mi>y</mi><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">Y=\mathcal{L}\{y\}</annotation></semantics></math></span>。对方程两边取拉普拉斯变换，初值项为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span>，右边 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mo stretchy="false">}</mo><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}\{e^{4t}\}=1/(s-4)</annotation></semantics></math></span>：</p>
+<div class="pg-formula-wrap"><div class="pg-formula pg-step-formula"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mi>Y</mi><mo>=</mo><mfrac><mn>1</mn><mrow><mi>s</mi><mo>−</mo><mn>4</mn></mrow></mfrac></mrow><annotation encoding="application/x-tex">(s^2-1)Y=\frac{1}{s-4}</annotation></semantics></math></span></div><span class="pg-formula-hint">左右滑动查看完整公式</span></div>
+</div>
+</li>
+<li class="pg-step" id="b4-s2">
+<span class="pg-step-index" aria-hidden="true">2</span>
+<div class="pg-step-body">
+<h3 class="pg-step-title">解出 Y(s)</h3>
+<p class="pg-step-text">把 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">s^2-1</annotation></semantics></math></span> 移过去，得到有理函数：</p>
+<div class="pg-formula-wrap"><div class="pg-formula pg-step-formula"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>Y</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>s</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>s</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">Y(s)=\frac{1}{(s-4)(s-1)(s+1)}</annotation></semantics></math></span></div><span class="pg-formula-hint">左右滑动查看完整公式</span></div>
+</div>
+</li>
+<li class="pg-step" id="b4-s3">
+<span class="pg-step-index" aria-hidden="true">3</span>
+<div class="pg-step-body">
+<h3 class="pg-step-title">部分分式</h3>
+<p class="pg-step-text">设 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy="false">)</mo><mo>+</mo><mi>B</mi><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>s</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo>+</mo><mi>C</mi><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>s</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">A/(s-4)+B/(s-1)+C/(s+1)</annotation></semantics></math></span>，用留数法求系数：</p>
+<div class="pg-formula-wrap"><div class="pg-formula pg-step-formula"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>A</mi><mo>=</mo><mfrac><mn>1</mn><mn>15</mn></mfrac><mo separator="true">,</mo><mspace width="1em"/><mi>B</mi><mo>=</mo><mo>−</mo><mfrac><mn>1</mn><mn>6</mn></mfrac><mo separator="true">,</mo><mspace width="1em"/><mi>C</mi><mo>=</mo><mfrac><mn>1</mn><mn>10</mn></mfrac></mrow><annotation encoding="application/x-tex">A=\frac{1}{15},\quad B=-\frac{1}{6},\quad C=\frac{1}{10}</annotation></semantics></math></span></div><span class="pg-formula-hint">左右滑动查看完整公式</span></div>
+</div>
+</li>
+<li class="pg-step" id="b4-s4">
+<span class="pg-step-index" aria-hidden="true">4</span>
+<div class="pg-step-body">
+<h3 class="pg-step-title">反变换</h3>
+<p class="pg-step-text">逐项查表：<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>s</mi><mo>−</mo><mi>a</mi><mo stretchy="false">)</mo><mo>↔</mo><msup><mi>e</mi><mrow><mi>a</mi><mi>t</mi></mrow></msup></mrow><annotation encoding="application/x-tex">1/(s-a)\leftrightarrow e^{at}</annotation></semantics></math></span>。</p>
+<div class="pg-formula-wrap"><div class="pg-formula pg-step-formula"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mn>15</mn></mfrac><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mo>−</mo><mfrac><mn>1</mn><mn>6</mn></mfrac><msup><mi>e</mi><mi>t</mi></msup><mo>+</mo><mfrac><mn>1</mn><mn>10</mn></mfrac><msup><mi>e</mi><mrow><mo>−</mo><mi>t</mi></mrow></msup></mrow><annotation encoding="application/x-tex">y(t)=\frac{1}{15}e^{4t}-\frac{1}{6}e^{t}+\frac{1}{10}e^{-t}</annotation></semantics></math></span></div><span class="pg-formula-hint">左右滑动查看完整公式</span></div>
+</div>
+</li>
+</ol>
+<div class="pg-answer"><span class="pg-answer-label">答案</span><div><p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mi mathvariant="normal">/</mi><mn>15</mn><mo>−</mo><msup><mi>e</mi><mi>t</mi></msup><mi mathvariant="normal">/</mi><mn>6</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>t</mi></mrow></msup><mi mathvariant="normal">/</mi><mn>10</mn></mrow><annotation encoding="application/x-tex">y(t)=e^{4t}/15-e^{t}/6+e^{-t}/10</annotation></semantics></math></span></p></div></div>
+<p class="pg-pitfall"><strong>易错：</strong><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><msup><mi>y</mi><mrow><mo mathvariant="normal">′</mo><mo mathvariant="normal">′</mo></mrow></msup><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}\{y&#x27;&#x27;\}</annotation></semantics></math></span> 的初值项是 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mtext> </mtext><mi>y</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo><mo>+</mo><msup><mi>y</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">s\,y(0)+y&#x27;(0)</annotation></semantics></math></span>，不是只有 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">y(0)</annotation></semantics></math></span>；部分分式系数用留数法最快，但要先确认分母已完全因式分解。</p>
+</section>
+<section class="pg-block pg-callout pg-callout-pitfall" data-mp-block="b5" aria-label="四步法的检查点">
+<p class="pg-label">易错</p>
+<h2>四步法的检查点</h2>
+<p>① 变换后代数式是否只含 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">Y(s)</annotation></semantics></math></span> 与已知函数；② 部分分式前分母是否完全因式分解；③ 反变换后代回 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math></span>，检查 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">y(0)</annotation></semantics></math></span>、<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>y</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">y&#x27;(0)</annotation></semantics></math></span> 是否满足。</p>
+</section>
+<section class="pg-block pg-check" data-pg-check data-mp-block="q1" aria-label="随堂检查">
+<p class="pg-label">随堂检查 · q1</p>
+<p class="pg-question">对初值问题，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">Y(s)</annotation></semantics></math></span> 的正确形式是？</p>
+<div class="pg-formula-wrap"><div class="pg-formula pg-check-formula"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>y</mi><mrow><mo mathvariant="normal">′</mo><mo mathvariant="normal">′</mo></mrow></msup><mo>−</mo><mi>y</mi><mo>=</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mo separator="true">,</mo><mspace width="2em"/><mi>y</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo><mo>=</mo><msup><mi>y</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y&#x27;&#x27;-y=e^{4t},\qquad y(0)=y&#x27;(0)=0</annotation></semantics></math></span></div><span class="pg-formula-hint">左右滑动查看完整公式</span></div>
+<div class="pg-options">
+<button type="button" class="pg-option" data-pg-option data-pg-correct="true">
+<span class="pg-option-key" aria-hidden="true">A</span>
+<span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mo stretchy="false">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">1/((s-4)(s^2-1))</annotation></semantics></math></span></span>
+</button>
+<button type="button" class="pg-option" data-pg-option>
+<span class="pg-option-key" aria-hidden="true">B</span>
+<span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mo stretchy="false">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">1/((s-4)(s^2+1))</annotation></semantics></math></span></span>
+</button>
+<button type="button" class="pg-option" data-pg-option>
+<span class="pg-option-key" aria-hidden="true">C</span>
+<span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mo stretchy="false">(</mo><mi>s</mi><mo>+</mo><mn>4</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">1/((s+4)(s^2-1))</annotation></semantics></math></span></span>
+</button>
+</div>
+<p class="pg-check-result" data-pg-result aria-live="polite" hidden></p>
+<p class="pg-explanation" data-pg-explanation aria-live="polite" hidden><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><msup><mi>y</mi><mrow><mo mathvariant="normal">′</mo><mo mathvariant="normal">′</mo></mrow></msup><mo>−</mo><mi>y</mi><mo stretchy="false">}</mo><mo>=</mo><mo stretchy="false">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mi>Y</mi></mrow><annotation encoding="application/x-tex">\mathcal{L}\{y&#x27;&#x27;-y\}=(s^2-1)Y</annotation></semantics></math></span>；右边 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mo stretchy="false">}</mo><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}\{e^{4t}\}=1/(s-4)</annotation></semantics></math></span>，所以 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mo stretchy="false">(</mo><mi>s</mi><mo>−</mo><mn>4</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">Y=1/((s-4)(s^2-1))</annotation></semantics></math></span>。</p>
+</section>
+</main>
+<aside class="pg-rail" aria-label="图示与速查">
+
+
+<section class="pg-quickfacts">
+<p class="pg-label">本页目标</p>
+<ul><li>记住 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><msup><mi>y</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}\{y&#x27;\}</annotation></semantics></math></span>、<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><msup><mi>y</mi><mrow><mo mathvariant="normal">′</mo><mo mathvariant="normal">′</mo></mrow></msup><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}\{y&#x27;&#x27;\}</annotation></semantics></math></span> 的初值项</li><li>用四步法解二阶常系数初值问题</li></ul>
+<p class="pg-label">记住</p><ul><li><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><msup><mi>y</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">}</mo><mo>=</mo><mi>s</mi><mi>Y</mi><mo>−</mo><mi>y</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}\{y&#x27;\}=sY-y(0)</annotation></semantics></math></span>，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi><mo stretchy="false">{</mo><msup><mi>y</mi><mrow><mo mathvariant="normal">′</mo><mo mathvariant="normal">′</mo></mrow></msup><mo stretchy="false">}</mo><mo>=</mo><msup><mi>s</mi><mn>2</mn></msup><mi>Y</mi><mo>−</mo><mi>s</mi><mtext> </mtext><mi>y</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo><mo>−</mo><msup><mi>y</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}\{y&#x27;&#x27;\}=s^2Y-s\,y(0)-y&#x27;(0)</annotation></semantics></math></span></li><li>四步：变换 → 解 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi></mrow><annotation encoding="application/x-tex">Y</annotation></semantics></math></span> → 部分分式 → 反变换</li><li>反变换后代回初值检查</li></ul>
+<p class="pg-label">易错</p><ul><li>漏掉 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>y</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">y&#x27;(0)</annotation></semantics></math></span></li><li>部分分式分母没完全分解</li></ul>
+<p class="pg-label">答案速记</p><p class="pg-quick-answer"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><msup><mi>e</mi><mrow><mn>4</mn><mi>t</mi></mrow></msup><mi mathvariant="normal">/</mi><mn>15</mn><mo>−</mo><msup><mi>e</mi><mi>t</mi></msup><mi mathvariant="normal">/</mi><mn>6</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>t</mi></mrow></msup><mi mathvariant="normal">/</mi><mn>10</mn></mrow><annotation encoding="application/x-tex">y(t)=e^{4t}/15-e^{t}/6+e^{-t}/10</annotation></semantics></math></span></p>
+<p class="pg-label">下一步</p><p class="pg-quick-answer">最后一页：全册公式与易错速查</p>
+</section>
+</aside>
+<footer class="pg-foot">
+<p class="pg-source">依据：5.2 拉普拉斯变换 · 用拉普拉斯变换解微分方程：变换 → 解代数方程 → 部分分式 → 反变换。 等 2 条</p>
+<div class="pg-controls">
+<button type="button" class="pg-btn" data-pg-action="prev">上一页</button>
+<button type="button" class="pg-btn" data-pg-action="reset">重置</button>
+<button type="button" class="pg-btn pg-btn-primary" data-pg-action="next">下一页</button>
+</div>
+</footer>
+</div>
+</div>
+<script>
+window.__MP_CHANNEL__ = "d509f3e231b2090ec0d21b42331e94ee";
+/*!
+ * MockFinal 页面运行时 runtime_version = "1.1.0"
+ * 契约：docs/pageref/PAGE_CONTRACT.md §6、§8
+ *
+ * 宿主（前端阅读器与 Validator）把本文件内联进 sandbox iframe 的 shell，
+ * 页面只能通过 window.MockFinal 与宿主通信。本文件是纯浏览器 IIFE：
+ * - 不提供网络（fetch/XHR/WebSocket）、存储（cookie/localStorage）、父窗口读取能力；
+ * - 所有宿主消息使用 { channel, type, payload } 信封，channel 从 window.__MP_CHANNEL__ 读取后从全局删除；
+ * - 接收宿主消息时校验 event.source === window.parent 与 channel；
+ * - 单条消息 payload 超过 4 KB 直接丢弃并上报 runtime_error（MESSAGE_TOO_LARGE）。
+ */
+(function () {
+  'use strict';
+
+  var RUNTIME_VERSION = '1.1.0';
+  var MAX_PAYLOAD_BYTES = 4096;
+  var MAX_TEXT_BYTES = 2048;
+  var MAX_ERROR_BYTES = 1024;
+  var SELECTION_DEBOUNCE_MS = 220;
+  var RESIZE_DEBOUNCE_MS = 160;
+  var THEME_TOKENS = [
+    'surface',
+    'panel',
+    'raised',
+    'border',
+    'border-strong',
+    'ink',
+    'muted',
+    'faint',
+    'invert',
+    'invert-ink',
+    'code-bg',
+    'font-sans',
+    'font-mono'
+  ];
+  var HOST_MESSAGE_TYPES = ['theme', 'pause', 'resume', 'quote', 'focus_block'];
+  var EMIT_TYPES = ['interaction', 'progress', 'complete'];
+
+  var CHANNEL = typeof window.__MP_CHANNEL__ === 'string' ? window.__MP_CHANNEL__ : '';
+  // channel 只保存在闭包里，不留在全局，也不写入 DOM 属性（契约 §8.2）
+  try {
+    delete window.__MP_CHANNEL__;
+  } catch (err) {
+    window.__MP_CHANNEL__ = undefined;
+  }
+
+  var readyCalled = false;
+  var subscribers = [];
+  var reportingError = false;
+  var lastSelectionText = '';
+  var selectionTimer = 0;
+  var resizeTimer = 0;
+  var lastResize = { width: 0, height: 0 };
+  var state = { mode: 'light', reducedMotion: false, tokens: {} };
+
+  var root = document.documentElement;
+  // page-kit 2.0 的 flow 页允许页内滚动：Space/PageDown 交给浏览器滚动，只保留左右方向键翻页。
+  var scrollMode = false;
+  try {
+    scrollMode = root.getAttribute('data-mp-scroll') === 'flow';
+  } catch (err) {
+    scrollMode = false;
+  }
+
+  function utf8Length(text) {
+    if (typeof text !== 'string') return 0;
+    if (typeof TextEncoder === 'function') return new TextEncoder().encode(text).length;
+    return text.length;
+  }
+
+  function truncateBytes(text, limit) {
+    if (typeof text !== 'string') return '';
+    if (utf8Length(text) <= limit) return text;
+    var out = '';
+    for (var i = 0; i < text.length; i += 1) {
+      var next = out + text.charAt(i);
+      if (utf8Length(next) > limit) break;
+      out = next;
+    }
+    return out;
+  }
+
+  function warn(message) {
+    if (window.console && typeof window.console.warn === 'function') {
+      window.console.warn('[MockFinal] ' + message);
+    }
+  }
+
+  function isHostSource(source) {
+    // 顶层窗口（宿主没有包 iframe）时 window.parent === window，此时不接受任何“宿主消息”，避免自环
+    return !!source && source === window.parent && window.parent !== window;
+  }
+
+  function post(type, payload) {
+    var body = {
+      channel: CHANNEL,
+      type: type,
+      payload: payload === undefined ? {} : payload
+    };
+    var text;
+    try {
+      text = JSON.stringify(body);
+    } catch (err) {
+      text = null;
+    }
+    if (text === null) {
+      reportError('消息 payload 无法序列化', 'runtime');
+      return false;
+    }
+    if (utf8Length(text) > MAX_PAYLOAD_BYTES) {
+      reportError('MESSAGE_TOO_LARGE', 'runtime');
+      return false;
+    }
+    try {
+      window.parent.postMessage(body, '*');
+    } catch (err) {
+      return false;
+    }
+    return true;
+  }
+
+  function reportError(message, source, line, column) {
+    if (reportingError) return;
+    reportingError = true;
+    try {
+      post('runtime_error', {
+        message: truncateBytes(String(message || '未知错误'), MAX_ERROR_BYTES),
+        source: typeof source === 'string' ? truncateBytes(source, 512) : 'runtime',
+        line: typeof line === 'number' && isFinite(line) ? line : 0,
+        column: typeof column === 'number' && isFinite(column) ? column : 0
+      });
+    } finally {
+      reportingError = false;
+    }
+  }
+
+  function readTokens() {
+    var tokens = {};
+    var computed = null;
+    try {
+      computed = window.getComputedStyle(root);
+    } catch (err) {
+      computed = null;
+    }
+    for (var i = 0; i < THEME_TOKENS.length; i += 1) {
+      var name = THEME_TOKENS[i];
+      var value = '';
+      if (computed) value = computed.getPropertyValue('--mp-' + name);
+      tokens[name] = typeof value === 'string' ? value.trim() : '';
+    }
+    return Object.freeze(tokens);
+  }
+
+  function readMode() {
+    var attr = root.getAttribute('data-mp-theme');
+    return attr === 'dark' ? 'dark' : 'light';
+  }
+
+  function applyMode(mode) {
+    if (mode !== 'dark' && mode !== 'light') return;
+    root.setAttribute('data-mp-theme', mode);
+    state.mode = mode;
+    state.tokens = readTokens();
+  }
+
+  function applyReducedMotion(value) {
+    var reduced = typeof value === 'boolean' ? value : state.reducedMotion;
+    state.reducedMotion = reduced;
+    root.setAttribute('data-mp-reduced-motion', reduced ? 'true' : 'false');
+  }
+
+  function getTheme() {
+    state.mode = readMode();
+    state.tokens = readTokens();
+    return Object.freeze({
+      mode: state.mode,
+      tokens: state.tokens,
+      reducedMotion: state.reducedMotion
+    });
+  }
+
+  function notify(message) {
+    var list = subscribers.slice();
+    for (var i = 0; i < list.length; i += 1) {
+      try {
+        list[i](message);
+      } catch (err) {
+        reportError(err && err.message ? err.message : String(err), 'host-message');
+      }
+    }
+  }
+
+  function onHostMessage(fn) {
+    if (typeof fn !== 'function') {
+      throw new TypeError('MockFinal.onHostMessage(fn) 需要函数');
+    }
+    subscribers.push(fn);
+    return function unsubscribe() {
+      var index = subscribers.indexOf(fn);
+      if (index >= 0) subscribers.splice(index, 1);
+    };
+  }
+
+  function setupHostListener() {
+    window.addEventListener('message', function (event) {
+      if (!CHANNEL) return;
+      if (!isHostSource(event.source)) return;
+      var data = event.data;
+      if (!data || typeof data !== 'object') return;
+      if (data.channel !== CHANNEL) return;
+      var type = data.type;
+      if (HOST_MESSAGE_TYPES.indexOf(type) < 0) return;
+      var payload = data.payload && typeof data.payload === 'object' ? data.payload : {};
+      if (type === 'theme') {
+        if (payload.mode === 'light' || payload.mode === 'dark') applyMode(payload.mode);
+        if (typeof payload.reducedMotion === 'boolean') applyReducedMotion(payload.reducedMotion);
+      } else if (type === 'pause') {
+        root.setAttribute('data-mp-paused', 'true');
+      } else if (type === 'resume') {
+        root.setAttribute('data-mp-paused', 'false');
+      } else if (type === 'focus_block') {
+        highlightBlock(payload.block_id);
+      }
+      notify({ type: type, payload: payload });
+    });
+  }
+
+  var focusTimer = null;
+  function highlightBlock(blockId) {
+    if (typeof blockId !== 'string' || blockId === '') return;
+    var target = null;
+    var nodes = document.querySelectorAll('[data-mp-block]');
+    for (var i = 0; i < nodes.length; i += 1) {
+      if (nodes[i].getAttribute('data-mp-block') === blockId) {
+        target = nodes[i];
+        break;
+      }
+    }
+    if (!target) return;
+    if (focusTimer) window.clearTimeout(focusTimer);
+    var previous = document.querySelector('[data-mp-focus]');
+    if (previous) previous.removeAttribute('data-mp-focus');
+    target.setAttribute('data-mp-focus', 'true');
+    focusTimer = window.setTimeout(function () {
+      focusTimer = null;
+      target.removeAttribute('data-mp-focus');
+    }, 1800);
+  }
+
+  function setupSelection() {
+    document.addEventListener('selectionchange', function () {
+      if (selectionTimer) window.clearTimeout(selectionTimer);
+      selectionTimer = window.setTimeout(reportSelection, SELECTION_DEBOUNCE_MS);
+    });
+  }
+
+  function blockTextOf(node) {
+    var element = node;
+    if (element && element.nodeType === 3) element = element.parentElement;
+    while (element && element !== document.body && element !== root) {
+      var tag = element.tagName ? element.tagName.toLowerCase() : '';
+      if (tag === 'p' || tag === 'li' || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'blockquote' || tag === 'figcaption' || tag === 'td') {
+        break;
+      }
+      element = element.parentElement;
+    }
+    if (!element) return '';
+    var text = element.textContent || '';
+    return truncateBytes(String(text).replace(/\s+/g, ' ').trim(), MAX_TEXT_BYTES);
+  }
+
+  function reportSelection() {
+    var selection = window.getSelection ? window.getSelection() : null;
+    if (!selection || selection.rangeCount === 0) return;
+    var text = truncateBytes(String(selection.toString() || '').replace(/\s+/g, ' ').trim(), MAX_TEXT_BYTES);
+    if (!text) {
+      if (lastSelectionText) {
+        lastSelectionText = '';
+        post('selection', { text: '', rect: null, blockText: '' });
+      }
+      return;
+    }
+    if (text === lastSelectionText) return;
+    lastSelectionText = text;
+    var rect = null;
+    try {
+      var box = selection.getRangeAt(0).getBoundingClientRect();
+      rect = {
+        x: Math.round(box.left),
+        y: Math.round(box.top),
+        width: Math.round(box.width),
+        height: Math.round(box.height)
+      };
+    } catch (err) {
+      rect = null;
+    }
+    post('selection', { text: text, rect: rect, blockText: blockTextOf(selection.anchorNode) });
+  }
+
+  function isEditableTarget(target) {
+    var element = target;
+    while (element && element !== document.body) {
+      var tag = element.tagName ? element.tagName.toLowerCase() : '';
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || element.isContentEditable) {
+        return true;
+      }
+      element = element.parentElement;
+    }
+    return false;
+  }
+
+  function isControlTarget(target) {
+    var element = target;
+    while (element && element !== document.body) {
+      var tag = element.tagName ? element.tagName.toLowerCase() : '';
+      var role = element.getAttribute ? element.getAttribute('role') : null;
+      if (tag === 'button' || tag === 'a' || role === 'button') return true;
+      element = element.parentElement;
+    }
+    return false;
+  }
+
+  function setupKeyboard() {
+    // 焦点进入 iframe 后宿主收不到键事件；转发页面未处理的导航键。
+    document.addEventListener('keydown', function (event) {
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (isEditableTarget(event.target)) return;
+      if (scrollMode) {
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          post('request_next', {});
+        } else if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          post('request_prev', {});
+        }
+        // Space / PageDown / PageUp / 上下箭头保持浏览器默认滚动
+        return;
+      }
+      if (event.key === ' ' && isControlTarget(event.target)) return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') {
+        event.preventDefault();
+        post('request_next', {});
+      } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+        event.preventDefault();
+        post('request_prev', {});
+      }
+    });
+  }
+
+  function setupResize() {    if (typeof window.ResizeObserver !== 'function') return;
+    var observer = new window.ResizeObserver(function () {
+      if (resizeTimer) window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(function () {
+        var width = Math.round(window.innerWidth);
+        var height = Math.round(window.innerHeight);
+        if (width === lastResize.width && height === lastResize.height) return;
+        lastResize = { width: width, height: height };
+        post('resize', { width: width, height: height });
+      }, RESIZE_DEBOUNCE_MS);
+    });
+    observer.observe(root);
+  }
+
+  function setupReducedMotion() {
+    var query = null;
+    try {
+      query = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    } catch (err) {
+      query = null;
+    }
+    state.reducedMotion = !!(query && query.matches);
+    applyReducedMotion(state.reducedMotion);
+    if (query && typeof query.addEventListener === 'function') {
+      query.addEventListener('change', function (event) {
+        applyReducedMotion(!!event.matches);
+        notify({ type: 'theme', payload: { reducedMotion: state.reducedMotion } });
+      });
+    }
+  }
+
+  function setupErrorReporting() {
+    window.addEventListener('error', function (event) {
+      if (event && event.target && event.target !== window && event.target.tagName) {
+        // 资源加载失败（如 data: 图片损坏）同样上报，便于宿主定位
+        reportError('资源加载失败：' + event.target.tagName.toLowerCase(), 'resource', 0, 0);
+        return;
+      }
+      reportError(event && event.message ? event.message : '未捕获错误', event && event.filename ? event.filename : 'window', event ? event.lineno : 0, event ? event.colno : 0);
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      var reason = event && event.reason;
+      var message = reason && reason.message ? reason.message : String(reason || '未处理的 Promise 拒绝');
+      reportError(message, 'unhandledrejection', 0, 0);
+    });
+  }
+
+  function ready(options) {
+    if (readyCalled) {
+      warn('MockFinal.ready 只能调用一次，重复调用已忽略');
+      return false;
+    }
+    readyCalled = true;
+    var title = options && typeof options.title === 'string' ? truncateBytes(options.title.trim(), 200) : '';
+    if (title) {
+      try {
+        document.title = title;
+      } catch (err) {
+        /* 标题写入失败不影响就绪 */
+      }
+    }
+    root.setAttribute('data-mp-ready', 'true');
+    post('ready', { title: title });
+    return true;
+  }
+
+  function emit(type, payload) {
+    if (typeof type !== 'string' || !type) {
+      throw new TypeError('MockFinal.emit(type, payload) 需要非空字符串 type');
+    }
+    if (EMIT_TYPES.indexOf(type) < 0) {
+      warn('未登记的 emit 类型：' + type);
+    }
+    return post('event', { type: type, payload: payload === undefined ? {} : payload });
+  }
+
+  function next() {
+    return post('request_next', {});
+  }
+
+  function prev() {
+    return post('request_prev', {});
+  }
+
+  function requestAssistant(quote) {
+    var payload = {};
+    if (typeof quote === 'string' && quote) {
+      payload.quote = truncateBytes(quote, MAX_TEXT_BYTES);
+    }
+    return post('request_assistant', payload);
+  }
+
+  function install() {
+    var api = {
+      version: RUNTIME_VERSION,
+      ready: ready,
+      emit: emit,
+      next: next,
+      prev: prev,
+      requestAssistant: requestAssistant,
+      getTheme: getTheme,
+      onHostMessage: onHostMessage
+    };
+    Object.freeze(api);
+    try {
+      Object.defineProperty(window, 'MockFinal', {
+        value: api,
+        writable: false,
+        configurable: false,
+        enumerable: true
+      });
+    } catch (err) {
+      window.MockFinal = api;
+    }
+    state.mode = readMode();
+    state.tokens = readTokens();
+    setupReducedMotion();
+    setupHostListener();
+    setupSelection();
+    setupKeyboard();
+    setupResize();
+    setupErrorReporting();
+    // 供宿主与 Validator 诊断的只读标记（不含任何页面数据）
+    root.setAttribute('data-mp-runtime', RUNTIME_VERSION);
+    return api;
+  }
+
+  if (window.MockFinal && window.MockFinal.version) {
+    // 已注入过：不重复安装，避免 defineProperty 冲突
+    return;
+  }
+  install();
+})();
+
+</script>
+<script>
+
+(function () {
+  'use strict';
+  var root = document.querySelector('.pg-page');
+  if (!root) return;
+  var api = window.MockFinal;
+  var reduceMotion = document.documentElement.getAttribute('data-mp-reduced-motion') === 'true';
+
+  function resolveTarget(id) {
+    if (!id) return null;
+    return document.getElementById(id) || root.querySelector('[data-mp-block="' + id + '"]');
+  }
+
+  var figure = root.querySelector('[data-pg-figure]');
+  var figureIndex = 0;
+  var figureTotal = figure ? Number(figure.getAttribute('data-pg-states') || '1') : 0;
+  var figureStateLabel = figure ? figure.querySelector('[data-pg-figure-state-label]') : null;
+
+  function emit(type, payload) {
+    if (!api || typeof api.emit !== 'function') return;
+    try { api.emit(type, payload); } catch (err) { /* runtime 不可用时静默 */ }
+  }
+
+  function setActiveFigure() {
+    if (!figure) return;
+    figure.setAttribute('data-pg-figure-state', String(figureIndex));
+    var groups = figure.querySelectorAll('[data-pg-state-group]');
+    for (var i = 0; i < groups.length; i += 1) {
+      groups[i].setAttribute('data-pg-active', String(i === figureIndex));
+    }
+    var notes = figure.querySelectorAll('[data-pg-note]');
+    for (var j = 0; j < notes.length; j += 1) {
+      notes[j].hidden = Number(notes[j].getAttribute('data-pg-note')) !== figureIndex;
+    }
+    if (figureStateLabel) {
+      figureStateLabel.textContent = String(figureIndex + 1) + '/' + String(figureTotal);
+    }
+    emit('progress', { step: figureIndex + 1, total: figureTotal });
+  }
+
+  function resetChecks() {
+    var checks = root.querySelectorAll('[data-pg-check]');
+    for (var i = 0; i < checks.length; i += 1) {
+      checks[i].removeAttribute('data-pg-check-state');
+      var options = checks[i].querySelectorAll('[data-pg-option]');
+      for (var j = 0; j < options.length; j += 1) {
+        options[j].removeAttribute('data-pg-state');
+        options[j].removeAttribute('aria-pressed');
+      }
+      var explanation = checks[i].querySelector('[data-pg-explanation]');
+      if (explanation) explanation.hidden = true;
+    }
+  }
+
+  function resetPage() {
+    figureIndex = 0;
+    setActiveFigure();
+    resetChecks();
+  }
+
+  function findAction(target) {
+    var element = target;
+    while (element && element !== root) {
+      if (element.getAttribute && element.getAttribute('data-pg-action')) return element;
+      element = element.parentElement;
+    }
+    return null;
+  }
+
+  root.addEventListener('click', function (event) {
+    var actionTarget = findAction(event.target);
+    if (!actionTarget) return;
+    var action = actionTarget.getAttribute('data-pg-action');
+    if (action === 'figure-next') {
+      figureIndex = Math.min(figureIndex + 1, Math.max(0, figureTotal - 1));
+      setActiveFigure();
+    } else if (action === 'figure-prev') {
+      figureIndex = Math.max(figureIndex - 1, 0);
+      setActiveFigure();
+    } else if (action === 'figure-reset' || action === 'reset') {
+      resetPage();
+    } else if (action === 'next') {
+      if (api && typeof api.next === 'function') api.next();
+    } else if (action === 'prev') {
+      if (api && typeof api.prev === 'function') api.prev();
+    } else if (action === 'goto') {
+      var blockId = actionTarget.getAttribute('data-pg-goto');
+      var block = resolveTarget(blockId);
+      if (block && typeof block.scrollIntoView === 'function') {
+        block.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+        block.setAttribute('data-mp-focus', 'true');
+      }
+    }
+  });
+
+  var optionButtons = root.querySelectorAll('[data-pg-option]');
+  for (var oi = 0; oi < optionButtons.length; oi += 1) {
+    optionButtons[oi].addEventListener('click', function (event) {
+      var button = event.currentTarget;
+      var check = button.closest('[data-pg-check]');
+      if (!check || check.getAttribute('data-pg-check-state') === 'answered') return;
+      var correct = button.getAttribute('data-pg-correct') === 'true';
+      button.setAttribute('data-pg-state', correct ? 'correct' : 'wrong');
+      button.setAttribute('aria-pressed', 'true');
+      if (!correct) {
+        var all = check.querySelectorAll('[data-pg-option]');
+        for (var i = 0; i < all.length; i += 1) {
+          if (all[i].getAttribute('data-pg-correct') === 'true') {
+            all[i].setAttribute('data-pg-state', 'correct');
+          }
+        }
+      }
+      var result = check.querySelector('[data-pg-result]');
+      if (result) {
+        if (correct) {
+          result.textContent = '答对了。';
+        } else {
+          var key = check.querySelector('[data-pg-option][data-pg-correct="true"] .pg-option-key');
+          result.textContent = key ? '答错了，正确答案是 ' + key.textContent + '。' : '答错了。';
+        }
+        result.hidden = false;
+      }
+      var explanation = check.querySelector('[data-pg-explanation]');
+      if (explanation) explanation.hidden = false;
+      check.setAttribute('data-pg-check-state', 'answered');
+      emit('interaction', { type: 'check', correct: correct });
+    });
+  }
+
+  if (api && typeof api.onHostMessage === 'function') {
+    api.onHostMessage(function (message) {
+      if (!message || message.type !== 'focus_block' || !message.payload) return;
+      var blockId = message.payload.block_id;
+      var block = blockId ? root.querySelector('[data-mp-block="' + blockId + '"]') : null;
+      if (block && typeof block.scrollIntoView === 'function') {
+        block.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+      }
+    });
+  }
+
+  function markFormulaScrollers() {
+    var wraps = root.querySelectorAll('.pg-formula-wrap');
+    for (var i = 0; i < wraps.length; i += 1) {
+      var formula = wraps[i].querySelector('.pg-formula');
+      if (formula && formula.scrollWidth > formula.clientWidth + 1) {
+        wraps[i].setAttribute('data-pg-scrollable', 'true');
+      } else {
+        wraps[i].removeAttribute('data-pg-scrollable');
+      }
+    }
+  }
+  var formulaTimer = 0;
+  window.addEventListener('resize', function () {
+    if (formulaTimer) window.clearTimeout(formulaTimer);
+    formulaTimer = window.setTimeout(markFormulaScrollers, 150);
+  });
+
+  var outlineLinks = root.querySelectorAll('.pg-outline-link[data-pg-goto]');
+  var outlineTick = 0;
+
+  function updateOutlineCurrent() {
+    if (!outlineLinks.length) return;
+    var spyOffset = window.innerWidth <= 960 ? 150 : 32;
+    var current = null;
+    for (var i = 0; i < outlineLinks.length; i += 1) {
+      var id = outlineLinks[i].getAttribute('data-pg-goto');
+      var block = resolveTarget(id);
+      if (!block) continue;
+      if (block.getBoundingClientRect().top <= spyOffset) current = outlineLinks[i];
+    }
+    for (var j = 0; j < outlineLinks.length; j += 1) {
+      if (outlineLinks[j] === current) {
+        outlineLinks[j].setAttribute('data-pg-current', 'true');
+        outlineLinks[j].setAttribute('aria-current', 'location');
+      } else {
+        outlineLinks[j].removeAttribute('data-pg-current');
+        outlineLinks[j].removeAttribute('aria-current');
+      }
+    }
+  }
+
+  function scheduleOutlineUpdate() {
+    if (outlineTick) return;
+    outlineTick = window.requestAnimationFrame(function () {
+      outlineTick = 0;
+      updateOutlineCurrent();
+    });
+  }
+  window.addEventListener('scroll', scheduleOutlineUpdate, { passive: true });
+  window.addEventListener('resize', scheduleOutlineUpdate);
+
+  setActiveFigure();
+  markFormulaScrollers();
+  updateOutlineCurrent();
+  window.setTimeout(markFormulaScrollers, 120);
+  if (api && typeof api.ready === 'function') {
+    api.ready({ title: root.getAttribute('data-pg-title') || document.title || '' });
+  }
+})();
+
+</script>
+<script>
+
+</script>
+</body>
+</html>

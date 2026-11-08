@@ -31,6 +31,10 @@ function page(
     manifest_title: null,
     validation_status: null,
     validation_issue_count: 0,
+    teaching_role: null,
+    estimated_minutes: null,
+    check_count: 0,
+    teaching_score: null,
   }
 }
 

@@ -64,7 +64,7 @@ onBeforeUnmount(() => {
     <transition name="modal">
       <div
         v-if="open"
-        class="fixed inset-0 z-90 flex items-end justify-center p-0 sm:items-center sm:p-4"
+        class="fixed inset-0 z-modal flex items-end justify-center p-0 sm:items-center sm:p-4"
       >
         <div
           class="absolute inset-0 bg-overlay"

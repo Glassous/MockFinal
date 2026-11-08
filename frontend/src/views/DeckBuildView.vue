@@ -29,6 +29,7 @@ import {
   normalizeDeckStyle,
   pageDisplayTitle,
   sortedPages,
+  TEACHING_ROLE_LABELS,
 } from '@/lib/deck'
 import { useToastStore } from '@/stores/toast'
 import AppButton from '@/components/AppButton.vue'
@@ -71,6 +72,23 @@ const terminal = computed(
 )
 const pages = computed(() => (deck.value ? sortedPages(deck.value) : []))
 const failedPages = computed(() => pages.value.filter((page) => page.status === 'failed'))
+const roleSummary = computed(() => {
+  const counts = new Map<string, number>()
+  for (const page of pages.value) {
+    if (!page.teaching_role) continue
+    counts.set(page.teaching_role, (counts.get(page.teaching_role) ?? 0) + 1)
+  }
+  return [...counts.entries()]
+    .map(([role, count]) => `${TEACHING_ROLE_LABELS[role as keyof typeof TEACHING_ROLE_LABELS]} ${count}`)
+    .join(' · ')
+})
+const averageTeachingScore = computed(() => {
+  const scores = pages.value
+    .map((page) => page.teaching_score)
+    .filter((score): score is number => typeof score === 'number')
+  if (!scores.length) return null
+  return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+})
 const jobPercent = computed(() => {
   if (!job.value) return 0
   if (job.value.status === 'done' || job.value.status === 'partial') return 100
@@ -500,6 +518,12 @@ onBeforeUnmount(() => {
                   {{ job.ready_pages }} 就绪 · {{ job.failed_pages }} 失败
                 </span>
               </div>
+              <p v-if="roleSummary" class="mb-2 text-[11px] text-faint">
+                {{ roleSummary }}
+                <template v-if="averageTeachingScore !== null">
+                  · 平均教学分 {{ averageTeachingScore }}
+                </template>
+              </p>
               <BuildPageGrid :deck="deck" @open="openPage" @retry="openRetry" />
               <div v-if="active" class="mt-3 flex items-center gap-2 text-xs text-muted">
                 <Loader2 class="h-3.5 w-3.5 spin" />
@@ -507,6 +531,9 @@ onBeforeUnmount(() => {
               </div>
               <div v-if="!active && failedPages.length" class="mt-4 space-y-2">
                 <h4 class="text-xs font-semibold text-ink">失败页面</h4>
+                <p class="text-[11px] leading-relaxed text-muted">
+                  可先查看构建输出中的失败码；常见原因是资料不足、布局溢出或校验超时。修正资料或重试仍失败时，建议整册重新规划。
+                </p>
                 <div
                   v-for="page in failedPages"
                   :key="page.id"

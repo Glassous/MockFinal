@@ -50,22 +50,42 @@ X-MF-Signature: <hex(hmac_sha256(token, "{timestamp}.{method}.{path}.{raw_body}"
   "page_brief": {
     "page_id": "page_bisect_001",
     "deck_title": "数据结构 · 复习页",
+    "role": "mechanism",
     "knowledge_point": { "title": "二分查找", "summary": "…", "objectives": [], "key_points": [], "formulas": [], "misconceptions": [] },
+    "merged_knowledge_points": [],
+    "teaching_contract": {
+      "objectives": ["能说出循环不变量"],
+      "prerequisites": ["数组有序"],
+      "hook": "10 亿个数要试多久？",
+      "check_idea": "为什么 mid 要向下取整？",
+      "worked_example_idea": "在 [1,3,5,7] 中查 7",
+      "required": ["hook", "chain", "worked_example", "check", "misconception"],
+      "density": { "visible_layer_chars": 450, "total_page_chars": 700, "visible_blocks": 6, "total_blocks": 8, "primary_interactions": 1, "checks": 1 }
+    },
     "source_excerpts": [
       { "section_id": 102, "heading": "1.1 二分查找", "text": "…" }
     ],
     "style": { "preset": "blueprint", "content": ["concept", "formula"], "custom_prompt": "", "density": "standard" },
     "interaction_idea": "用区间收缩动画演示二分",
+    "deck_context": { "previous_learning": "上一页…", "next_hook": "下一页…", "chapter_index": 1, "chapter_total": 4 },
     "constraints": {
       "viewport": ["1280x720", "1440x900", "1920x1080"],
       "no_scroll": true,
       "no_network": true,
       "max_bundle_bytes": 2097152,
-      "runtime_version": "1.0.0",
+      "runtime_version": "1.1.0",
+      "schema_version": "1.1",
       "language": "zh-CN"
     },
     "previous_page": null,
     "next_page": null
+  },
+  "session": {
+    "key": "deck_9_lane_0",
+    "lane": 0,
+    "page_index": 2,
+    "page_total": 7,
+    "first": false
   },
   "feedback": null
 }
@@ -78,6 +98,10 @@ X-MF-Signature: <hex(hmac_sha256(token, "{timestamp}.{method}.{path}.{raw_body}"
 ```
 
 - `feedback` 仅用于单页重做，长度 ≤ 2000 字；不得覆盖 constraints。
+- `teaching_contract` 仅在 `DECK_TEACHING_ENABLED=true` 时出现；出现时 Builder 必须要求 `manifest.schema_version="1.1"`、`design_system="1.0"` 与完整 `teaching`。
+- `merged_knowledge_points` 是同一页合并展示的其他知识点；Builder 不得只写 primary。
+- `deck_context` 提供上一页/下一页承接与章节位置，不包含原始页面代码。
+- `session`（P11，可选）仅在 Builder `BUILDER_SESSION_MODE=deck` 时生效：`key` 匹配 `^[A-Za-z0-9_-]{1,120}$`，同 key 的页面串行复用 Pi 会话；`lane` 为 lane 序号，`page_index` / `page_total` 用于轮换与任务卡，需满足 `0 <= page_index < page_total`；`first=true` 首次创建会话并写入 deck context/materials。无 `session` 时保持逐页独立会话。
 - 创建成功后 Builder 在后台执行；HTTP 连接断开不影响任务。
 
 ### 3.2 查询构建
@@ -92,12 +116,20 @@ X-MF-Signature: <hex(hmac_sha256(token, "{timestamp}.{method}.{path}.{raw_body}"
   "attempts": 1,
   "error": null,
   "events_cursor": 12,
-  "usage": { "input_tokens": 0, "output_tokens": 0, "duration_ms": 0 },
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost": 0,
+    "duration_ms": 0
+  },
   "validation": null
 }
 ```
 
 - `validation` 为最后一次 Validator 报告摘要；`failed` 时必须给出中文 `error`。
+- `usage.cost` 按 Builder 的 `PAGE_BUILDER_COST_INPUT/OUTPUT/CACHE_READ/CACHE_WRITE`（每 1M token 单价）估算；未配置单价时为 0，但 token 与 cache 字段仍会记录。主 API 会把每次尝试的 usage 写入 `deck_build_jobs.usage`（按 `build_id` 合并），不向前端展示金额。
 
 ### 3.3 增量事件
 
@@ -139,6 +171,18 @@ X-MF-Signature: <hex(hmac_sha256(token, "{timestamp}.{method}.{path}.{raw_body}"
 
 - 幂等；已结束返回当前状态。
 - 取消后状态 `canceled`，临时目录清理，已生成的中间文件不交付。
+
+### 3.6 关闭会话（P11）
+
+`DELETE /v1/sessions/{key}`
+
+```json
+{ "key": "deck_9_lane_0", "status": "closed" }
+```
+
+- 仅 `BUILDER_SESSION_MODE=deck` 时有意义；关闭对应 lane 的 Pi 会话，删除会话目录（保留产物由主 API 已收取的 bundle 决定）。
+- 幂等：key 不存在时同样返回 202 + `"status": "not_found"`，用于 Deck 结束/取消后的尽力清理；空闲 TTL 兜底。
+- key 不匹配 `^[A-Za-z0-9_-]{1,120}$` → 400 `INVALID_SESSION_KEY`；非 DELETE → 405。
 
 ## 4. Validator 接口
 

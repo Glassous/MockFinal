@@ -48,7 +48,14 @@ export class BuildTask {
   stage = "已进入构建队列，等待执行";
   attempts = 0;
   error: string | null = null;
-  usage: BuildUsage = { input_tokens: 0, output_tokens: 0, duration_ms: 0 };
+  usage: BuildUsage = {
+    input_tokens: 0,
+    output_tokens: 0,
+    cache_read_tokens: 0,
+    cache_write_tokens: 0,
+    cost: 0,
+    duration_ms: 0,
+  };
   validation: ValidationReport | null = null;
   bundle: PageBundle | null = null;
   startedAt: string | null = null;
@@ -65,11 +72,24 @@ export class BuildTask {
     this.deadlineSeconds = input.deadlineSeconds;
     this.harnessVersion = input.harnessVersion;
     this.runtimeVersion = input.runtimeVersion;
-    this.buildDir = path.join(input.buildRoot, this.buildId);
+    const sessionKey = input.request.session?.key;
+    this.buildDir = sessionKey
+      ? path.join(
+          input.buildRoot,
+          "sessions",
+          sessionKey,
+          "pages",
+          input.request.page_brief.page_id,
+        )
+      : path.join(input.buildRoot, this.buildId);
   }
 
   get pageId(): string {
     return this.request.page_brief.page_id;
+  }
+
+  get sessionKey(): string | undefined {
+    return this.request.session?.key;
   }
 
   get signal(): AbortSignal {
@@ -100,6 +120,9 @@ export class BuildTask {
       started_at: this.startedAt,
       finished_at: this.finishedAt,
       page_id: this.pageId,
+      ...(this.sessionKey
+        ? { session_key: this.sessionKey, lane: this.request.session?.lane }
+        : {}),
     };
   }
 

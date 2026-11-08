@@ -9,7 +9,7 @@ const { toasts } = storeToRefs(toastStore)
 
 <template>
   <div
-    class="pointer-events-none fixed inset-x-0 top-5 z-100 flex flex-col items-center gap-2 px-4"
+    class="pointer-events-none fixed inset-x-0 top-5 z-toast flex flex-col items-center gap-2 px-4"
     role="region"
     aria-live="polite"
   >

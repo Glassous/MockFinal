@@ -5,6 +5,7 @@ const props = defineProps<{
   current: number
   total: number
   completed?: number
+  ready?: number
 }>()
 
 const percent = computed(() =>
@@ -25,7 +26,8 @@ const percent = computed(() =>
       />
     </div>
     <span v-if="completed !== undefined" class="hidden text-[11px] text-faint md:inline">
-      已读 {{ completed }} 页
+      已学完 {{ completed }} 页
+      <template v-if="ready !== undefined"> · 已构建 {{ ready }}</template>
     </span>
   </div>
 </template>

@@ -183,14 +183,14 @@ compose overlay（`../docker-compose.pageref.yml`）已把 `page-validator.build
 - 多阶段构建；运行阶段 `USER pwuser`（非 root），`WORKDIR /app`，`EXPOSE 9200`，`CMD ["node","dist/server.js"]`。
 - 升级 Playwright / 基础镜像属于独立 `build` 任务，必须同时更新锁文件、Dockerfile 与本文档。
 
-## 8. 已执行验证（2026-11-07，本机 Windows + Node v24.21.0）
+## 8. 已执行验证（2026-11-08，本机 Windows + Node v24.22.1）
 
 | 命令 | 结果 |
 | --- | --- |
-| `node --test shared/page-shell/shell.test.mjs` | 11 passed |
+| `node --test shared/page-shell/shell.test.mjs` | 15 passed |
 | `validator: npm install` | 成功；`@playwright/test@1.65.0`、`parse5@8.1.0`、`acorn@8.19.0`、`acorn-walk@8.3.5`、`typescript@5.9.3` |
 | `validator: npm run build` | `tsc` 通过（strict + noUnusedLocals） |
-| `validator: npm test` | 43 passed / 0 failed（含 Chromium 浏览器检查与 HTTP 集成测试） |
+| `validator: npm test` | 50 passed / 0 failed（含 Chromium 浏览器检查与 HTTP 集成测试） |
 | `npx playwright install chromium` | 成功安装 Chromium headless shell |
 | `docker manifest inspect mcr.microsoft.com/playwright:v1.65.0-noble` | tag 存在 |
 | `docker build -f validator/Dockerfile -t … .` | 构建成功 |
@@ -199,6 +199,9 @@ compose overlay（`../docker-compose.pageref.yml`）已把 `page-validator.build
 | 1024×768 降级（bad-overflow） | 只报 `warning:ZERO_SCROLL_OVERFLOW`，不阻止放行 |
 | 容器内 bad-* 夹具 | `bad-overflow → ZERO_SCROLL_OVERFLOW`；`bad-console-error → CONSOLE_ERROR`；`bad-smoke-fail → SMOKE_FAILED`；`bad-fetch → JS_FORBIDDEN_API + CONSOLE_ERROR`；`bad-parent → JS_FORBIDDEN_API`；`bad-external-link → HTML_EXTERNAL_URL + NETWORK_REQUEST + CONSOLE_ERROR` |
 | 沙箱 iframe 宿主消息（theme/pause + 错误 channel） | 页面收到 theme/pause，`data-mp-theme=dark`、`data-mp-paused=true`；错误 channel 被丢弃；`__MP_CHANNEL__` 已从全局删除 |
+| P10 `good-teaching`（schema 1.1 + deck kit + 渐进式披露，桌面三视口 + 390×844） | 0 error、0 内容预算/字号/移动端告警，冒烟后复测通过 |
+| P10 六角色 golden fixtures（concept/mechanism/worked_example/practice/compare/summary） | 静态检查 0 error、教学评分均 ≥70；1280×720 浏览器检查 0 error |
+| P10 内容超预算/裁剪/小字号夹具 | 触发 `CONTENT_BUDGET_EXCEEDED` / `CONTENT_CLIPPED` / `MIN_FONT_TOO_SMALL` |
 
 未执行项：
 
@@ -209,10 +212,10 @@ compose overlay（`../docker-compose.pageref.yml`）已把 `page-validator.build
 
 ## 9. 与契约的不一致（待人工裁决，未擅自改契约）
 
-1. **失败码命名**：`PAGE_CONTRACT.md` §10.2 使用 `READY_TIMEOUT`、`ZERO_SCROLL_INNER_SCROLL`、`NETWORK_REQUEST_BLOCKED`、`A11Y_ISSUE`；`INTERNAL_API.md` §4.2 使用 `PAGE_NOT_READY`、`INTERNAL_SCROLL`、`NETWORK_REQUEST`、`A11Y_WARNING`。实现采用 INTERNAL_API 的码（对接后端），建议后续把两份文档统一。
+1. **失败码命名（已统一）**：`PAGE_CONTRACT.md` §10 已改为实现使用的 `PAGE_NOT_READY`、`INTERNAL_SCROLL`、`NETWORK_REQUEST`、`A11Y_WARNING`，并补充 P10 内容预算与教学码。
 2. **`smoke.expect` 语义**：契约允许“选择器或状态描述”，本版只支持选择器；非选择器描述会被 `MANIFEST_INVALID` 拒绝。
 3. **HTML 注释**：契约 §5.1 禁止 `<!--`，实现按 error 处理（`SHELL_ESCAPE_SEQUENCE`），shell 也对 `<!--` 直接抛错。
 4. **内部滚动轴**：契约 §9.3 只测 `overflow-y`，实现同时测 `overflow-x` / `overflow-y`（更严格）。
 5. **1024×768**：默认视口不含该档；若调用方追加，零滚动类问题降级为 warning（按 O-4 暂定值）。
-6. **额外 warning 码**：`SCREENSHOT_OMITTED`、`BROWSER_CHECK_FAILED` 不在两份契约的码表中，仅用于报告可读性。
+6. **额外 warning 码**：`SCREENSHOT_OMITTED`、`BROWSER_CHECK_FAILED`、`TEACHING_SCORE_LOW` 等仅用于报告可读性。
 7. **`/healthz` 字段**：在契约的 `status`/`version` 之外附加了 `runtime_version`。

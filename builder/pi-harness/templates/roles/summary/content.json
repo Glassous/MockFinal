@@ -1,0 +1,76 @@
+{
+  "content_version": "2.0",
+  "role": "summary",
+  "title": "【替换】本章速查：一页带走",
+  "eyebrow": "【替换：brief.deck_context.chapter_title · 小主题】",
+  "lede": "【替换】一句话说明这一页汇总哪些内容。",
+  "objectives": [
+    "【替换：能复述本章主线】",
+    "【替换：能定位自己的薄弱点】"
+  ],
+  "scroll": "fit",
+  "blocks": [
+    {
+      "type": "callout",
+      "kind": "key",
+      "title": "一句话主线",
+      "text": "【替换：用一句话串起本章概念、判断与计算。】"
+    },
+    {
+      "type": "formula",
+      "title": "必须记住的公式",
+      "tex": "e^{i\theta}=\\cos\theta+i\\sin\theta",
+      "label": "【替换：适用条件】"
+    },
+    {
+      "type": "table",
+      "title": "题型与工具",
+      "headers": [
+        "题型信号",
+        "首选工具",
+        "检查点"
+      ],
+      "rows": [
+        [
+          "【信号 1】",
+          "【工具】",
+          "【检查】"
+        ],
+        [
+          "【信号 2】",
+          "【工具】",
+          "【检查】"
+        ],
+        [
+          "【信号 3】",
+          "【工具】",
+          "【检查】"
+        ]
+      ],
+      "caption": "【替换：表格说明】"
+    }
+  ],
+  "summary": {
+    "key_points": [
+      "【替换：要点 1】",
+      "【替换：要点 2】",
+      "【替换：要点 3】"
+    ],
+    "misconceptions": [
+      "【替换：易错点】"
+    ],
+    "next": "【替换：下一讲承接】"
+  },
+  "source_refs": [
+    {
+      "section_id": 1,
+      "heading": "【替换：资料标题】",
+      "quote": "【替换：资料原文片段】"
+    }
+  ],
+  "meta": {
+    "exam": "【替换：对应题型】",
+    "minutes": 6,
+    "source": "【替换：资料出处】"
+  }
+}

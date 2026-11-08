@@ -1,0 +1,76 @@
+{
+  "page_id": "page_sample_worked_bisect",
+  "deck_title": "数据结构 · 复习页",
+  "role": "worked_example",
+  "knowledge_point": {
+    "title": "例题：在 16 个数里找目标",
+    "summary": "用闭区间二分查找完整走一遍区间收缩过程，每一步保留的区间都满足循环不变式。",
+    "objectives": [
+      "完整写出二分查找的区间变化",
+      "用不变式解释每一步的保留区间"
+    ],
+    "key_points": [
+      "初始闭区间覆盖全部候选",
+      "比较中点后只保留包含目标的一半",
+      "区间为空即目标不存在"
+    ],
+    "formulas": [
+      "mid = \\lfloor (left + right) / 2 \\rfloor"
+    ],
+    "misconceptions": [
+      "每次必须比较中点本身是否相等才能继续"
+    ]
+  },
+  "source_excerpts": [
+    {
+      "section_id": 101,
+      "heading": "闭区间写法与循环不变式",
+      "text": "闭区间写法用 left 与 right 表示当前有效下标范围。循环不变式是：若目标存在，其下标一定在闭区间 [left, right] 内。每轮计算 mid = left + (right - left) // 2，向下取整。若 a[mid] < target，目标只可能在右半侧，令 left = mid + 1；否则令 right = mid - 1。区间长度严格减小，循环必然终止。"
+    },
+    {
+      "section_id": 102,
+      "heading": "一个完整例子",
+      "text": "以数组长度 16、目标 23 为例：初始 [1, 16]，mid = 8，目标更大，保留 [9, 16]；mid = 12，目标更小，保留 [9, 11]；mid = 10 时命中目标 23。整个过程中候选区间从 16 降到 8、4、2，共比较 4 次。"
+    }
+  ],
+  "style": {
+    "preset": "blueprint",
+    "content": ["example", "process"],
+    "custom_prompt": "把每一步的区间与比较结果写清楚，像板书一样克制；不要装饰性动画。",
+    "density": "standard"
+  },
+  "interaction_idea": "分步展示初始区间、取中点、保留区间与命中，当前步骤高亮，可重置。",
+  "teaching_contract": {
+    "objectives": ["完整写出二分查找的区间变化", "用不变式解释每一步的保留区间"],
+    "prerequisites": ["知道二分查找的适用前提"],
+    "hook": "每次折半后，答案一定还在区间里吗？",
+    "worked_example_idea": "16 个数的数组，目标 23，分 4 步走完区间收缩",
+    "check_idea": "第二步比较后应保留哪个区间",
+    "required": ["role", "objectives", "worked_example", "check"],
+    "density": {
+      "visible_layer_chars": 450,
+      "total_page_chars": 700,
+      "visible_blocks": 6,
+      "total_blocks": 8,
+      "primary_interactions": 1,
+      "checks": 1
+    }
+  },
+  "deck_context": {
+    "previous_learning": "二分查找的循环不变式",
+    "next_hook": "二分查找的边界写法",
+    "chapter_index": 2,
+    "chapter_total": 3
+  },
+  "constraints": {
+    "viewport": ["1280x720", "1440x900", "1920x1080"],
+    "no_scroll": true,
+    "no_network": true,
+    "max_bundle_bytes": 2097152,
+    "runtime_version": "1.1.0",
+    "schema_version": "1.1",
+    "language": "zh-CN"
+  },
+  "previous_page": null,
+  "next_page": null
+}

@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   AlertCircle,
   ArrowLeft,
+  Check,
   ChevronLeft,
   ChevronRight,
   Expand,
-  BookOpen,
-  Loader2,
   MessageSquareText,
   Minimize,
+  PanelRight,
   RotateCcw,
 } from 'lucide-vue-next'
 import type { Deck, DeckPageSummary, PageBundle, PageManifest } from '@/types'
@@ -29,11 +29,17 @@ import {
 import { useThemeStore } from '@/stores/theme'
 import { useToastStore } from '@/stores/toast'
 import AppButton from '@/components/AppButton.vue'
+import AppIconButton from '@/components/AppIconButton.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import LoadingSkeleton from '@/components/LoadingSkeleton.vue'
 import Modal from '@/components/Modal.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 import PageFrame from '@/components/deck/PageFrame.vue'
 import PageProgress from '@/components/deck/PageProgress.vue'
 import SelectionAction from '@/components/deck/SelectionAction.vue'
 import DeckAssistantDrawer from '@/components/deck/DeckAssistantDrawer.vue'
+import DeckRoleBadge from '@/components/deck/DeckRoleBadge.vue'
+import DeckStudyPanel from '@/components/deck/DeckStudyPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -55,15 +61,20 @@ const runtimeError = ref('')
 const frameReady = ref(false)
 const frameKey = ref(0)
 const stageRef = ref<HTMLElement | null>(null)
+const pageFrameRef = ref<InstanceType<typeof PageFrame> | null>(null)
+const assistantDrawerRef = ref<InstanceType<typeof DeckAssistantDrawer> | null>(null)
 
 const drawerOpen = ref(false)
 const assistantQuote = ref('')
 const assistantBlock = ref('')
 
-const sourceOpen = ref(false)
+const studyOpen = ref(false)
+const frameComplete = ref(false)
+const checkDone = ref(false)
 const rebuildOpen = ref(false)
 const rebuildFeedback = ref('')
 const actionBusy = ref(false)
+const completing = ref(false)
 
 const selection = ref<{
   text: string
@@ -74,14 +85,17 @@ const selection = ref<{
 
 const isFullscreen = ref(false)
 const bundleCache = new Map<string, PageBundle>()
-let viewStart = 0
+const BUNDLE_CACHE_LIMIT = 6
 let pageLoadToken = 0
-const completedSent = new Set<number>()
 
 const pages = computed(() => (deck.value ? sortedPages(deck.value) : []))
 const currentIndex = computed(() => (page.value ? page.value.ordinal + 1 : 0))
 const totalPages = computed(() => pages.value.length)
 const completedCount = computed(() => deck.value?.completed_page_ids.length ?? 0)
+const currentCompleted = computed(
+  () => !!page.value && (deck.value?.completed_page_ids ?? []).includes(page.value.id),
+)
+const canComplete = computed(() => frameComplete.value || checkDone.value)
 const nextId = computed(() =>
   deck.value && page.value ? nextPageId(deck.value, page.value.id) : null,
 )
@@ -89,6 +103,9 @@ const prevId = computed(() =>
   deck.value && page.value ? prevPageId(deck.value, page.value.id) : null,
 )
 const manifest = computed<PageManifest>(() => bundle.value?.manifest ?? {})
+const isFlowPage = computed(
+  () => manifest.value.design_system === '2.0' && manifest.value.teaching?.scroll === 'flow',
+)
 const pageTitle = computed(
   () =>
     manifest.value.title ||
@@ -96,7 +113,6 @@ const pageTitle = computed(
     page.value?.title ||
     '',
 )
-const sourceRefs = computed(() => manifest.value.source_refs ?? [])
 const assistantInfo = computed(() => manifest.value.assistant ?? {})
 const theme = computed(() => themeStore.theme)
 
@@ -104,12 +120,22 @@ function cacheKey(pageId: number, version: number): string {
   return `${pageId}:${version}`
 }
 
+function rememberBundle(key: string, value: PageBundle) {
+  if (bundleCache.has(key)) bundleCache.delete(key)
+  bundleCache.set(key, value)
+  while (bundleCache.size > BUNDLE_CACHE_LIMIT) {
+    const oldest = bundleCache.keys().next().value
+    if (oldest === undefined) break
+    bundleCache.delete(oldest)
+  }
+}
+
 async function fetchBundle(summary: DeckPageSummary): Promise<PageBundle> {
   const key = cacheKey(summary.id, summary.current_version)
   const cached = bundleCache.get(key)
   if (cached) return cached
   const value = await getPageBundle(deckId.value, summary.id)
-  bundleCache.set(key, value)
+  rememberBundle(key, value)
   return value
 }
 
@@ -123,7 +149,7 @@ async function prefetchNeighbors() {
     if (bundleCache.has(key)) continue
     try {
       const value = await getPageBundle(deckId.value, neighbor.id)
-      bundleCache.set(key, value)
+      rememberBundle(key, value)
     } catch {
       /* 预加载失败不影响当前页 */
     }
@@ -138,6 +164,8 @@ async function loadPage() {
   frameError.value = ''
   runtimeError.value = ''
   frameReady.value = false
+  frameComplete.value = false
+  checkDone.value = false
   bundle.value = null
   page.value = null
   selection.value = null
@@ -178,7 +206,6 @@ async function loadPage() {
     if (token !== pageLoadToken) return
     page.value = summary
     bundle.value = loadedBundle
-    viewStart = Date.now()
     void touchLastPage(summary.id)
     void prefetchNeighbors()
   } catch (error) {
@@ -205,30 +232,29 @@ async function touchLastPage(pageId: number) {
   }
 }
 
-function completeIfNeeded(force = false) {
+async function markComplete() {
   const current = page.value
-  if (!current || current.status !== 'ready') return
-  if (completedSent.has(current.id)) return
-  if (!force && Date.now() - viewStart < 3000) return
-  completedSent.add(current.id)
-  void updateDeckProgress(deckId.value, {
-    last_page_id: current.id,
-    completed_page_ids: [current.id],
-  })
-    .then((progress) => {
-      if (deck.value) {
-        deck.value.last_page_id = progress.last_page_id
-        deck.value.completed_page_ids = progress.completed_page_ids
-      }
+  if (!current || current.status !== 'ready' || currentCompleted.value || completing.value) return
+  completing.value = true
+  try {
+    const progress = await updateDeckProgress(deckId.value, {
+      last_page_id: current.id,
+      completed_page_ids: [current.id],
     })
-    .catch(() => {
-      completedSent.delete(current.id)
-    })
+    if (deck.value) {
+      deck.value.last_page_id = progress.last_page_id
+      deck.value.completed_page_ids = progress.completed_page_ids
+    }
+    toast.success('已标记学完本页')
+  } catch (error) {
+    toast.error(error instanceof ApiError ? error.detail : '标记失败，请重试')
+  } finally {
+    completing.value = false
+  }
 }
 
 async function goTo(pageId: number | null) {
   if (!pageId || pageId === page.value?.id) return
-  completeIfNeeded()
   selection.value = null
   await router.push({
     name: 'deck-reader',
@@ -253,6 +279,17 @@ function openAssistant(quote = '', blockText = '') {
   assistantBlock.value = blockText
   selection.value = null
   drawerOpen.value = true
+}
+
+function openAssistantQuestion(question: string) {
+  openAssistant()
+  if (question) {
+    void nextTick(() => assistantDrawerRef.value?.setDraft(question))
+  }
+}
+
+function focusBlock(blockId: string) {
+  pageFrameRef.value?.focusBlock(blockId)
 }
 
 function onSelection(payload: {
@@ -280,7 +317,8 @@ function onSelection(payload: {
 }
 
 function onFrameComplete() {
-  completeIfNeeded(true)
+  frameComplete.value = true
+  toast.info('页面交互已完成，可以标记“学完本页”')
 }
 
 async function toggleFullscreen() {
@@ -319,6 +357,13 @@ function isControlTarget(target: EventTarget | null): boolean {
 }
 
 function onKeydown(event: KeyboardEvent) {
+  if (studyOpen.value) {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      studyOpen.value = false
+    }
+    return
+  }
   if (drawerOpen.value) {
     if (event.key === 'Escape') {
       event.preventDefault()
@@ -326,9 +371,24 @@ function onKeydown(event: KeyboardEvent) {
     }
     return
   }
-  if (sourceOpen.value || rebuildOpen.value) return
+  if (rebuildOpen.value) return
   if (isTypingTarget(event.target)) return
   if (event.key === ' ' && isControlTarget(event.target)) return
+
+  if (isFlowPage.value) {
+    // flow 页由 iframe 自己纵向滚动：只保留左右翻页，Space/PageDown/ArrowUp/Down 交给浏览器
+    if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      void goTo(nextId.value)
+    } else if (event.key === 'ArrowLeft') {
+      event.preventDefault()
+      void goTo(prevId.value)
+    } else if (event.key === 'Escape') {
+      if (document.fullscreenElement) void document.exitFullscreen()
+      selection.value = null
+    }
+    return
+  }
 
   if (event.key === 'ArrowRight' || event.key === ' ' || event.key === 'PageDown') {
     event.preventDefault()
@@ -366,7 +426,6 @@ async function submitRebuild() {
 }
 
 function goOverview() {
-  completeIfNeeded()
   void router.push({
     name: 'deck-overview',
     params: { id: workspaceId.value, deckId: deckId.value },
@@ -395,7 +454,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   pageLoadToken += 1
-  completeIfNeeded()
   window.removeEventListener('keydown', onKeydown)
   document.removeEventListener('fullscreenchange', onFullscreenChange)
 })
@@ -404,84 +462,91 @@ onBeforeUnmount(() => {
 <template>
   <div class="flex h-full min-h-0 flex-col">
     <header class="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-panel px-2 sm:px-4">
-      <button
-        type="button"
-        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-muted transition-colors hover:bg-raised hover:text-ink"
-        aria-label="返回复习页总览"
-        title="返回总览"
-        @click="goOverview"
-      >
+      <AppIconButton label="返回复习页总览" @click="goOverview">
         <ArrowLeft class="h-4 w-4" />
-      </button>
+      </AppIconButton>
       <div class="hidden min-w-0 sm:block">
-        <p class="truncate text-sm font-semibold text-ink">{{ deck?.title || '复习页' }}</p>
+        <div class="flex min-w-0 items-center gap-2">
+          <p class="truncate text-sm font-semibold text-ink">{{ deck?.title || '复习页' }}</p>
+          <DeckRoleBadge
+            :role="page?.teaching_role"
+            :checks="page?.check_count"
+            :minutes="page?.estimated_minutes"
+            :score="page?.teaching_score"
+            compact
+          />
+        </div>
         <p class="truncate text-[11px] text-muted">{{ pageTitle || '加载中…' }}</p>
       </div>
 
       <div class="mx-auto flex items-center gap-2">
-        <button
-          type="button"
-          class="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink disabled:opacity-35"
+        <AppIconButton
+          label="上一页"
+          size="sm"
           :disabled="!prevId"
-          aria-label="上一页"
           @click="goTo(prevId)"
         >
           <ChevronLeft class="h-4 w-4" />
-        </button>
+        </AppIconButton>
         <PageProgress
           :current="currentIndex"
           :total="totalPages"
           :completed="completedCount"
+          :ready="deck?.ready_pages"
         />
-        <button
-          type="button"
-          class="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink disabled:opacity-35"
+        <AppIconButton
+          label="下一页"
+          size="sm"
           :disabled="!nextId"
-          aria-label="下一页"
           @click="goTo(nextId)"
         >
           <ChevronRight class="h-4 w-4" />
-        </button>
+        </AppIconButton>
       </div>
 
       <div class="flex shrink-0 items-center gap-1">
         <button
+          v-if="canComplete && !currentCompleted"
           type="button"
-          class="inline-flex h-9 w-9 items-center justify-center rounded-2xl text-muted transition-colors hover:bg-raised hover:text-ink"
-          aria-label="查看依据资料"
-          title="依据资料"
-          @click="sourceOpen = true"
+          class="hidden h-9 items-center gap-1.5 rounded-2xl bg-invert px-3 text-xs font-medium text-invert-ink transition-opacity hover:opacity-90 disabled:opacity-45 sm:inline-flex"
+          :disabled="completing"
+          @click="markComplete"
         >
-          <BookOpen class="h-4 w-4" />
+          <Check class="h-3.5 w-3.5" />
+          学完本页
         </button>
-        <button
-          type="button"
-          class="inline-flex h-9 w-9 items-center justify-center rounded-2xl text-muted transition-colors hover:bg-raised hover:text-ink"
-          aria-label="打开 AI 助手"
-          title="AI 助手"
-          @click="openAssistant()"
+        <span
+          v-else-if="currentCompleted"
+          class="hidden items-center gap-1 text-xs text-muted sm:inline-flex"
         >
+          <Check class="h-3.5 w-3.5" />
+          已学完
+        </span>
+        <AppIconButton
+          label="学习面板"
+          :active="studyOpen"
+          @click="studyOpen = !studyOpen"
+        >
+          <PanelRight class="h-4 w-4" />
+        </AppIconButton>
+        <AppIconButton label="打开 AI 助手" @click="openAssistant()">
           <MessageSquareText class="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          class="hidden h-9 w-9 items-center justify-center rounded-2xl text-muted transition-colors hover:bg-raised hover:text-ink md:inline-flex"
-          :aria-label="isFullscreen ? '退出全屏' : '全屏阅读'"
-          :title="isFullscreen ? '退出全屏' : '全屏'"
-          @click="toggleFullscreen"
-        >
-          <Minimize v-if="isFullscreen" class="h-4 w-4" />
-          <Expand v-else class="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          class="inline-flex h-9 w-9 items-center justify-center rounded-2xl text-muted transition-colors hover:bg-raised hover:text-ink"
-          aria-label="重做这一页"
-          title="这一页需要调整"
-          @click="rebuildOpen = true"
-        >
+        </AppIconButton>
+        <div class="hidden md:block">
+          <ThemeToggle size="sm" />
+        </div>
+        <div class="hidden md:block">
+          <AppIconButton
+            :label="isFullscreen ? '退出全屏' : '全屏阅读'"
+            @click="toggleFullscreen"
+          >
+            <Minimize v-if="isFullscreen" class="h-4 w-4" />
+            <Expand v-else class="h-4 w-4" />
+          </AppIconButton>
+        </div>
+        <AppIconButton label="重做这一页" @click="rebuildOpen = true">
           <RotateCcw class="h-4 w-4" />
-        </button>
+        </AppIconButton>
       </div>
     </header>
 
@@ -490,58 +555,58 @@ onBeforeUnmount(() => {
         ref="stageRef"
         class="relative flex h-full w-full max-w-[1600px] items-center justify-center overflow-hidden rounded-2xl border border-border bg-panel shadow-sm"
       >
-        <PageFrame
-          v-if="bundle && !frameError"
-          :key="`${page?.id}-${frameKey}`"
-          :bundle="bundle"
-          :theme="theme"
-          @ready="frameReady = true"
-          @selection="onSelection"
-          @request-next="goTo(nextId)"
-          @request-prev="goTo(prevId)"
-          @request-assistant="(quote) => openAssistant(quote, '')"
-          @complete="onFrameComplete"
-          @runtime-error="(message) => (runtimeError = message)"
-          @error="onFrameError"
-        />
+        <transition name="page-switch" mode="out-in">
+          <PageFrame
+            v-if="bundle && !frameError"
+            ref="pageFrameRef"
+            :key="`${page?.id}-${frameKey}`"
+            :bundle="bundle"
+            :theme="theme"
+            @ready="frameReady = true"
+            @selection="onSelection"
+            @request-next="goTo(nextId)"
+            @request-prev="goTo(prevId)"
+            @request-assistant="(quote) => openAssistant(quote, '')"
+            @complete="onFrameComplete"
+            @runtime-error="(message) => (runtimeError = message)"
+            @error="onFrameError"
+          />
+        </transition>
 
         <div
           v-if="loading"
-          class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-panel"
+          class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-panel px-8"
         >
-          <Loader2 class="h-5 w-5 spin text-muted" />
+          <LoadingSkeleton :lines="4" label="正在加载页面" />
           <p class="text-sm text-muted">正在加载页面…</p>
         </div>
 
         <div
           v-else-if="bundle && !frameReady && !frameError"
-          class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-panel"
+          class="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-panel"
         >
-          <div class="flex flex-col items-center gap-2 text-muted">
-            <Loader2 class="h-5 w-5 spin" />
-            <p class="text-sm">正在准备页面运行时…</p>
-          </div>
+          <LoadingSkeleton :lines="2" label="正在准备页面运行时" class="max-w-xs" />
+          <p class="text-sm text-muted">正在准备页面运行时…</p>
         </div>
 
         <div
           v-if="!loading && (notFound || pageError || frameError)"
-          class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-panel px-6 text-center"
+          class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-panel"
         >
-          <span class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-raised text-ink">
-            <AlertCircle class="h-5 w-5" />
-          </span>
-          <h2 class="text-lg font-semibold text-ink">
-            {{ notFound ? '页面不存在' : '页面暂时无法阅读' }}
-          </h2>
-          <p class="max-w-md text-sm leading-relaxed text-muted">
-            {{ notFound ? '它可能已被删除，或你没有访问权限。' : pageError || frameError }}
-          </p>
-          <div class="mt-2 flex flex-wrap justify-center gap-2">
-            <AppButton variant="secondary" @click="goOverview">返回总览</AppButton>
-            <AppButton v-if="!notFound" @click="frameError ? retryFrame() : loadPage()">
-              重试
-            </AppButton>
-          </div>
+          <ErrorState
+            :title="notFound ? '页面不存在' : '页面暂时无法阅读'"
+            :message="notFound ? '它可能已被删除，或你没有访问权限。' : pageError || frameError"
+            :retry="!notFound"
+            @retry="frameError ? retryFrame() : loadPage()"
+          >
+            <button
+              type="button"
+              class="inline-flex h-9 items-center rounded-2xl border border-border bg-panel px-3.5 text-sm font-medium text-ink transition-colors hover:border-border-strong hover:bg-raised"
+              @click="goOverview"
+            >
+              返回总览
+            </button>
+          </ErrorState>
         </div>
 
         <div
@@ -573,6 +638,7 @@ onBeforeUnmount(() => {
     </main>
 
     <DeckAssistantDrawer
+      ref="assistantDrawerRef"
       :open="drawerOpen"
       :deck-id="deckId"
       :page-id="routePageId"
@@ -583,56 +649,22 @@ onBeforeUnmount(() => {
       @close="drawerOpen = false"
     />
 
-    <Modal
-      :open="sourceOpen"
-      title="依据资料"
-      :description="pageTitle"
-      size="lg"
-      @close="sourceOpen = false"
-    >
-      <div v-if="assistantInfo.summary" class="rounded-2xl border border-border bg-raised px-3.5 py-3">
-        <p class="text-[11px] font-semibold uppercase tracking-wider text-faint">页面摘要</p>
-        <p class="mt-1.5 text-sm leading-relaxed text-ink">{{ assistantInfo.summary }}</p>
-        <ul v-if="assistantInfo.key_facts?.length" class="mt-2 space-y-1">
-          <li
-            v-for="fact in assistantInfo.key_facts"
-            :key="fact"
-            class="flex gap-1.5 text-xs leading-relaxed text-muted"
-          >
-            <span class="text-faint">·</span>
-            <span>{{ fact }}</span>
-          </li>
-        </ul>
-      </div>
-
-      <div v-if="sourceRefs.length" class="mt-4 space-y-2.5">
-        <div
-          v-for="(ref, index) in sourceRefs"
-          :key="`${ref.section_id}-${index}`"
-          class="rounded-2xl border border-border bg-panel px-3.5 py-3"
-        >
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-faint">
-              来源 {{ index + 1 }}
-            </span>
-            <span v-if="ref.heading" class="text-sm font-medium text-ink">{{ ref.heading }}</span>
-            <span
-              v-if="ref.unverified"
-              class="rounded-full border border-border-strong px-2 py-0.5 text-[10px] text-muted"
-            >
-              待核对
-            </span>
-          </div>
-          <blockquote
-            v-if="ref.quote"
-            class="mt-2 border-l-2 border-border-strong pl-2.5 text-sm leading-relaxed text-muted"
-          >
-            {{ ref.quote }}
-          </blockquote>
-        </div>
-      </div>
-      <p v-else class="mt-4 text-sm text-muted">本页未引用资料段落。</p>
-    </Modal>
+    <DeckStudyPanel
+      :open="studyOpen"
+      :manifest="manifest"
+      :page-title="pageTitle"
+      :completed="currentCompleted"
+      :can-complete="canComplete"
+      :check-count="page?.check_count"
+      :minutes="page?.estimated_minutes"
+      :score="page?.teaching_score"
+      :suggested-questions="assistantInfo.suggested_questions ?? []"
+      @close="studyOpen = false"
+      @focus-block="focusBlock"
+      @complete="markComplete"
+      @checked="checkDone = true"
+      @ask="openAssistantQuestion"
+    />
 
     <Modal
       :open="rebuildOpen"
@@ -667,3 +699,26 @@ onBeforeUnmount(() => {
     </Modal>
   </div>
 </template>
+
+<style scoped>
+.page-switch-enter-active,
+.page-switch-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.page-switch-enter-from {
+  opacity: 0;
+  transform: translateX(6px);
+}
+.page-switch-leave-to {
+  opacity: 0;
+  transform: translateX(-6px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-switch-enter-active,
+  .page-switch-leave-active {
+    transition: none;
+  }
+}
+</style>

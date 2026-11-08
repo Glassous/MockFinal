@@ -23,7 +23,7 @@ const style = computed(() => ({
       <button
         v-if="visible"
         type="button"
-        class="fixed z-60 inline-flex items-center gap-1.5 rounded-full border border-border-strong bg-panel px-3 py-1.5 text-xs font-medium text-ink shadow-pop"
+        class="fixed z-selection inline-flex items-center gap-1.5 rounded-full border border-border-strong bg-panel px-3 py-1.5 text-xs font-medium text-ink shadow-pop"
         :style="style"
         :title="text"
         @mousedown.prevent

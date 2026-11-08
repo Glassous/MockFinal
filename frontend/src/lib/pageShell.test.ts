@@ -51,7 +51,7 @@ describe('pageShell', () => {
     } catch (error) {
       expect(error).toBeInstanceOf(ShellBuildError)
       expect((error as ShellBuildError).code).toBe('RUNTIME_VERSION_MISMATCH')
-      expect((error as ShellBuildError).message).toContain('runtime 声明 1.0.0')
+      expect((error as ShellBuildError).message).toContain('1.0.0 / 1.1.0 之一')
     }
   })
 })

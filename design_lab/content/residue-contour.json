@@ -1,0 +1,205 @@
+{
+  "content_version": "2.0",
+  "role": "worked_example",
+  "title": "留数定理：把围道积分变成留数求和",
+  "eyebrow": "第 3 讲 · 留数定理",
+  "lede": "先找奇点，再判断谁在圈内；圈内的留数求和乘 $2\\pi i$，圈外一律不算。",
+  "objectives": [
+    "按「找奇点 → 判内外 → 求留数 → 求和」完成围道积分",
+    "处理一阶极点与圈外奇点"
+  ],
+  "meta": {
+    "exam": "对应大题 15",
+    "source": "复变函数攻略 · 3.3 留数定理",
+    "minutes": 10
+  },
+  "blocks": [
+    {
+      "type": "prose",
+      "title": "为什么用留数",
+      "text": "留数定理把复杂的围道积分降成有限个代数留数。关键不是算积分，而是判断哪些奇点被曲线圈住：圈内的留数求和，圈外的奇点直接划掉。"
+    },
+    {
+      "type": "callout",
+      "kind": "key",
+      "title": "留数定理",
+      "text": "设 $f$ 在简单闭曲线 $C$ 内除有限个孤立奇点外解析，且这些奇点都在 $C$ 内，则 $\\oint_C f(z)\\,dz=2\\pi i\\sum_k\\operatorname{Res}(f,z_k)$，$C$ 取正向。圈外的奇点不贡献。"
+    },
+    {
+      "type": "formula",
+      "title": "定理写法",
+      "tex": "\\oint_C f(z)\\,dz=2\\pi i\\sum_{k=1}^{n}\\operatorname{Res}(f,z_k)",
+      "label": "C 取正向"
+    },
+    {
+      "type": "example",
+      "label": "例题 · PDF 例 25",
+      "problem": "计算下列积分，$C$ 取正向：",
+      "steps": [
+        {
+          "title": "找奇点",
+          "text": "分母为零给出三个一阶极点：$z=1$、$z=-2$、$z=4$。",
+          "tex": "z_1=1,\\quad z_2=-2,\\quad z_3=4"
+        },
+        {
+          "title": "判断圈内",
+          "text": "$|1|=1$、$|-2|=2$ 都在 $|z|=3$ 内；$|4|=4$ 在圈外，不贡献。"
+        },
+        {
+          "title": "求圈内留数",
+          "text": "一阶极点用 $\\lim_{z\\to z_k}(z-z_k)f(z)$：",
+          "tex": "\\operatorname{Res}(f,1)=\\frac{1^2+1}{(1+2)(1-4)}=-\\frac{2}{9},\\quad \\operatorname{Res}(f,-2)=\\frac{4+1}{(-2-1)(-2-4)}=\\frac{5}{18}"
+        },
+        {
+          "title": "求和乘 2πi",
+          "text": "圈内留数和为 $-2/9+5/18=1/18$，所以",
+          "tex": "I=2\\pi i\\left(-\\frac{2}{9}+\\frac{5}{18}\\right)=\\frac{\\pi i}{9}"
+        }
+      ],
+      "answer": "$I=\\pi i/9$",
+      "pitfall": "$z=4$ 在圈外，不能算；负向曲线要乘 $-1$；奇点恰在曲线上时定理不适用。",
+      "problemTex": "I=\\oint_{|z|=3}\\frac{z^2+1}{(z-1)(z+2)(z-4)}\\,dz"
+    },
+    {
+      "type": "callout",
+      "kind": "pitfall",
+      "title": "留数计算的三个检查",
+      "text": "① 曲线方向：负向要加负号；② 奇点是否在曲线上：在曲线上定理不适用；③ 极点的阶数：二阶及以上用导数公式，别套一阶公式。"
+    }
+  ],
+  "figure": {
+    "kind": "complex-plane",
+    "caption": "只有 $|z|=3$ 内的奇点贡献留数",
+    "takeaway": "先判内外，再算留数；圈外奇点直接划掉",
+    "view": {
+      "xMin": -4.4,
+      "xMax": 5.6,
+      "yMin": -4.2,
+      "yMax": 4.2
+    },
+    "circles": [
+      {
+        "cx": 0,
+        "cy": 0,
+        "r": 3,
+        "label": "|z|=3"
+      }
+    ],
+    "points": [
+      {
+        "x": 1,
+        "y": 0,
+        "label": "1",
+        "kind": "pole"
+      },
+      {
+        "x": -2,
+        "y": 0,
+        "label": "−2",
+        "kind": "pole"
+      },
+      {
+        "x": 4,
+        "y": 0,
+        "label": "4 圈外",
+        "kind": "pole",
+        "labelDx": 0,
+        "labelDy": -15,
+        "labelAnchor": "middle"
+      }
+    ],
+    "states": [
+      {
+        "label": "找奇点",
+        "note": "三个一阶极点：$1$、$-2$、$4$。"
+      },
+      {
+        "label": "判内外",
+        "note": "$1$、$-2$ 在 $|z|=3$ 内；$4$ 在圈外，不贡献。",
+        "rings": [
+          {
+            "x": 1,
+            "y": 0,
+            "r": 0.34,
+            "dashed": false
+          },
+          {
+            "x": -2,
+            "y": 0,
+            "r": 0.34,
+            "dashed": false
+          }
+        ]
+      },
+      {
+        "label": "圈内留数求和",
+        "note": "$\\operatorname{Res}(f,1)=-2/9$，$\\operatorname{Res}(f,-2)=5/18$；和 $=1/18$，$I=\\pi i/9$。",
+        "rings": [
+          {
+            "x": 1,
+            "y": 0,
+            "r": 0.5,
+            "dashed": true
+          },
+          {
+            "x": -2,
+            "y": 0,
+            "r": 0.5,
+            "dashed": true
+          }
+        ],
+        "labels": [
+          {
+            "x": 1.35,
+            "y": 0.55,
+            "text": "−2/9",
+            "tone": "muted"
+          },
+          {
+            "x": -1.55,
+            "y": 0.55,
+            "text": "5/18",
+            "tone": "muted"
+          }
+        ]
+      }
+    ]
+  },
+  "check": [
+    {
+      "id": "q1",
+      "objective_id": "o1",
+      "question": "对下列积分，下列判断正确的是？",
+      "options": [
+        "$z=4$ 也要计入留数",
+        "只有 $1$ 和 $-2$ 的留数贡献，$I=\\pi i/9$",
+        "三个奇点都在圈内，$I=2\\pi i\\sum\\operatorname{Res}$"
+      ],
+      "answer_index": 1,
+      "explanation": "$|4|>3$，$z=4$ 在圈外；圈内留数和为 $1/18$，所以 $I=\\pi i/9$。",
+      "questionTex": "I=\\oint_{|z|=3}\\frac{z^2+1}{(z-1)(z+2)(z-4)}\\,dz"
+    }
+  ],
+  "summary": {
+    "key_points": [
+      "留数定理：$\\oint_C f\\,dz=2\\pi i\\sum_{\\text{圈内}}\\operatorname{Res}$",
+      "一阶极点：$\\operatorname{Res}=\\lim_{z\\to z_0}(z-z_0)f(z)$",
+      "先判内外，圈外不算；负向加负号"
+    ],
+    "misconceptions": [
+      "把圈外奇点也算进去",
+      "奇点在曲线上仍套定理"
+    ],
+    "next": "下一页：泰勒展开"
+  },
+  "source_refs": [
+    {
+      "heading": "3.3 留数定理",
+      "quote": "设 C 为正向简单闭曲线，f 在 C 内除有限个孤立奇点外解析，则 ∮_C f dz = 2πi Σ Res(f,zk)。"
+    },
+    {
+      "heading": "PDF 例 25",
+      "quote": "C 为以 0 为圆心、以 3 为半径的正向圆周，计算 I=∮_C (z²+1)/((z−1)(z+2)(z−4))dz。"
+    }
+  ]
+}

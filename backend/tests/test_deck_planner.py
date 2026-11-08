@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from app.config import settings
 from app.services.deck_planner import (
     DENSITY_PAGE_RANGES,
     SOURCE_TOTAL_BUDGET,
@@ -306,3 +307,175 @@ def test_build_page_brief_marks_missing_sections() -> None:
     assert brief["source_meta"]["missing_section_ids"] == [404]
     assert brief["source_meta"]["unverified"] is True
     assert brief["style"]["density"] == "standard"
+
+
+# ===== P9 教学角色与契约 =====
+def test_plan_pages_assigns_teaching_roles_and_sequences() -> None:
+    chapters = [
+        {
+            "title": "第一章",
+            "knowledge_points": [
+                _kp("核心机制", importance="core", interaction_idea="区间收缩动画"),
+                *[_kp(f"普通 {index}") for index in range(5)],
+            ],
+        }
+    ]
+    plans = plan_pages(chapters, "standard")
+    first_two = [plan for plan in plans if plan["primary_kp_index"] == 0]
+    assert [plan["role"] for plan in first_two][:2] == ["mechanism", "worked_example"]
+    assert all(plan["kind"] in ("interactive", "concept", "summary") for plan in plans)
+    assert any(plan["role"] == "summary" for plan in plans)
+
+
+def test_plan_pages_honors_role_hint() -> None:
+    chapters = [
+        {
+            "title": "第一章",
+            "knowledge_points": [
+                _kp("对比", teaching_role_hint="compare", misconceptions=["A", "B"]),
+                *[_kp(f"普通 {index}") for index in range(5)],
+            ],
+        }
+    ]
+    plans = plan_pages(chapters, "concise")
+    assert plans[0]["role"] == "compare"
+
+
+def test_outline_accepts_teaching_fields_and_rejects_bad_role() -> None:
+    payload = _outline_payload()
+    payload["chapters"][0]["knowledge_points"][0].update(
+        {
+            "prerequisites": ["先修"],
+            "teaching_role_hint": "mechanism",
+            "hook": "为什么？",
+            "worked_example_idea": "讲一个例子",
+            "check_idea": "检查题",
+        }
+    )
+    outline = parse_outline(payload)
+    kp = outline.chapters[0].knowledge_points[0]
+    assert kp.teaching_role_hint == "mechanism"
+    assert kp.prerequisites == ["先修"]
+
+    payload["chapters"][0]["knowledge_points"][0]["teaching_role_hint"] = "lecture"
+    with pytest.raises(DeckPlanningError):
+        parse_outline(payload)
+
+
+def test_build_page_brief_merges_teaching_contract(monkeypatch) -> None:
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "deck_teaching_enabled", True)
+    deck = SimpleNamespace(title="Deck", style={"density": "standard"})
+    kp = {
+        "id": 1,
+        "title": "主知识点",
+        "summary": "",
+        "objectives": ["目标 A", "目标 B"],
+        "key_points": ["要点 A"],
+        "formulas": [],
+        "misconceptions": ["误区 A"],
+        "source_refs": [],
+        "interaction_idea": "",
+        "hook": "先问",
+        "prerequisites": ["先修 A"],
+    }
+    merged = [
+        {
+            "title": "合并知识点",
+            "summary": "",
+            "objectives": ["目标 C"],
+            "key_points": ["要点 C"],
+            "formulas": [],
+            "misconceptions": ["误区 C"],
+        }
+    ]
+    brief = build_page_brief(
+        deck,
+        kp,
+        [{"id": 1, "ordinal": 0, "title": "本页", "summary": ""}],
+        {},
+        current_page={"id": 1, "ordinal": 0, "title": "本页", "summary": ""},
+        role="mechanism",
+        merged_kps=merged,
+        chapter_index=0,
+        chapter_total=2,
+        chapter_title="第 1 讲 · 测试",
+    )
+    assert brief["role"] == "mechanism"
+    assert [item["title"] for item in brief["merged_knowledge_points"]] == ["合并知识点"]
+    contract = brief["teaching_contract"]
+    assert contract["objectives"] == ["目标 A", "目标 B", "目标 C"]
+    assert contract["prerequisites"] == ["先修 A"]
+    assert contract["density"]["total_page_chars"] == 700
+    assert brief["constraints"]["runtime_version"] == "1.1.0"
+    assert brief["constraints"]["schema_version"] == "1.1"
+    assert brief["deck_context"]["chapter_index"] == 0
+    assert brief["deck_context"]["chapter_total"] == 2
+    assert brief["deck_context"]["chapter_title"] == "第 1 讲 · 测试"
+
+
+def test_build_page_brief_keeps_legacy_contract_when_disabled() -> None:
+    from app.config import settings
+
+    assert settings.deck_teaching_enabled is False
+    brief = build_page_brief({"title": "D", "style": {}}, {"title": "K"}, [], {})
+    assert "teaching_contract" not in brief
+    assert brief["constraints"]["runtime_version"] == "1.0.0"
+
+
+def test_build_page_brief_content_2(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "deck_teaching_enabled", False)
+    deck = {
+        "title": "复变函数",
+        "style": {
+            "preset": "editorial",
+            "density": "deep",
+            "design_system": "2.0",
+            "page_theme": "problem",
+        },
+    }
+    kp = {
+        "id": 12,
+        "title": "留数定理",
+        "summary": "围道积分转留数",
+        "objectives": ["会算留数"],
+        "key_points": ["圈内留数求和"],
+        "formulas": [r"$\oint_C f(z)dz=2\pi i\sum\operatorname{Res}$"],
+        "misconceptions": ["把圈外奇点算进去"],
+        "importance": "core",
+        "source_refs": [{"section_id": 3, "material_id": 9}],
+        "interaction_idea": "围道图",
+    }
+    sections = {
+        3: {
+            "id": 3,
+            "material_id": 9,
+            "heading": "3.3 留数定理",
+            "content": "留数定理正文",
+        }
+    }
+    brief = build_page_brief(deck, kp, [], sections, role="mechanism")
+    constraints = brief["constraints"]
+    assert constraints["content_schema"] == "2.0"
+    assert constraints["design_system"] == "2.0"
+    assert constraints["page_theme"] == "problem"
+    assert constraints["scroll"] == "flow"
+    assert constraints["no_scroll"] is False
+    assert constraints["runtime_version"] == "1.1.0"
+    assert constraints["schema_version"] == "1.1"
+    assert brief["knowledge_point_ids"] == ["kp_12"]
+    assert brief["knowledge_point"]["importance"] == "core"
+    assert brief["estimated_minutes"] == 10
+    assert brief["style"]["design_system"] == "2.0"
+    assert brief["style"]["page_theme"] == "problem"
+    assert brief["teaching_contract"]["objectives"] == ["会算留数"]
+    assert brief["source_excerpts"][0]["material_id"] == 9
+
+
+def test_build_page_brief_content_2_fit_role() -> None:
+    deck = {"title": "D", "style": {"design_system": "2.0"}}
+    brief = build_page_brief(deck, {"id": 1, "title": "K"}, [], {}, role="summary")
+    assert brief["constraints"]["scroll"] == "fit"
+    assert brief["constraints"]["no_scroll"] is True
+    assert brief["constraints"]["page_theme"] == "workbench"

@@ -112,7 +112,7 @@ async def main() -> None:
     from app.models import DeckBuildEvent, DeckBuildJob, DeckPage, KnowledgePoint, ReviewDeck
     from app.services import bundle_store
 
-    client = httpx.Client(base_url=BASE, timeout=30)
+    client = httpx.Client(base_url=BASE, timeout=30, trust_env=False)
     client.post(
         "/api/auth/register",
         json={

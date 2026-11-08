@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.1",
+  "runtime_version": "1.1.0",
+  "manifest": {
+    "schema_version": "1.1",
+    "page_id": "page_teach_example_001",
+    "title": "例题：在 16 个数里找目标",
+    "subtitle": "把区间收缩过程写完整，每一步都留下证据。",
+    "knowledge_point_ids": [
+      "kp_012"
+    ],
+    "importance": "core",
+    "estimated_minutes": 4,
+    "layout": "steps",
+    "design_system": "1.0",
+    "role": "worked_example",
+    "teaching": {
+      "version": "1.0",
+      "role": "worked_example",
+      "objectives": [
+        "完整写出二分查找的区间变化",
+        "用不变式解释每一步的保留区间"
+      ],
+      "hook": "每次折半后，答案一定还在区间里吗？",
+      "chain": [
+        {
+          "id": "s1",
+          "title": "初始区间",
+          "block_id": "b1"
+        },
+        {
+          "id": "s2",
+          "title": "取中点",
+          "block_id": "b2"
+        },
+        {
+          "id": "s3",
+          "title": "答案落点",
+          "block_id": "b3"
+        }
+      ],
+      "check": [
+        {
+          "question": "第二步比较后应该保留哪个区间？",
+          "options": [
+            "[9, 16]",
+            "[1, 8]"
+          ],
+          "answer_index": 0,
+          "explanation": "目标 23 大于 mid 位置的值，保留右半区间 [9, 16]。",
+          "objective_id": "o2"
+        }
+      ],
+      "summary": {
+        "key_points": [
+          "每步保留的区间都满足不变式",
+          "候选区间长度每次减半"
+        ],
+        "misconceptions": [
+          "每次必须比较中点本身是否相等才能继续"
+        ],
+        "next": "下一讲：二分查找的边界写法"
+      },
+      "worked_example": {
+        "problem": "在 16 个升序数中查找目标 23，写出每一步的区间。",
+        "steps": [
+          {
+            "title": "初始区间",
+            "detail": "闭区间 [1, 16]，候选 16 个。"
+          },
+          {
+            "title": "第一次折半",
+            "detail": "mid = 8，目标更大，保留 [9, 16]。"
+          },
+          {
+            "title": "第二次折半",
+            "detail": "mid = 12，目标更小，保留 [9, 11]。"
+          },
+          {
+            "title": "命中",
+            "detail": "mid = 10 时命中目标 23。"
+          }
+        ],
+        "answer": "目标位于第 10 位，共比较 4 次。"
+      }
+    },
+    "interactions": [
+      {
+        "id": "reveal-chain",
+        "type": "stepper",
+        "label": "逐步展开讲解",
+        "smoke": {
+          "action": "click",
+          "selector": "[data-mp-action='next']",
+          "expect": "[data-mp-block=\"b2\"]:not([hidden])"
+        }
+      }
+    ],
+    "source_refs": [
+      {
+        "material_id": 3,
+        "section_id": 102,
+        "quote": "循环不变式是：若目标存在，其下标一定在当前闭区间内。"
+      }
+    ],
+    "assistant": {
+      "summary": "用一道完整例题演示区间收缩与终止。",
+      "key_facts": [
+        "每步保留的区间都满足不变式",
+        "候选区间长度每次减半"
+      ],
+      "suggested_questions": [
+        "第二步比较后应该保留哪个区间？"
+      ]
+    },
+    "a11y": {
+      "reduced_motion": true
+    }
+  },
+  "html": "<div class=\"mp-page\" data-mp-state=\"idle\">\n  <header class=\"mp-head\">\n    <p class=\"mp-badge\">例题 · 二分查找</p>\n    <h1 class=\"mp-title\">例题：在 16 个数里找目标</h1>\n    <p class=\"mp-sub\">把区间收缩过程写完整，每一步都留下证据。</p>\n  </header>\n  <main class=\"mp-body\">\n    <section class=\"mp-card\" data-mp-block=\"b1\">\n      <h2 class=\"mp-section-title\">① 初始区间</h2>\n      <p class=\"mp-text\">数组长度 16，目标 23；初始闭区间 [1, 16]，答案只可能在这里。</p>\n    </section>\n    <section class=\"mp-card\" data-mp-block=\"b2\" hidden>\n      <h2 class=\"mp-section-title\">② 取中点</h2>\n      <p class=\"mp-text\">mid = 8；比较后保留 [9, 16]，候选从 16 个降到 8 个。</p>\n    </section>\n    <section class=\"mp-card\" data-mp-block=\"b3\" hidden>\n      <h2 class=\"mp-section-title\">③ 答案落点</h2>\n      <p class=\"mp-text\">继续折半到区间 [9, 12]，目标 23 落在第 10 位。</p>\n      <div class=\"mp-check\" role=\"group\" aria-label=\"检查选项\">\n        <button type=\"button\" class=\"mp-option\" data-mp-choice=\"a\">[9, 16]</button>\n        <button type=\"button\" class=\"mp-option\" data-mp-choice=\"b\">[1, 8]</button>\n      </div>\n      <p class=\"mp-feedback\" data-mp-feedback hidden>目标比中点大，答案只可能在右半。</p>\n    </section>\n  </main>\n  <footer class=\"mp-foot\">\n    <p class=\"mp-progress\" data-mp-progress>第 1 / 3 步</p>\n    <div class=\"mp-actions\">\n      <button type=\"button\" class=\"mp-btn\" data-mp-action=\"next\" aria-label=\"显示下一步\">下一步</button>\n      <button type=\"button\" class=\"mp-btn mp-btn-primary\" data-mp-action=\"complete\" aria-label=\"标记本页学完\">学完本页</button>\n    </div>\n  </footer>\n</div>",
+  "css": ".mp-page { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; gap: 14px; padding: clamp(20px, 3.2vh, 34px) clamp(24px, 3.4vw, 52px); background: var(--mp-panel); color: var(--mp-ink); }\n.mp-head { display: grid; gap: 8px; }\n.mp-title { margin: 0; font-size: clamp(26px, 2.4vw, 34px); line-height: 1.2; letter-spacing: -0.01em; }\n.mp-sub { margin: 0; font-size: 15px; line-height: 1.5; color: var(--mp-muted); }\n.mp-body { flex: 1; min-height: 0; display: grid; align-content: start; gap: 14px; }\n.mp-card { padding: 16px 18px; border: 1px solid var(--mp-border); border-radius: 18px; background: var(--mp-raised); }\n.mp-section-title { margin: 0 0 8px; font-size: 18px; line-height: 1.35; }\n.mp-text { margin: 0; font-size: 15px; line-height: 1.7; }\n.mp-check { display: grid; gap: 8px; margin-top: 10px; }\n.mp-option { padding: 9px 12px; border: 1px solid var(--mp-border); border-radius: 12px; background: var(--mp-panel); color: var(--mp-ink); text-align: left; font: inherit; font-size: 14px; cursor: pointer; }\n.mp-option[data-mp-state=\"correct\"] { border-color: var(--mp-ink); background: var(--mp-raised); }\n.mp-option[data-mp-state=\"wrong\"] { color: var(--mp-muted); }\n.mp-feedback { margin: 8px 0 0; font-size: 13px; color: var(--mp-muted); }\n.mp-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; border-top: 1px solid var(--mp-border); }\n.mp-progress { margin: 0; font-size: 13px; color: var(--mp-muted); }\n.mp-actions { display: flex; gap: 10px; }\n.mp-btn { min-height: 36px; padding: 7px 14px; border: 1px solid var(--mp-border); border-radius: 12px; background: var(--mp-panel); color: var(--mp-ink); font: inherit; font-size: 14px; cursor: pointer; }\n.mp-btn-primary { border-color: var(--mp-invert); background: var(--mp-invert); color: var(--mp-invert-ink); }\n@media (prefers-reduced-motion: reduce) { .mp-page * { animation: none; transition: none; } }\n@media (max-width: 767px) { .mp-foot { flex-wrap: wrap; } }",
+  "js": "(function () {\n  var root = document.querySelector('.mp-page');\n  var blocks = Array.prototype.slice.call(root.querySelectorAll('[data-mp-block]'));\n  var progress = root.querySelector('[data-mp-progress]');\n  var next = root.querySelector(\"[data-mp-action='next']\");\n  var complete = root.querySelector(\"[data-mp-action='complete']\");\n  var feedback = root.querySelector('[data-mp-feedback]');\n  var current = 1;\n  function render() {\n    blocks.forEach(function (block, index) { block.hidden = index > current - 1; });\n    progress.textContent = '第 ' + current + ' / ' + blocks.length + ' 步';\n    next.disabled = current >= blocks.length;\n    MockFinal.emit('progress', { step: current, total: blocks.length });\n  }\n  next.addEventListener('click', function () {\n    if (current < blocks.length) { current += 1; render(); }\n  });\n  root.querySelectorAll('[data-mp-choice]').forEach(function (button) {\n    button.addEventListener('click', function () {\n      var correct = button.getAttribute('data-mp-choice') === 'a';\n      button.dataset.mpState = correct ? 'correct' : 'wrong';\n      feedback.hidden = !correct;\n      if (correct) MockFinal.emit('interaction', { id: 'role-check', answer_index: 0 });\n    });\n  });\n  complete.addEventListener('click', function () {\n    MockFinal.emit('complete', { interactions_done: 1 });\n  });\n  render();\n  MockFinal.ready({ title: document.querySelector('h1').textContent });\n})();"
+}

@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-11-08T05:11:45.612Z",
+  "base": "http://127.0.0.1:9100",
+  "mode": "lane",
+  "roles": [
+    "mechanism",
+    "practice"
+  ],
+  "chapter": 1,
+  "session_key": "deck_ab_zh_lane0_1794114705",
+  "healthz": {
+    "status": "ok",
+    "version": "0.2.0",
+    "mode": "pi",
+    "pi_version": "1.5.0",
+    "harness_version": "0.1.0",
+    "model_configured": true,
+    "validator_configured": true,
+    "session_mode": "deck",
+    "sessions": 0,
+    "queue": {
+      "running": 0,
+      "pending": 0,
+      "concurrency": 2
+    }
+  },
+  "pages": [
+    {
+      "role": "mechanism",
+      "build_id": "ab_lane_mechanism_1794114705616",
+      "status": "succeeded",
+      "error": null,
+      "session_key": "deck_ab_zh_lane0_1794114705",
+      "lane": 0,
+      "usage": {
+        "input_tokens": 29604,
+        "output_tokens": 25894,
+        "cache_read_tokens": 651904,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 145498
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "teaching": {
+          "score": 80,
+          "criteria": {
+            "objectives": 20,
+            "chain": 20,
+            "example": 0,
+            "misconceptions": 15,
+            "check": 15,
+            "sources": 10
+          },
+          "warnings": []
+        }
+      },
+      "duration_ms": 146724,
+      "bundle_http": 200,
+      "bundle_bytes": 15996,
+      "css_bytes": 4084
+    },
+    {
+      "role": "practice",
+      "build_id": "ab_lane_practice_1794114852346",
+      "status": "succeeded",
+      "error": null,
+      "session_key": "deck_ab_zh_lane0_1794114705",
+      "lane": 0,
+      "usage": {
+        "input_tokens": 6886,
+        "output_tokens": 13312,
+        "cache_read_tokens": 1082880,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 82718
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "teaching": {
+          "score": 80,
+          "criteria": {
+            "objectives": 20,
+            "chain": 20,
+            "example": 0,
+            "misconceptions": 15,
+            "check": 15,
+            "sources": 10
+          },
+          "warnings": []
+        }
+      },
+      "duration_ms": 84357,
+      "bundle_http": 200,
+      "bundle_bytes": 13906,
+      "css_bytes": 3172
+    }
+  ],
+  "cleanup": {
+    "status": 202,
+    "body": {
+      "key": "deck_ab_zh_lane0_1794114705",
+      "status": "closed"
+    }
+  },
+  "summary": {
+    "total": 2,
+    "succeeded": 2
+  }
+}

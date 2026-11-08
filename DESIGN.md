@@ -3,6 +3,8 @@
 > 本文件是 MockFinal 前端**唯一的视觉与审美依据**。任何新页面、新组件、样式调整前必须先读本文件。
 > 大规模视觉改版必须从 `main` 切出独立的 `design/<名称>` 分支，并在分支内提交更新后的本文件；未同步 `DESIGN.md` 的改版不得合入。
 > 当前版本：**v1 · 单色纸感（Monochrome Paper）**，描述 `main` 分支的既有设计。
+>
+> 2026-11-08：PageRef 2.0 复习页（`design_system="2.0"`）沿用单色纸感，但使用 page-kit 的讲义式排版、亚克力工作台卡片与 flow/fit 混合滚动；具体视觉与内容规则见 [docs/pageref/PAGE_CONTENT_2.0.md](./docs/pageref/PAGE_CONTENT_2.0.md) 与 [P14_DESIGN_DECISION.md](./docs/pageref/P14_DESIGN_DECISION.md)。
 
 ## 1. 设计定位
 
@@ -53,12 +55,16 @@ MockFinal 的核心内容是长文本：课程资料、复习大纲、模拟试�
 | `--invert-ink` | `#ffffff` | `#09090b` | 反转底上的文字 |
 | `--overlay` / `bg-overlay` | `rgba(10,10,12,.45)` | `rgba(0,0,0,.68)` | 弹窗/抽屉遮罩 |
 | `--code-bg` | `#f4f4f5` | `#0e0e11` | 行内代码、代码块 |
+| `--danger` / `text-danger` / `border-danger` | `#b42318` | `#f97066` | 表单/校验错误文字与描边 |
+| `--danger-soft` / `bg-danger-soft` | `#fef3f2` | `#2a1412` | 错误反馈浅底 |
+| `--success` / `text-success` | `#067647` | `#47cd89` | 成功状态的辅助文字/图标 |
 
 ### 2.2 使用规则
 
 - **主操作 = 反转**：`bg-invert text-invert-ink`。一个视图只允许一个视觉权重最高的主按钮。
 - **选中 = 反转**：侧栏当前工作区、工件列表当前项、已完成的步骤点，都用整块反转表达，而不是加彩色描边。
 - **危险操作不靠红色**：`danger` 按钮与 `primary` 视觉相同；风险由「删除」文案、警告图标和确认弹窗共同表达。
+- `--danger` 语义色只用于表单/校验错误的文字、描边与浅底反馈，不用于删除按钮或状态徽章。
 - **状态不靠颜色**：`StatusBadge` 用图标 + 中文标签 + 反转/描边区分；失败与排队都是单色。
 - **正文必须用 `ink`**；`muted` 只用于说明，`faint` 只用于时间、占位、极次要信息，禁止用于长段落正文。
 - **阴影是补充，边框是主角**：布局分隔优先 1px border；阴影只用于可点击卡片的 hover、弹窗与 toast。
@@ -141,14 +147,16 @@ MockFinal 的核心内容是长文本：课程资料、复习大纲、模拟试�
 
 | 层级 | 用途 |
 | --- | --- |
-| `z-10` | 认证页内容 |
-| `z-20` | 认证页主题切换 |
-| `z-70` | 移动端抽屉遮罩 |
-| `z-80` | 移动端侧栏抽屉 |
-| `z-90` | Modal / ConfirmModal |
-| `z-100` | Toast |
+| `z-10` | 认证页内容、stage 加载遮罩 |
+| `z-20` | 认证页主题切换、stage 错误遮罩 |
+| `z-selection`（40） | 选中文字浮标 |
+| `z-panel`（60） | 学习面板 |
+| `z-drawer`（70） | AI 助手抽屉 |
+| `z-nav`（80） | 移动端侧栏抽屉 |
+| `z-modal`（90） | Modal / ConfirmModal |
+| `z-toast`（100） | Toast |
 
-新元素必须复用该尺度，禁止 `z-[999]` 式随意值。
+新元素必须复用该尺度，禁止 `z-[999]` 式随意值。学习面板始终低于 AI 抽屉与 Modal，避免遮挡对话和确认操作。
 
 ## 5. 布局
 
@@ -191,9 +199,19 @@ MockFinal 的核心内容是长文本：课程资料、复习大纲、模拟试�
 - 工件：列表 + 内容双栏（`lg` 起），列表宽 288px；窄屏改为顶部横向滚动列表。内容卡片 `rounded-3xl`，头部含标题、生成时间、下载/删除。
 - 弹窗（新建/编辑工作区）：`max-w-md`，底部右对齐操作按钮。
 
-### 5.5 断点与容器
+### 5.5 Deck 阅读器与学习面板
 
-| 断点 | 行为 |
+- 阅读器为满高 flex：56px 顶栏 → stage（`surface` 底、内边距 8–12px、iframe 卡片 `rounded-2xl border bg-panel`）。桌面 stage 不滚动；移动端由 iframe 文档纵向滚动，宿主顶栏固定。
+- 顶栏复用 `DeckTopBar` 视觉：左侧返回 + Deck 标题 + 角色徽章（概念/机制/例题/练习/对比/小结 + 检查数）；中间页码与“已学完 / 已构建”；右侧学习面板、AI、主题、全屏、重做。
+- **不新增常驻导读条**，避免压缩 stage 高度；教学信息全部进入学习面板。
+- 学习面板 `DeckStudyPanel`：`z-panel`，桌面右侧滑入 390px，移动端底部全屏 sheet（`max-h-[86dvh]`）；四个标签：本页 / 检查 / 依据 / AI。打开时页面仍可读，Esc 关闭。
+- “本页”含目标、前置、讲解路线、例题、小结、易错；路线节点点击后由宿主向 iframe 发送 `focus_block`，页面只高亮对应块，不强制滚动。
+- “检查”默认隐藏答案；选择后显示正误与解析；“再做一次”重置；完成全部检查后顶部出现“学完本页”。
+- **移除停留 3 秒自动完成**：只有页面 `complete` 或完成随堂检查后才可标记学完；已学完与已构建使用不同图标与文案。
+- 旧页面没有 `teaching` 时，面板降级为“依据 + AI”，并明确提示“这是旧版页面，暂无教学目标”，不伪造目标。
+- 页面切换 180ms 淡入 + 6px 位移；加载显示与 stage 同尺寸骨架；相邻页预取，bundle 缓存上限 6 页；`prefers-reduced-motion` 直接切换。
+
+### 5.6 断点与容器| 断点 | 行为 |
 | --- | --- |
 | `< 640` | 单列；页面横向内边距 20px；侧栏为抽屉；工件列表横向滚动 |
 | `≥ 640 (sm)` | 工作区卡片 2 列；资料状态徽章行内显示；页面内边距 32px |
@@ -335,7 +353,7 @@ MockFinal 的核心内容是长文本：课程资料、复习大纲、模拟试�
 ## 11. 新页面 / 新组件检查表
 
 - [ ] 先问「用户来这里要完成什么」，从内容和操作出发，不先挑样式；
-- [ ] 优先复用 `AppButton` / `AppInput` / `Modal` / `Toast` / `StatusBadge`，不另造平行组件；
+- [ ] 优先复用 `AppButton` / `AppIconButton` / `AppInput` / `Modal` / `Toast` / `StatusBadge` / `EmptyState` / `ErrorState` / `LoadingSkeleton`，不另造平行组件；
 - [ ] 只用语义 token，没有裸色值、裸阴影、裸 z-index；
 - [ ] 浅色与深色都检查：边框、hover、禁用、占位符、遮罩；
 - [ ] 覆盖加载、空态、错误、成功四种状态；长文件名/长标题不撑破布局；
@@ -375,5 +393,8 @@ MockFinal 的核心内容是长文本：课程资料、复习大纲、模拟试�
 | 应用外壳与侧栏 | `frontend/src/layouts/AppLayout.vue`、`components/Sidebar.vue` |
 | 首页、工作区页 | `frontend/src/views/HomeView.vue`、`WorkspaceView.vue` |
 | 上传、资料、工件、Markdown | `frontend/src/components/UploadZone.vue`、`MaterialList.vue`、`ArtifactPanel.vue`、`MarkdownView.vue` |
+| 通用图标按钮/空态/错误态/骨架 | `frontend/src/components/AppIconButton.vue`、`EmptyState.vue`、`ErrorState.vue`、`LoadingSkeleton.vue` |
+| Deck 阅读器、学习面板、角色徽章 | `frontend/src/views/DeckReaderView.vue`、`components/deck/DeckStudyPanel.vue`、`DeckRoleBadge.vue`、`PageFrame.vue`、`PageProgress.vue` |
+| Deck 总览、路线图、工作台、构建台 | `frontend/src/views/DeckOverviewView.vue`、`DeckBuildView.vue`、`components/deck/DeckRoadmap.vue`、`DeckWorkbench.vue`、`DeckPageCard.vue`、`BuildPageGrid.vue`、`BuildConsole.vue` |
 | 主题切换与代码高亮主题 | `frontend/src/components/ThemeToggle.vue`、`stores/theme.ts`、`lib/highlight.ts` |
 | 品牌标记 | `frontend/public/favicon.svg`、`index.html` |

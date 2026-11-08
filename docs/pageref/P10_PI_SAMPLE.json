@@ -1,0 +1,1591 @@
+{
+  "generated_at": "2026-11-08T04:41:36.137Z",
+  "base": "http://127.0.0.1:9100",
+  "mode": "pi",
+  "pages": [
+    {
+      "role": "mechanism",
+      "page_id": "page_sample_mechanism_tcp",
+      "build_id": "p10_mechanism_1794112596718",
+      "status": "succeeded",
+      "stage": "页面构建完成，已通过 Builder 侧最终校验",
+      "error": null,
+      "attempts": 1,
+      "usage": {
+        "input_tokens": 30251,
+        "output_tokens": 18233,
+        "cache_read_tokens": 420352,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 98538
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "screenshots": [],
+        "duration_ms": 1819,
+        "teaching": {
+          "score": 80,
+          "criteria": {
+            "objectives": 20,
+            "chain": 20,
+            "example": 0,
+            "misconceptions": 15,
+            "check": 15,
+            "sources": 10
+          },
+          "warnings": []
+        }
+      },
+      "duration_ms": 100493,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "html_bytes": 4526,
+        "css_bytes": 6561,
+        "js_bytes": 3953,
+        "total_bytes": 18584,
+        "cjk_chars": 342,
+        "design_system": "1.0",
+        "teaching_role": "mechanism",
+        "chain_steps": 3,
+        "checks": 1
+      },
+      "bundle_http": 200,
+      "events": [
+        {
+          "seq": 1,
+          "type": "stage",
+          "payload": {
+            "text": "已受理构建请求（page_sample_mechanism_tcp），并发上限 2"
+          },
+          "at": "2026-11-08T04:36:36.724Z"
+        },
+        {
+          "seq": 2,
+          "type": "stage",
+          "payload": {
+            "text": "工具白名单已生效：read / write / edit / check_page / report_progress（无 bash）"
+          },
+          "at": "2026-11-08T04:36:36.994Z"
+        },
+        {
+          "seq": 3,
+          "type": "stage",
+          "payload": {
+            "text": "已加载 brief 与 2 段来源资料，启动 Pi 会话"
+          },
+          "at": "2026-11-08T04:36:36.994Z"
+        },
+        {
+          "seq": 4,
+          "type": "stage",
+          "payload": {
+            "text": "Pi 会话已启动，开始构建页面"
+          },
+          "at": "2026-11-08T04:36:36.997Z"
+        },
+        {
+          "seq": 5,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:36:36.997Z"
+        },
+        {
+          "seq": 6,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：SKILL.md"
+          },
+          "at": "2026-11-08T04:36:38.328Z"
+        },
+        {
+          "seq": 7,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page_sample_mechanism_tcp.json"
+          },
+          "at": "2026-11-08T04:36:38.330Z"
+        },
+        {
+          "seq": 8,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:36:38.334Z"
+        },
+        {
+          "seq": 9,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page-contract.md"
+          },
+          "at": "2026-11-08T04:36:39.162Z"
+        },
+        {
+          "seq": 10,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：design-language.md"
+          },
+          "at": "2026-11-08T04:36:39.162Z"
+        },
+        {
+          "seq": 11,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:36:39.164Z"
+        },
+        {
+          "seq": 12,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：manifest.json"
+          },
+          "at": "2026-11-08T04:36:40.635Z"
+        },
+        {
+          "seq": 13,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.html"
+          },
+          "at": "2026-11-08T04:36:40.635Z"
+        },
+        {
+          "seq": 14,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:36:40.637Z"
+        },
+        {
+          "seq": 15,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.css"
+          },
+          "at": "2026-11-08T04:36:41.275Z"
+        },
+        {
+          "seq": 16,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.js"
+          },
+          "at": "2026-11-08T04:36:41.276Z"
+        },
+        {
+          "seq": 17,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:36:41.280Z"
+        },
+        {
+          "seq": 18,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：layouts.md"
+          },
+          "at": "2026-11-08T04:36:43.908Z"
+        },
+        {
+          "seq": 19,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：animation-recipes.md"
+          },
+          "at": "2026-11-08T04:36:43.908Z"
+        },
+        {
+          "seq": 20,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:36:43.910Z"
+        },
+        {
+          "seq": 21,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：materials"
+          },
+          "at": "2026-11-08T04:36:45.474Z"
+        },
+        {
+          "seq": 22,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:36:45.475Z"
+        },
+        {
+          "seq": 23,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：validation.md"
+          },
+          "at": "2026-11-08T04:36:45.475Z"
+        },
+        {
+          "seq": 24,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:36:45.478Z"
+        },
+        {
+          "seq": 25,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：201.md"
+          },
+          "at": "2026-11-08T04:36:46.861Z"
+        },
+        {
+          "seq": 26,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：section_201.md"
+          },
+          "at": "2026-11-08T04:36:46.861Z"
+        },
+        {
+          "seq": 27,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：materials.json"
+          },
+          "at": "2026-11-08T04:36:46.861Z"
+        },
+        {
+          "seq": 28,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:36:46.862Z"
+        },
+        {
+          "seq": 29,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:36:46.862Z"
+        },
+        {
+          "seq": 30,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:36:46.862Z"
+        },
+        {
+          "seq": 31,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:36:46.863Z"
+        },
+        {
+          "seq": 32,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：material_0.json"
+          },
+          "at": "2026-11-08T04:36:48.088Z"
+        },
+        {
+          "seq": 33,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：sections.json"
+          },
+          "at": "2026-11-08T04:36:48.088Z"
+        },
+        {
+          "seq": 34,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：chapter_01.md"
+          },
+          "at": "2026-11-08T04:36:48.089Z"
+        },
+        {
+          "seq": 35,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:36:48.089Z"
+        },
+        {
+          "seq": 36,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:36:48.089Z"
+        },
+        {
+          "seq": 37,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:36:48.089Z"
+        },
+        {
+          "seq": 38,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:36:48.090Z"
+        },
+        {
+          "seq": 39,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.css"
+          },
+          "at": "2026-11-08T04:36:50.351Z"
+        },
+        {
+          "seq": 40,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.html"
+          },
+          "at": "2026-11-08T04:36:50.352Z"
+        },
+        {
+          "seq": 41,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:36:50.353Z"
+        },
+        {
+          "seq": 42,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:36:50.353Z"
+        },
+        {
+          "seq": 43,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:36:50.354Z"
+        },
+        {
+          "seq": 44,
+          "type": "tool",
+          "payload": {
+            "tool": "report_progress",
+            "text": "正在编写三次握手机制页"
+          },
+          "at": "2026-11-08T04:37:47.011Z"
+        },
+        {
+          "seq": 45,
+          "type": "stage",
+          "payload": {
+            "text": "正在编写三次握手机制页：时序图 + 三步行讲解 + 一格检查，主交互为下一步推进"
+          },
+          "at": "2026-11-08T04:37:47.012Z"
+        },
+        {
+          "seq": 46,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:37:47.012Z"
+        },
+        {
+          "seq": 47,
+          "type": "tool",
+          "payload": {
+            "tool": "write",
+            "text": "写入页面文件：manifest.json"
+          },
+          "at": "2026-11-08T04:37:51.826Z"
+        },
+        {
+          "seq": 48,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:37:51.831Z"
+        },
+        {
+          "seq": 49,
+          "type": "tool",
+          "payload": {
+            "tool": "write",
+            "text": "写入页面文件：page.html"
+          },
+          "at": "2026-11-08T04:37:56.731Z"
+        },
+        {
+          "seq": 50,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:37:56.734Z"
+        },
+        {
+          "seq": 51,
+          "type": "tool",
+          "payload": {
+            "tool": "write",
+            "text": "写入页面文件：page.css"
+          },
+          "at": "2026-11-08T04:38:04.436Z"
+        },
+        {
+          "seq": 52,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:38:04.442Z"
+        },
+        {
+          "seq": 53,
+          "type": "tool",
+          "payload": {
+            "tool": "write",
+            "text": "写入页面文件：page.js"
+          },
+          "at": "2026-11-08T04:38:08.769Z"
+        },
+        {
+          "seq": 54,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:38:08.773Z"
+        },
+        {
+          "seq": 55,
+          "type": "check",
+          "payload": {
+            "tool": "check_page",
+            "text": "自检页面"
+          },
+          "at": "2026-11-08T04:38:10.577Z"
+        },
+        {
+          "seq": 56,
+          "type": "check",
+          "payload": {
+            "text": "自检结果：passed（第 1/3 次）",
+            "status": "passed",
+            "issues": 0
+          },
+          "at": "2026-11-08T04:38:12.386Z"
+        },
+        {
+          "seq": 57,
+          "type": "check",
+          "payload": {
+            "text": "自检完成",
+            "tool": "check_page",
+            "is_error": false
+          },
+          "at": "2026-11-08T04:38:12.386Z"
+        },
+        {
+          "seq": 58,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:38:12.387Z"
+        },
+        {
+          "seq": 59,
+          "type": "page_done",
+          "payload": {
+            "text": "Pi 生成完成，等待最终校验",
+            "aborted": false
+          },
+          "at": "2026-11-08T04:38:13.435Z"
+        },
+        {
+          "seq": 60,
+          "type": "text",
+          "payload": {
+            "text": "我会先阅读技能说明和契约参考文档，然后查看构建目录中的模板。files: manifest.json, page.html, page.css, page.js\ncheck_page: passed（无 error / warning）"
+          },
+          "at": "2026-11-08T04:38:13.435Z"
+        },
+        {
+          "seq": 61,
+          "type": "stage",
+          "payload": {
+            "text": "正在收集页面文件并做 Builder 侧最终校验"
+          },
+          "at": "2026-11-08T04:38:13.435Z"
+        },
+        {
+          "seq": 62,
+          "type": "check",
+          "payload": {
+            "text": "最终校验：passed，问题 0 条",
+            "status": "passed",
+            "issues": 0
+          },
+          "at": "2026-11-08T04:38:15.261Z"
+        },
+        {
+          "seq": 63,
+          "type": "page_done",
+          "payload": {
+            "text": "页面构建完成，已通过校验并生成 bundle。",
+            "files": [
+              "manifest.json",
+              "page.html",
+              "page.css",
+              "page.js"
+            ],
+            "validation_status": "passed"
+          },
+          "at": "2026-11-08T04:38:15.262Z"
+        }
+      ]
+    },
+    {
+      "role": "worked_example",
+      "page_id": "page_sample_worked_bisect",
+      "build_id": "p10_worked_example_1794112697217",
+      "status": "succeeded",
+      "stage": "页面构建完成，已通过 Builder 侧最终校验",
+      "error": null,
+      "attempts": 1,
+      "usage": {
+        "input_tokens": 24609,
+        "output_tokens": 19656,
+        "cache_read_tokens": 301184,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 99503
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "screenshots": [],
+        "duration_ms": 1733,
+        "teaching": {
+          "score": 100,
+          "criteria": {
+            "objectives": 20,
+            "chain": 20,
+            "example": 20,
+            "misconceptions": 15,
+            "check": 15,
+            "sources": 10
+          },
+          "warnings": []
+        }
+      },
+      "duration_ms": 100462,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "html_bytes": 5116,
+        "css_bytes": 6181,
+        "js_bytes": 6075,
+        "total_bytes": 21637,
+        "cjk_chars": 144,
+        "design_system": "1.0",
+        "teaching_role": "worked_example",
+        "chain_steps": 4,
+        "checks": 1
+      },
+      "bundle_http": 200,
+      "events": [
+        {
+          "seq": 1,
+          "type": "stage",
+          "payload": {
+            "text": "已受理构建请求（page_sample_worked_bisect），并发上限 2"
+          },
+          "at": "2026-11-08T04:38:17.219Z"
+        },
+        {
+          "seq": 2,
+          "type": "stage",
+          "payload": {
+            "text": "工具白名单已生效：read / write / edit / check_page / report_progress（无 bash）"
+          },
+          "at": "2026-11-08T04:38:17.284Z"
+        },
+        {
+          "seq": 3,
+          "type": "stage",
+          "payload": {
+            "text": "已加载 brief 与 2 段来源资料，启动 Pi 会话"
+          },
+          "at": "2026-11-08T04:38:17.284Z"
+        },
+        {
+          "seq": 4,
+          "type": "stage",
+          "payload": {
+            "text": "Pi 会话已启动，开始构建页面"
+          },
+          "at": "2026-11-08T04:38:17.286Z"
+        },
+        {
+          "seq": 5,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:38:17.286Z"
+        },
+        {
+          "seq": 6,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：SKILL.md"
+          },
+          "at": "2026-11-08T04:38:18.737Z"
+        },
+        {
+          "seq": 7,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page_sample_worked_bisect.json"
+          },
+          "at": "2026-11-08T04:38:18.738Z"
+        },
+        {
+          "seq": 8,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:38:18.740Z"
+        },
+        {
+          "seq": 9,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page-contract.md"
+          },
+          "at": "2026-11-08T04:38:19.726Z"
+        },
+        {
+          "seq": 10,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：design-language.md"
+          },
+          "at": "2026-11-08T04:38:19.727Z"
+        },
+        {
+          "seq": 11,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:38:19.729Z"
+        },
+        {
+          "seq": 12,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：manifest.json"
+          },
+          "at": "2026-11-08T04:38:21.019Z"
+        },
+        {
+          "seq": 13,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.html"
+          },
+          "at": "2026-11-08T04:38:21.019Z"
+        },
+        {
+          "seq": 14,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:38:21.021Z"
+        },
+        {
+          "seq": 15,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.css"
+          },
+          "at": "2026-11-08T04:38:22.088Z"
+        },
+        {
+          "seq": 16,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.js"
+          },
+          "at": "2026-11-08T04:38:22.088Z"
+        },
+        {
+          "seq": 17,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:38:22.090Z"
+        },
+        {
+          "seq": 18,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：layouts.md"
+          },
+          "at": "2026-11-08T04:38:23.943Z"
+        },
+        {
+          "seq": 19,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：animation-recipes.md"
+          },
+          "at": "2026-11-08T04:38:23.944Z"
+        },
+        {
+          "seq": 20,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:38:23.946Z"
+        },
+        {
+          "seq": 21,
+          "type": "tool",
+          "payload": {
+            "tool": "report_progress",
+            "text": "正在写 manifest 与页面结构"
+          },
+          "at": "2026-11-08T04:39:23.035Z"
+        },
+        {
+          "seq": 22,
+          "type": "stage",
+          "payload": {
+            "text": "正在写 manifest 与页面结构：二分查找例题：16 元素区间收缩 4 步 + 不变式 + 检查题"
+          },
+          "at": "2026-11-08T04:39:23.036Z"
+        },
+        {
+          "seq": 23,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:39:23.036Z"
+        },
+        {
+          "seq": 24,
+          "type": "tool",
+          "payload": {
+            "tool": "write",
+            "text": "写入页面文件：manifest.json"
+          },
+          "at": "2026-11-08T04:39:29.186Z"
+        },
+        {
+          "seq": 25,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:39:29.189Z"
+        },
+        {
+          "seq": 26,
+          "type": "tool",
+          "payload": {
+            "tool": "write",
+            "text": "写入页面文件：page.html"
+          },
+          "at": "2026-11-08T04:39:34.760Z"
+        },
+        {
+          "seq": 27,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:39:34.763Z"
+        },
+        {
+          "seq": 28,
+          "type": "tool",
+          "payload": {
+            "tool": "write",
+            "text": "写入页面文件：page.css"
+          },
+          "at": "2026-11-08T04:39:41.991Z"
+        },
+        {
+          "seq": 29,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:39:41.994Z"
+        },
+        {
+          "seq": 30,
+          "type": "tool",
+          "payload": {
+            "tool": "write",
+            "text": "写入页面文件：page.js"
+          },
+          "at": "2026-11-08T04:39:50.737Z"
+        },
+        {
+          "seq": 31,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:39:50.740Z"
+        },
+        {
+          "seq": 32,
+          "type": "check",
+          "payload": {
+            "tool": "check_page",
+            "text": "自检页面"
+          },
+          "at": "2026-11-08T04:39:51.991Z"
+        },
+        {
+          "seq": 33,
+          "type": "check",
+          "payload": {
+            "text": "自检结果：passed（第 1/3 次）",
+            "status": "passed",
+            "issues": 0
+          },
+          "at": "2026-11-08T04:39:53.659Z"
+        },
+        {
+          "seq": 34,
+          "type": "check",
+          "payload": {
+            "text": "自检完成",
+            "tool": "check_page",
+            "is_error": false
+          },
+          "at": "2026-11-08T04:39:53.659Z"
+        },
+        {
+          "seq": 35,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:39:53.660Z"
+        },
+        {
+          "seq": 36,
+          "type": "page_done",
+          "payload": {
+            "text": "Pi 生成完成，等待最终校验",
+            "aborted": false
+          },
+          "at": "2026-11-08T04:39:54.984Z"
+        },
+        {
+          "seq": 37,
+          "type": "text",
+          "payload": {
+            "text": "我会先读取技能说明、契约文件和构建目录中的文件。files: manifest.json, page.html, page.css, page.js\ncheck_page: passed（0 个问题，首轮通过）"
+          },
+          "at": "2026-11-08T04:39:54.984Z"
+        },
+        {
+          "seq": 38,
+          "type": "stage",
+          "payload": {
+            "text": "正在收集页面文件并做 Builder 侧最终校验"
+          },
+          "at": "2026-11-08T04:39:54.984Z"
+        },
+        {
+          "seq": 39,
+          "type": "check",
+          "payload": {
+            "text": "最终校验：passed，问题 0 条",
+            "status": "passed",
+            "issues": 0
+          },
+          "at": "2026-11-08T04:39:56.721Z"
+        },
+        {
+          "seq": 40,
+          "type": "page_done",
+          "payload": {
+            "text": "页面构建完成，已通过校验并生成 bundle。",
+            "files": [
+              "manifest.json",
+              "page.html",
+              "page.css",
+              "page.js"
+            ],
+            "validation_status": "passed"
+          },
+          "at": "2026-11-08T04:39:56.722Z"
+        }
+      ]
+    },
+    {
+      "role": "practice",
+      "page_id": "page_sample_practice_float",
+      "build_id": "p10_practice_1794112797689",
+      "status": "succeeded",
+      "stage": "页面构建完成，已通过 Builder 侧最终校验",
+      "error": null,
+      "attempts": 1,
+      "usage": {
+        "input_tokens": 27126,
+        "output_tokens": 19191,
+        "cache_read_tokens": 454016,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 98113
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "screenshots": [],
+        "duration_ms": 1729,
+        "teaching": {
+          "score": 80,
+          "criteria": {
+            "objectives": 20,
+            "chain": 20,
+            "example": 0,
+            "misconceptions": 15,
+            "check": 15,
+            "sources": 10
+          },
+          "warnings": []
+        }
+      },
+      "duration_ms": 98444,
+      "bundle": {
+        "schema_version": "1.1",
+        "runtime_version": "1.1.0",
+        "html_bytes": 3710,
+        "css_bytes": 4660,
+        "js_bytes": 3591,
+        "total_bytes": 15069,
+        "cjk_chars": 289,
+        "design_system": "1.0",
+        "teaching_role": "practice",
+        "chain_steps": 5,
+        "checks": 1
+      },
+      "bundle_http": 200,
+      "events": [
+        {
+          "seq": 1,
+          "type": "stage",
+          "payload": {
+            "text": "已受理构建请求（page_sample_practice_float），并发上限 2"
+          },
+          "at": "2026-11-08T04:39:57.690Z"
+        },
+        {
+          "seq": 2,
+          "type": "stage",
+          "payload": {
+            "text": "工具白名单已生效：read / write / edit / check_page / report_progress（无 bash）"
+          },
+          "at": "2026-11-08T04:39:57.754Z"
+        },
+        {
+          "seq": 3,
+          "type": "stage",
+          "payload": {
+            "text": "已加载 brief 与 2 段来源资料，启动 Pi 会话"
+          },
+          "at": "2026-11-08T04:39:57.754Z"
+        },
+        {
+          "seq": 4,
+          "type": "stage",
+          "payload": {
+            "text": "Pi 会话已启动，开始构建页面"
+          },
+          "at": "2026-11-08T04:39:57.755Z"
+        },
+        {
+          "seq": 5,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:39:57.755Z"
+        },
+        {
+          "seq": 6,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：SKILL.md"
+          },
+          "at": "2026-11-08T04:39:58.894Z"
+        },
+        {
+          "seq": 7,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page_sample_practice_float.json"
+          },
+          "at": "2026-11-08T04:39:58.895Z"
+        },
+        {
+          "seq": 8,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:39:58.897Z"
+        },
+        {
+          "seq": 9,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page-contract.md"
+          },
+          "at": "2026-11-08T04:40:00.177Z"
+        },
+        {
+          "seq": 10,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：design-language.md"
+          },
+          "at": "2026-11-08T04:40:00.177Z"
+        },
+        {
+          "seq": 11,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:40:00.179Z"
+        },
+        {
+          "seq": 12,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：manifest.json"
+          },
+          "at": "2026-11-08T04:40:01.863Z"
+        },
+        {
+          "seq": 13,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.html"
+          },
+          "at": "2026-11-08T04:40:01.863Z"
+        },
+        {
+          "seq": 14,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:40:01.866Z"
+        },
+        {
+          "seq": 15,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.css"
+          },
+          "at": "2026-11-08T04:40:03.179Z"
+        },
+        {
+          "seq": 16,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.js"
+          },
+          "at": "2026-11-08T04:40:03.180Z"
+        },
+        {
+          "seq": 17,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:40:03.181Z"
+        },
+        {
+          "seq": 18,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：materials"
+          },
+          "at": "2026-11-08T04:40:04.635Z"
+        },
+        {
+          "seq": 19,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:40:04.635Z"
+        },
+        {
+          "seq": 20,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：validation.md"
+          },
+          "at": "2026-11-08T04:40:04.635Z"
+        },
+        {
+          "seq": 21,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:40:04.638Z"
+        },
+        {
+          "seq": 22,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：301.md"
+          },
+          "at": "2026-11-08T04:40:06.218Z"
+        },
+        {
+          "seq": 23,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：sections.json"
+          },
+          "at": "2026-11-08T04:40:06.218Z"
+        },
+        {
+          "seq": 24,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:40:06.219Z"
+        },
+        {
+          "seq": 25,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:40:06.219Z"
+        },
+        {
+          "seq": 26,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:40:06.220Z"
+        },
+        {
+          "seq": 27,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：material.json"
+          },
+          "at": "2026-11-08T04:40:08.219Z"
+        },
+        {
+          "seq": 28,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：chapter3.md"
+          },
+          "at": "2026-11-08T04:40:08.220Z"
+        },
+        {
+          "seq": 29,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:40:08.221Z"
+        },
+        {
+          "seq": 30,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件返回错误",
+            "is_error": true
+          },
+          "at": "2026-11-08T04:40:08.221Z"
+        },
+        {
+          "seq": 31,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:40:08.221Z"
+        },
+        {
+          "seq": 32,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：layouts.md"
+          },
+          "at": "2026-11-08T04:40:36.279Z"
+        },
+        {
+          "seq": 33,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:40:36.281Z"
+        },
+        {
+          "seq": 34,
+          "type": "tool",
+          "payload": {
+            "tool": "report_progress",
+            "text": "正在编写练习页内容与教学骨架"
+          },
+          "at": "2026-11-08T04:40:42.688Z"
+        },
+        {
+          "seq": 35,
+          "type": "tool",
+          "payload": {
+            "tool": "write",
+            "text": "写入页面文件：manifest.json"
+          },
+          "at": "2026-11-08T04:40:42.688Z"
+        },
+        {
+          "seq": 36,
+          "type": "stage",
+          "payload": {
+            "text": "正在编写练习页内容与教学骨架：替换 page_id、目标、讲解链与检查题"
+          },
+          "at": "2026-11-08T04:40:42.689Z"
+        },
+        {
+          "seq": 37,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:40:42.693Z"
+        },
+        {
+          "seq": 38,
+          "type": "tool",
+          "payload": {
+            "tool": "edit",
+            "text": "修改页面文件：page.html"
+          },
+          "at": "2026-11-08T04:41:10.640Z"
+        },
+        {
+          "seq": 39,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:41:10.648Z"
+        },
+        {
+          "seq": 40,
+          "type": "tool",
+          "payload": {
+            "tool": "edit",
+            "text": "修改页面文件：page.css"
+          },
+          "at": "2026-11-08T04:41:18.792Z"
+        },
+        {
+          "seq": 41,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:41:18.801Z"
+        },
+        {
+          "seq": 42,
+          "type": "tool",
+          "payload": {
+            "tool": "edit",
+            "text": "修改页面文件：page.js"
+          },
+          "at": "2026-11-08T04:41:25.886Z"
+        },
+        {
+          "seq": 43,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:41:25.890Z"
+        },
+        {
+          "seq": 44,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.html"
+          },
+          "at": "2026-11-08T04:41:26.727Z"
+        },
+        {
+          "seq": 45,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:41:26.732Z"
+        },
+        {
+          "seq": 46,
+          "type": "tool",
+          "payload": {
+            "tool": "edit",
+            "text": "修改页面文件：page.html"
+          },
+          "at": "2026-11-08T04:41:28.212Z"
+        },
+        {
+          "seq": 47,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:41:28.214Z"
+        },
+        {
+          "seq": 48,
+          "type": "check",
+          "payload": {
+            "tool": "check_page",
+            "text": "自检页面"
+          },
+          "at": "2026-11-08T04:41:29.326Z"
+        },
+        {
+          "seq": 49,
+          "type": "check",
+          "payload": {
+            "text": "自检结果：passed（第 1/3 次）",
+            "status": "passed",
+            "issues": 0
+          },
+          "at": "2026-11-08T04:41:31.175Z"
+        },
+        {
+          "seq": 50,
+          "type": "check",
+          "payload": {
+            "text": "自检完成",
+            "tool": "check_page",
+            "is_error": false
+          },
+          "at": "2026-11-08T04:41:31.175Z"
+        },
+        {
+          "seq": 51,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:41:31.175Z"
+        },
+        {
+          "seq": 52,
+          "type": "tool",
+          "payload": {
+            "tool": "read",
+            "text": "读取文件：page.css"
+          },
+          "at": "2026-11-08T04:41:32.951Z"
+        },
+        {
+          "seq": 53,
+          "type": "stage",
+          "payload": {
+            "text": "模型开始新一轮输出"
+          },
+          "at": "2026-11-08T04:41:32.953Z"
+        },
+        {
+          "seq": 54,
+          "type": "page_done",
+          "payload": {
+            "text": "Pi 生成完成，等待最终校验",
+            "aborted": false
+          },
+          "at": "2026-11-08T04:41:34.065Z"
+        },
+        {
+          "seq": 55,
+          "type": "text",
+          "payload": {
+            "text": "我会先从只读的 Harness 中读取技能文档和契约文档。files: manifest.json, page.html, page.css, page.js\ncheck_page: passed（首轮即通过，无 error/warning）"
+          },
+          "at": "2026-11-08T04:41:34.065Z"
+        },
+        {
+          "seq": 56,
+          "type": "stage",
+          "payload": {
+            "text": "正在收集页面文件并做 Builder 侧最终校验"
+          },
+          "at": "2026-11-08T04:41:34.065Z"
+        },
+        {
+          "seq": 57,
+          "type": "check",
+          "payload": {
+            "text": "最终校验：passed，问题 0 条",
+            "status": "passed",
+            "issues": 0
+          },
+          "at": "2026-11-08T04:41:35.804Z"
+        },
+        {
+          "seq": 58,
+          "type": "page_done",
+          "payload": {
+            "text": "页面构建完成，已通过校验并生成 bundle。",
+            "files": [
+              "manifest.json",
+              "page.html",
+              "page.css",
+              "page.js"
+            ],
+            "validation_status": "passed"
+          },
+          "at": "2026-11-08T04:41:35.804Z"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "succeeded": 3
+  }
+}

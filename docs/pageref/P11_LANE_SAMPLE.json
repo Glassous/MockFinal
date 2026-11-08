@@ -1,0 +1,100 @@
+{
+  "generated_at": "2026-11-08T05:01:49.858Z",
+  "base": "http://127.0.0.1:9100",
+  "mode": "pi",
+  "session_key": "deck_p11_demo_lane0_1794113890732",
+  "pages": [
+    {
+      "role": "mechanism",
+      "build_id": "p11_mechanism_1794113890772",
+      "status": "succeeded",
+      "error": null,
+      "session_key": "deck_p11_demo_lane0_1794113890732",
+      "usage": {
+        "input_tokens": 29283,
+        "output_tokens": 20147,
+        "cache_read_tokens": 674176,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 118589
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "screenshots": [],
+        "duration_ms": 1816,
+        "teaching": {
+          "score": 80,
+          "criteria": {
+            "objectives": 20,
+            "chain": 20,
+            "example": 0,
+            "misconceptions": 15,
+            "check": 15,
+            "sources": 10
+          },
+          "warnings": []
+        }
+      },
+      "duration_ms": 120583,
+      "bundle_http": 200,
+      "bundle_bytes": 14696,
+      "css_bytes": 3866
+    },
+    {
+      "role": "worked_example",
+      "build_id": "p11_worked_example_1794114011361",
+      "status": "succeeded",
+      "error": null,
+      "session_key": "deck_p11_demo_lane0_1794113890732",
+      "usage": {
+        "input_tokens": 27938,
+        "output_tokens": 17315,
+        "cache_read_tokens": 585728,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 98212
+      },
+      "validation": {
+        "status": "warning",
+        "issues": [
+          {
+            "severity": "warning",
+            "code": "MIN_FONT_WARNING",
+            "message": "可见文本最小字号 11.0px，建议 ≥12px",
+            "viewport": "1280x720"
+          }
+        ],
+        "screenshots": [],
+        "duration_ms": 1748,
+        "teaching": {
+          "score": 100,
+          "criteria": {
+            "objectives": 20,
+            "chain": 20,
+            "example": 20,
+            "misconceptions": 15,
+            "check": 15,
+            "sources": 10
+          },
+          "warnings": []
+        }
+      },
+      "duration_ms": 98485,
+      "bundle_http": 200,
+      "bundle_bytes": 16433,
+      "css_bytes": 3432
+    }
+  ],
+  "cleanup": {
+    "status": 202,
+    "body": {
+      "key": "deck_p11_demo_lane0_1794113890732",
+      "status": "closed"
+    }
+  },
+  "summary": {
+    "total": 2,
+    "succeeded": 2
+  }
+}

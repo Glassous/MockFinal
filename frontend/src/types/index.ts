@@ -199,6 +199,10 @@ export interface DeckPageSummary {
   manifest_title: string | null
   validation_status: string | null
   validation_issue_count: number
+  teaching_role: TeachingRole | null
+  estimated_minutes: number | null
+  check_count: number
+  teaching_score: number | null
 }
 
 export interface Deck {
@@ -280,8 +284,64 @@ export interface DeckProgress {
   completed_page_ids: number[]
 }
 
+export type TeachingRole =
+  | 'concept'
+  | 'mechanism'
+  | 'worked_example'
+  | 'practice'
+  | 'compare'
+  | 'summary'
+
+export interface TeachingCheck {
+  id: string
+  objective_id: string
+  question: string
+  options: string[]
+  answer_index: number
+  explanation: string
+}
+
+export interface TeachingChainStep {
+  id: string
+  title: string
+  block_id: string
+}
+
+export interface TeachingWorkedExample {
+  problem: string
+  steps: { id: string; title: string; body: string }[]
+  answer: string
+  common_error?: string
+}
+
+export interface TeachingSummary {
+  key_points?: string[]
+  misconceptions?: string[]
+  next?: string
+}
+
+export interface TeachingManifest {
+  version: string
+  role: TeachingRole
+  objectives: string[]
+  prerequisites?: string[]
+  hook?: string
+  chain?: TeachingChainStep[]
+  worked_example?: TeachingWorkedExample
+  check?: TeachingCheck[]
+  summary?: TeachingSummary
+  scroll?: 'flow' | 'fit'
+  content_version?: string
+}
+
 export interface PageManifest {
   schema_version?: string
+  design_system?: string
+  renderer?: {
+    kit?: string
+    version?: string
+    theme?: string
+  }
   page_id?: string
   title?: string
   subtitle?: string
@@ -295,6 +355,7 @@ export interface PageManifest {
     label?: string
     smoke?: Record<string, unknown>
   }[]
+  teaching?: TeachingManifest
   source_refs?: {
     material_id?: number
     section_id?: number
@@ -312,7 +373,7 @@ export interface PageManifest {
 }
 
 export interface PageBundle {
-  schema_version: string
+  schema_version: '1.0' | '1.1'
   runtime_version: string
   manifest: PageManifest
   html: string

@@ -1,0 +1,213 @@
+{
+  "content_version": "2.0",
+  "role": "mechanism",
+  "title": "解析函数与 C-R 条件：可导到底查什么？",
+  "eyebrow": "第 2 讲 · 解析函数",
+  "lede": "复变函数可导不是「像实函数那样求导」：实部与虚部必须通过 C-R 方程咬合。",
+  "objectives": [
+    "写出 C-R 方程，并解释两个方向导数为何必须一致",
+    "判断 $f(z)=x^2+iy^2$ 在何处可导、何处解析"
+  ],
+  "meta": {
+    "exam": "对应大题 11",
+    "source": "复变函数攻略 · 2.2 解析函数",
+    "minutes": 9
+  },
+  "blocks": [
+    {
+      "type": "prose",
+      "title": "先看一个反例",
+      "text": "实函数 $f(x)=x^2$ 处处可导，但写成复变函数 $f(z)=x^2+iy^2$ 后，沿实轴走和沿虚轴走的增量完全不同。复变函数要求 $\\Delta z$ 从任意方向趋向 $0$ 时，差商都收敛到同一个复数——这比实函数苛刻得多。"
+    },
+    {
+      "type": "callout",
+      "kind": "key",
+      "title": "C-R 方程",
+      "text": "设 $f(z)=u(x,y)+iv(x,y)$ 在 $z_0$ 的某邻域有定义。$f$ 在 $z_0$ 可导的必要条件是 $u$、$v$ 的一阶偏导存在，并满足 $u_x=v_y,\\ u_y=-v_x$。若 $u$、$v$ 可微，则 C-R 也是充分条件。"
+    },
+    {
+      "type": "formula",
+      "title": "导数公式",
+      "tex": "f'(z_0)=u_x+iv_x=v_y-iu_y",
+      "label": "可导时的导数"
+    },
+    {
+      "type": "prose",
+      "title": "为什么是这两条",
+      "text": "沿实轴取 $\\Delta z=\\Delta x$，差商的实部给出 $u_x$，虚部给出 $v_x$；沿虚轴取 $\\Delta z=i\\Delta y$，差商变成 $v_y-iu_y$。可导要求两条路径的极限相等，于是实部、虚部分别相等，正好得到 C-R。换句话说，C-R 不是记忆口诀，而是「两个方向导数必须一致」的代数化。"
+    },
+    {
+      "type": "example",
+      "label": "例题 · 23-24 Q11",
+      "problem": "判断 $f(z)=x^2+iy^2$ 在何处可导、何处解析。",
+      "steps": [
+        {
+          "title": "拆出 $u$、$v$",
+          "text": "$u=x^2$，$v=y^2$。分别求偏导：",
+          "tex": "u_x=2x,\\quad v_y=2y,\\quad u_y=0,\\quad v_x=0"
+        },
+        {
+          "title": "代入 C-R",
+          "text": "$u_x=v_y$ 给出 $2x=2y$，即 $x=y$；$u_y=-v_x$ 恒成立。所以 C-R 只在直线 $y=x$ 上成立。"
+        },
+        {
+          "title": "判断解析",
+          "text": "解析要求在某邻域内处处可导，而直线 $y=x$ 没有开邻域。因此 $f$ 在 $y=x$ 上可导，但在复平面内处处不解析。"
+        }
+      ],
+      "answer": "在直线 $y=x$ 上可导；在复平面内处处不解析。",
+      "pitfall": "C-R 成立且 $u$、$v$ 可微只保证该点可导；解析还要求「某邻域内处处可导」。"
+    },
+    {
+      "type": "callout",
+      "kind": "pitfall",
+      "title": "三个高频坑",
+      "text": "① 把 C-R 当成充分条件，忘了 $u$、$v$ 可微；② 只在一点满足 C-R 就宣布解析；③ 极坐标下写错：$u_r=(1/r)v_\\theta,\\ v_r=-(1/r)u_\\theta$。"
+    }
+  ],
+  "figure": {
+    "kind": "complex-plane",
+    "caption": "虚线 $y=x$；两条路径的极限必须相等",
+    "takeaway": "C-R 方程 = 两个方向导数的一致条件",
+    "view": {
+      "xMin": -0.4,
+      "xMax": 2.4,
+      "yMin": -0.4,
+      "yMax": 2.4
+    },
+    "points": [
+      {
+        "x": 1,
+        "y": 1,
+        "label": "z₀",
+        "kind": "point",
+        "labelDx": -7,
+        "labelDy": 16,
+        "labelAnchor": "end"
+      }
+    ],
+    "lines": [
+      {
+        "from": [
+          0,
+          0
+        ],
+        "to": [
+          2.2,
+          2.2
+        ],
+        "dashed": true
+      }
+    ],
+    "states": [
+      {
+        "label": "沿实轴",
+        "note": "$\\Delta z=\\Delta x$：差商 → $u_x+i v_x$。",
+        "lines": [
+          {
+            "from": [
+              1,
+              1
+            ],
+            "to": [
+              1.9,
+              1
+            ],
+            "label": "Δx",
+            "arrow": true
+          }
+        ]
+      },
+      {
+        "label": "沿虚轴",
+        "note": "$\\Delta z=i\\Delta y$：差商 → $v_y-i u_y$。",
+        "lines": [
+          {
+            "from": [
+              1,
+              1
+            ],
+            "to": [
+              1,
+              1.9
+            ],
+            "label": "iΔy",
+            "arrow": true
+          }
+        ]
+      },
+      {
+        "label": "两条路径相等",
+        "note": "实部、虚部分别相等，得到 $u_x=v_y$、$u_y=-v_x$。",
+        "lines": [
+          {
+            "from": [
+              1,
+              1
+            ],
+            "to": [
+              1.9,
+              1
+            ],
+            "arrow": true
+          },
+          {
+            "from": [
+              1,
+              1
+            ],
+            "to": [
+              1,
+              1.9
+            ],
+            "arrow": true
+          }
+        ],
+        "labels": [
+          {
+            "x": 1.45,
+            "y": 1.42,
+            "text": "C-R",
+            "tone": "ink"
+          }
+        ]
+      }
+    ]
+  },
+  "check": [
+    {
+      "id": "q1",
+      "objective_id": "o2",
+      "question": "下列判断正确的是？",
+      "options": [
+        "$f(z)=x^2+iy^2$ 在 $z=0$ 解析",
+        "$f(z)=x^2+iy^2$ 在直线 $y=x$ 上可导，但处处不解析",
+        "只要 $u_x=v_y$，$f$ 就在该点解析"
+      ],
+      "answer_index": 1,
+      "explanation": "C-R 只在 $y=x$ 上成立；解析要求某邻域内处处可导。"
+    }
+  ],
+  "summary": {
+    "key_points": [
+      "C-R：$u_x=v_y,\\ u_y=-v_x$",
+      "可导 = 两条路径极限一致；解析 = 邻域内处处可导",
+      "极坐标 C-R：$u_r=(1/r)v_\\theta,\\ v_r=-(1/r)u_\\theta$"
+    ],
+    "misconceptions": [
+      "C-R 成立不等于解析",
+      "只在一点可导不能推出解析"
+    ],
+    "next": "下一页：调和函数与共轭调和"
+  },
+  "source_refs": [
+    {
+      "heading": "2.2 解析函数",
+      "quote": "函数 f(z)=u+iv 在区域 D 内解析的充要条件是 u、v 在 D 内可微且满足 C-R 方程。"
+    },
+    {
+      "heading": "期末题归档 23-24 Q11",
+      "quote": "函数 f(z)=x²+iy² 在何处可导，何处解析？"
+    }
+  ]
+}

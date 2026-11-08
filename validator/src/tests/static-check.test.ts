@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { parseSelector, selectorExists, staticCheck } from '../static-check.js';
+import { parseSelector, selectorExists, staticCheck, teachingScore } from '../static-check.js';
 
 function loadFixture(name: string): unknown {
   const path = fileURLToPath(new URL(`../../fixtures/${name}`, import.meta.url));
@@ -101,8 +101,8 @@ test('schema / runtime / 字段类型错误触发 BUNDLE_SCHEMA_INVALID', () => 
   }
 });
 
-test('runtime_version 与宿主不一致触发 RUNTIME_VERSION_MISMATCH', () => {
-  const mismatch = staticCheck({ ...(clone(good) as object), runtime_version: '1.1.0' });
+test('runtime_version 不在支持列表触发 RUNTIME_VERSION_MISMATCH', () => {
+  const mismatch = staticCheck({ ...(clone(good) as object), runtime_version: '9.9.9' });
   assert.ok(mismatch.issues.some((issue) => issue.code === 'RUNTIME_VERSION_MISMATCH'));
 });
 
@@ -258,4 +258,107 @@ test('冒烟选择器在静态 html 中不存在且 js 未引用时触发 SMOKE_
     smoke: { action: 'click', selector: "[data-mp-action='missing']", expect: "[data-mp-state='x']" }
   };
   assert.ok(codes(bundle).includes('SMOKE_SELECTOR_NOT_FOUND'));
+});
+
+test('1.1 教学页缺少 manifest.teaching 触发 TEACHING_MISSING', () => {
+  const bundle = clone(good) as {
+    schema_version: string;
+    manifest: Record<string, unknown>;
+  };
+  bundle.schema_version = '1.1';
+  bundle.manifest.schema_version = '1.1';
+  bundle.manifest.design_system = '1.0';
+  assert.ok(codes(bundle).includes('TEACHING_MISSING'));
+});
+
+test('1.1 教学页 chain.block_id 不存在时触发 TEACHING_BLOCK_MISSING', () => {
+  const bundle = clone(good) as {
+    schema_version: string;
+    manifest: Record<string, unknown>;
+  };
+  bundle.schema_version = '1.1';
+  bundle.manifest.schema_version = '1.1';
+  bundle.manifest.design_system = '1.0';
+  bundle.manifest.teaching = {
+    version: '1.0',
+    role: 'mechanism',
+    objectives: ['目标一'],
+    chain: [
+      { id: 'c1', title: '第一步', block_id: 'missing-1' },
+      { id: 'c2', title: '第二步', block_id: 'missing-2' },
+      { id: 'c3', title: '第三步', block_id: 'missing-3' }
+    ],
+    check: [
+      {
+        id: 'q1',
+        objective_id: 'o1',
+        question: '问题？',
+        options: ['A', 'B'],
+        answer_index: 0,
+        explanation: '解析'
+      }
+    ]
+  };
+  assert.ok(codes(bundle).includes('TEACHING_BLOCK_MISSING'));
+});
+
+const TEACHING_FIXTURES = [
+  'good-teaching.bundle.json',
+  'good-teaching-mechanism.bundle.json',
+  'good-teaching-worked-example.bundle.json',
+  'good-teaching-practice.bundle.json',
+  'good-teaching-compare.bundle.json',
+  'good-teaching-summary.bundle.json'
+];
+
+test('六个角色 golden fixture 通过 1.1 教学静态检查且评分 ≥70', () => {
+  for (const file of TEACHING_FIXTURES) {
+    const bundle = loadFixture(file);
+    assert.deepEqual(errors(bundle), [], `${file} 出现静态错误`);
+    assert.notEqual(staticCheck(bundle).bundle, null, `${file} 结构不可用`);
+    const teaching = teachingScore((bundle as { manifest: unknown }).manifest);
+    assert.ok(teaching, `${file} teachingScore 不应为 null`);
+    assert.ok(
+      teaching.score >= 70,
+      `${file} 教学评分 ${teaching.score} 低于 70：${teaching.warnings.join('；')}`
+    );
+  }
+});
+
+const PG2_FIXTURES = [
+  'good-pg2-mechanism.bundle.json',
+  'good-pg2-worked-example.bundle.json',
+  'good-pg2-summary.bundle.json'
+];
+
+test('Page Kit 2.0 good fixtures 通过静态检查且评分 ≥70', () => {
+  for (const file of PG2_FIXTURES) {
+    const bundle = loadFixture(file);
+    assert.deepEqual(errors(bundle), [], `${file} 出现静态错误`);
+    assert.notEqual(staticCheck(bundle).bundle, null, `${file} 结构不可用`);
+    const teaching = teachingScore((bundle as { manifest: unknown }).manifest);
+    assert.ok(teaching, `${file} teachingScore 不应为 null`);
+    assert.ok(teaching.score >= 70, `${file} 教学评分 ${teaching.score} 低于 70`);
+  }
+});
+
+test('Page Kit 2.0 manifest 拒绝缺失 renderer / 非法 scroll', () => {
+  const base = loadFixture(PG2_FIXTURES[0]) as Record<string, unknown>;
+  const missingRenderer = JSON.parse(JSON.stringify(base)) as Record<string, unknown>;
+  delete (missingRenderer.manifest as Record<string, unknown>).renderer;
+  assert.ok(codes(missingRenderer).some((code) => code === 'TEACHING_INVALID'));
+
+  const badScroll = JSON.parse(JSON.stringify(base)) as Record<string, unknown>;
+  (badScroll.manifest as Record<string, unknown>).teaching = {
+    ...((badScroll.manifest as Record<string, unknown>).teaching as Record<string, unknown>),
+    scroll: 'scroll'
+  };
+  assert.ok(codes(badScroll).includes('TEACHING_INVALID'));
+
+  const badContentVersion = JSON.parse(JSON.stringify(base)) as Record<string, unknown>;
+  (badContentVersion.manifest as Record<string, unknown>).teaching = {
+    ...((badContentVersion.manifest as Record<string, unknown>).teaching as Record<string, unknown>),
+    content_version: '1.0'
+  };
+  assert.ok(codes(badContentVersion).includes('TEACHING_INVALID'));
 });

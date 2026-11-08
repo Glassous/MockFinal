@@ -1,6 +1,6 @@
 """Pydantic 请求/响应模型（字段名与前端契约逐字对齐，不得擅改）。"""
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -154,6 +154,9 @@ class DeckStyle(BaseModel):
     content: list[str] = Field(default_factory=list, max_length=20)
     density: Literal["concise", "standard", "deep"] = "standard"
     custom_prompt: str = Field(default="", max_length=500)
+    design_system: Literal["1.0", "2.0"] = "1.0"
+    page_theme: Literal["editorial", "workbench", "problem"] = "workbench"
+    outline_override: dict[str, Any] | None = None
 
     @field_validator("preset", mode="before")
     @classmethod
@@ -232,6 +235,11 @@ class DeckPageSummary(BaseModel):
     manifest_title: str | None = None
     validation_status: str | None = None
     validation_issue_count: int = 0
+    # P9 教学摘要（旧页面无 teaching 时为 None/0，前端必须降级展示）
+    teaching_role: str | None = None
+    estimated_minutes: int | None = None
+    check_count: int = 0
+    teaching_score: int | None = None
 
 
 class DeckPageOut(BaseModel):

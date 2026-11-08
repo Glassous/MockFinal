@@ -1,0 +1,81 @@
+{
+  "content_version": "2.0",
+  "role": "worked_example",
+  "title": "【替换】题型名：从条件到答案的固定路线",
+  "eyebrow": "【替换：brief.deck_context.chapter_title · 小主题】",
+  "lede": "【替换】一句话说明这道题考什么、用什么方法。",
+  "objectives": [
+    "【替换】能独立完成同型题",
+    "【替换】能避开一个高频错误"
+  ],
+  "scroll": "flow",
+  "blocks": [
+    {
+      "type": "prose",
+      "title": "题目前在考什么",
+      "text": "【替换：用 60–100 字点明题目识别特征与解题总路线。】"
+    },
+    {
+      "type": "example",
+      "label": "例题 · 真题年份/题号",
+      "problem": "【替换：完整题干】",
+      "steps": [
+        {
+          "title": "第一步：识别",
+          "text": "【替换：先判断题型/对象/适用条件。】"
+        },
+        {
+          "title": "第二步：计算",
+          "text": "【替换：写出主计算或分类讨论。】"
+        },
+        {
+          "title": "第三步：收尾",
+          "text": "【替换：代回、检查符号/方向/范围，写出答案。】"
+        }
+      ],
+      "answer": "$I=\\pi i/9$",
+      "pitfall": "【替换：本题最容易错的一步。】"
+    },
+    {
+      "type": "callout",
+      "kind": "pitfall",
+      "title": "同型题的检查清单",
+      "text": "【替换：列出 2–3 个计算后必须检查的点。】"
+    }
+  ],
+  "check": [
+    {
+      "objective_id": "o1",
+      "question": "【替换：换一个条件后的判断题】",
+      "questionTex": "【替换：可选展示公式】",
+      "options": [
+        "【选项 A】",
+        "【选项 B】",
+        "【选项 C】"
+      ],
+      "answer_index": 1,
+      "explanation": "【替换：解析。】"
+    }
+  ],
+  "summary": {
+    "key_points": [
+      "【替换：解题路线一句话】"
+    ],
+    "misconceptions": [
+      "【替换：一个易错点】"
+    ],
+    "next": "【替换：下一页承接】"
+  },
+  "source_refs": [
+    {
+      "section_id": 1,
+      "heading": "【替换：资料标题】",
+      "quote": "【替换：资料原文片段】"
+    }
+  ],
+  "meta": {
+    "exam": "【替换：对应题号】",
+    "minutes": 12,
+    "source": "【替换：资料出处】"
+  }
+}

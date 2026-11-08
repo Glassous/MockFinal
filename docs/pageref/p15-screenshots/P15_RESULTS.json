@@ -1,0 +1,2669 @@
+{
+  "deck_id": 40,
+  "title": "复变函数期末复习 · 讲义版",
+  "generated_at": "2026-11-08T11:03:12.414Z",
+  "expected_pages": 16,
+  "ready_pages": 16,
+  "failed_pages": [],
+  "failures": [],
+  "pages": [
+    {
+      "page_id": 51,
+      "ordinal": 1,
+      "title": "全册考试蓝图与 5 讲地图",
+      "role": "summary",
+      "theme": "workbench",
+      "scroll": "fit",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "summary",
+          "scroll": "fit",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 720,
+          "viewportHeight": 720,
+          "screenRatio": 1,
+          "overflowX": 0,
+          "blocks": 3,
+          "visibleBlocks": 3,
+          "cjk": 366,
+          "minFont": 12,
+          "minFontSample": "全册蓝图 · 五讲地图与题型索引",
+          "figure": null,
+          "contentBottom": 634,
+          "contentShare": 0.88,
+          "checks": 0,
+          "figureStates": 0,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "summary",
+          "scroll": "fit",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 900,
+          "viewportHeight": 900,
+          "screenRatio": 1,
+          "overflowX": 0,
+          "blocks": 3,
+          "visibleBlocks": 3,
+          "cjk": 366,
+          "minFont": 12,
+          "minFontSample": "全册蓝图 · 五讲地图与题型索引",
+          "figure": null,
+          "contentBottom": 804,
+          "contentShare": 0.89,
+          "checks": 0,
+          "figureStates": 0,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "summary",
+          "scroll": "fit",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 1080,
+          "viewportHeight": 1080,
+          "screenRatio": 1,
+          "overflowX": 0,
+          "blocks": 3,
+          "visibleBlocks": 3,
+          "cjk": 366,
+          "minFont": 12,
+          "minFontSample": "全册蓝图 · 五讲地图与题型索引",
+          "figure": null,
+          "contentBottom": 975,
+          "contentShare": 0.9,
+          "checks": 0,
+          "figureStates": 0,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "summary",
+          "scroll": "fit",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 1328,
+          "viewportHeight": 844,
+          "screenRatio": 1.57,
+          "overflowX": 0,
+          "blocks": 3,
+          "visibleBlocks": 3,
+          "cjk": 366,
+          "minFont": 12,
+          "minFontSample": "全册蓝图 · 五讲地图与题型索引",
+          "figure": null,
+          "contentBottom": 1183,
+          "contentShare": 1.4,
+          "checks": 0,
+          "figureStates": 0,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "summary",
+        "scroll": "fit",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 720,
+        "viewportHeight": 720,
+        "screenRatio": 1,
+        "overflowX": 0,
+        "blocks": 3,
+        "visibleBlocks": 3,
+        "cjk": 366,
+        "minFont": 12,
+        "minFontSample": "全册蓝图 · 五讲地图与题型索引",
+        "figure": null,
+        "contentBottom": 634,
+        "contentShare": 0.88,
+        "checks": 0,
+        "figureStates": 0
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "summary",
+        "scroll": "fit",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 720,
+        "viewportHeight": 720,
+        "screenRatio": 1,
+        "overflowX": 0,
+        "blocks": 3,
+        "visibleBlocks": 3,
+        "cjk": 366,
+        "minFont": 12,
+        "minFontSample": "全册蓝图 · 五讲地图与题型索引",
+        "figure": null,
+        "contentBottom": 634,
+        "contentShare": 0.88,
+        "checks": 0,
+        "figureStates": 0
+      }
+    },
+    {
+      "page_id": 52,
+      "ordinal": 2,
+      "title": "复数的三种形式与运算",
+      "role": "concept",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 2173,
+          "viewportHeight": 720,
+          "screenRatio": 3.02,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 882,
+          "minFont": 12,
+          "minFontSample": "第 1 讲 · 复数 · 三种形式与",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 2084,
+          "contentShare": 2.89,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 2161,
+          "viewportHeight": 900,
+          "screenRatio": 2.4,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 882,
+          "minFont": 12,
+          "minFontSample": "第 1 讲 · 复数 · 三种形式与",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 2062,
+          "contentShare": 2.29,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 2174,
+          "viewportHeight": 1080,
+          "screenRatio": 2.01,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 882,
+          "minFont": 12,
+          "minFontSample": "第 1 讲 · 复数 · 三种形式与",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 2066,
+          "contentShare": 1.91,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3875,
+          "viewportHeight": 844,
+          "screenRatio": 4.59,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 882,
+          "minFont": 12,
+          "minFontSample": "第 1 讲 · 复数 · 三种形式与",
+          "figure": {
+            "width": 362,
+            "height": 397
+          },
+          "contentBottom": 3730,
+          "contentShare": 4.42,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "concept",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2173,
+        "viewportHeight": 720,
+        "screenRatio": 3.02,
+        "overflowX": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 882,
+        "minFont": 12,
+        "minFontSample": "第 1 讲 · 复数 · 三种形式与",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 2084,
+        "contentShare": 2.89,
+        "checks": 1,
+        "figureStates": 1
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "concept",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2173,
+        "viewportHeight": 720,
+        "screenRatio": 3.02,
+        "overflowX": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 882,
+        "minFont": 12,
+        "minFontSample": "第 1 讲 · 复数 · 三种形式与",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 2084,
+        "contentShare": 2.89,
+        "checks": 1,
+        "figureStates": 1
+      }
+    },
+    {
+      "page_id": 53,
+      "ordinal": 3,
+      "title": "幂、根与辐角主值",
+      "role": "worked_example",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 2109,
+          "viewportHeight": 720,
+          "screenRatio": 2.93,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 662,
+          "minFont": 12,
+          "minFontSample": "第 1 讲 · 复数 · 幂、根与辐",
+          "figure": null,
+          "contentBottom": 2023,
+          "contentShare": 2.81,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 2100,
+          "viewportHeight": 900,
+          "screenRatio": 2.33,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 662,
+          "minFont": 12,
+          "minFontSample": "第 1 讲 · 复数 · 幂、根与辐",
+          "figure": null,
+          "contentBottom": 2004,
+          "contentShare": 2.23,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 2113,
+          "viewportHeight": 1080,
+          "screenRatio": 1.96,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 662,
+          "minFont": 12,
+          "minFontSample": "第 1 讲 · 复数 · 幂、根与辐",
+          "figure": null,
+          "contentBottom": 2008,
+          "contentShare": 1.86,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3264,
+          "viewportHeight": 844,
+          "screenRatio": 3.87,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 672,
+          "minFont": 12,
+          "minFontSample": "第 1 讲 · 复数 · 幂、根与辐",
+          "figure": null,
+          "contentBottom": 3138,
+          "contentShare": 3.72,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2109,
+        "viewportHeight": 720,
+        "screenRatio": 2.93,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 662,
+        "minFont": 12,
+        "minFontSample": "第 1 讲 · 复数 · 幂、根与辐",
+        "figure": null,
+        "contentBottom": 2023,
+        "contentShare": 2.81,
+        "checks": 1,
+        "figureStates": 0
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2109,
+        "viewportHeight": 720,
+        "screenRatio": 2.93,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 662,
+        "minFont": 12,
+        "minFontSample": "第 1 讲 · 复数 · 幂、根与辐",
+        "figure": null,
+        "contentBottom": 2023,
+        "contentShare": 2.81,
+        "checks": 1,
+        "figureStates": 0
+      }
+    },
+    {
+      "page_id": 54,
+      "ordinal": 4,
+      "title": "解析函数与 C-R 条件",
+      "role": "mechanism",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 2094,
+          "viewportHeight": 720,
+          "screenRatio": 2.91,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 1001,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · C-R",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 2005,
+          "contentShare": 2.78,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 2084,
+          "viewportHeight": 900,
+          "screenRatio": 2.32,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 1001,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · C-R",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 1986,
+          "contentShare": 2.21,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 2098,
+          "viewportHeight": 1080,
+          "screenRatio": 1.94,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 1001,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · C-R",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 1989,
+          "contentShare": 1.84,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3718,
+          "viewportHeight": 844,
+          "screenRatio": 4.41,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 1021,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · C-R",
+          "figure": {
+            "width": 362,
+            "height": 397
+          },
+          "contentBottom": 3573,
+          "contentShare": 4.23,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2094,
+        "viewportHeight": 720,
+        "screenRatio": 2.91,
+        "overflowX": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 1001,
+        "minFont": 12,
+        "minFontSample": "第 2 讲 · 解析函数 · C-R",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 2005,
+        "contentShare": 2.78,
+        "checks": 1,
+        "figureStates": 1
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2094,
+        "viewportHeight": 720,
+        "screenRatio": 2.91,
+        "overflowX": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 1001,
+        "minFont": 12,
+        "minFontSample": "第 2 讲 · 解析函数 · C-R",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 2005,
+        "contentShare": 2.78,
+        "checks": 1,
+        "figureStates": 1
+      }
+    },
+    {
+      "page_id": 55,
+      "ordinal": 5,
+      "title": "调和函数与共轭调和",
+      "role": "concept",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 2096,
+          "viewportHeight": 720,
+          "screenRatio": 2.91,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 842,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · 调和函",
+          "figure": null,
+          "contentBottom": 2007,
+          "contentShare": 2.79,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 2091,
+          "viewportHeight": 900,
+          "screenRatio": 2.32,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 842,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · 调和函",
+          "figure": null,
+          "contentBottom": 1992,
+          "contentShare": 2.21,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 2104,
+          "viewportHeight": 1080,
+          "screenRatio": 1.95,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 842,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · 调和函",
+          "figure": null,
+          "contentBottom": 1996,
+          "contentShare": 1.85,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3424,
+          "viewportHeight": 844,
+          "screenRatio": 4.06,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 872,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · 调和函",
+          "figure": null,
+          "contentBottom": 3260,
+          "contentShare": 3.86,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "concept",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2096,
+        "viewportHeight": 720,
+        "screenRatio": 2.91,
+        "overflowX": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 842,
+        "minFont": 12,
+        "minFontSample": "第 2 讲 · 解析函数 · 调和函",
+        "figure": null,
+        "contentBottom": 2007,
+        "contentShare": 2.79,
+        "checks": 1,
+        "figureStates": 0
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "concept",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2096,
+        "viewportHeight": 720,
+        "screenRatio": 2.91,
+        "overflowX": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 842,
+        "minFont": 12,
+        "minFontSample": "第 2 讲 · 解析函数 · 调和函",
+        "figure": null,
+        "contentBottom": 2007,
+        "contentShare": 2.79,
+        "checks": 1,
+        "figureStates": 0
+      }
+    },
+    {
+      "page_id": 56,
+      "ordinal": 6,
+      "title": "初等函数：指数、对数与幂",
+      "role": "compare",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "compare",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 1571,
+          "viewportHeight": 720,
+          "screenRatio": 2.18,
+          "overflowX": 0,
+          "blocks": 4,
+          "visibleBlocks": 4,
+          "cjk": 763,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · 对数与",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 1482,
+          "contentShare": 2.06,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "compare",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 1447,
+          "viewportHeight": 900,
+          "screenRatio": 1.61,
+          "overflowX": 0,
+          "blocks": 4,
+          "visibleBlocks": 4,
+          "cjk": 763,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · 对数与",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 1349,
+          "contentShare": 1.5,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "compare",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 1461,
+          "viewportHeight": 1080,
+          "screenRatio": 1.35,
+          "overflowX": 0,
+          "blocks": 4,
+          "visibleBlocks": 4,
+          "cjk": 763,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · 对数与",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 1353,
+          "contentShare": 1.25,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "compare",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3095,
+          "viewportHeight": 844,
+          "screenRatio": 3.67,
+          "overflowX": 0,
+          "blocks": 4,
+          "visibleBlocks": 4,
+          "cjk": 763,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · 对数与",
+          "figure": {
+            "width": 362,
+            "height": 418
+          },
+          "contentBottom": 2951,
+          "contentShare": 3.5,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "compare",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1571,
+        "viewportHeight": 720,
+        "screenRatio": 2.18,
+        "overflowX": 0,
+        "blocks": 4,
+        "visibleBlocks": 4,
+        "cjk": 763,
+        "minFont": 12,
+        "minFontSample": "第 2 讲 · 解析函数 · 对数与",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 1482,
+        "contentShare": 2.06,
+        "checks": 1,
+        "figureStates": 1
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "compare",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1571,
+        "viewportHeight": 720,
+        "screenRatio": 2.18,
+        "overflowX": 0,
+        "blocks": 4,
+        "visibleBlocks": 4,
+        "cjk": 763,
+        "minFont": 12,
+        "minFontSample": "第 2 讲 · 解析函数 · 对数与",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 1482,
+        "contentShare": 2.06,
+        "checks": 1,
+        "figureStates": 1
+      }
+    },
+    {
+      "page_id": 57,
+      "ordinal": 7,
+      "title": "C-R 判定例题：x²+iy²",
+      "role": "worked_example",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 2075,
+          "viewportHeight": 720,
+          "screenRatio": 2.88,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 1071,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · C-R",
+          "figure": {
+            "width": 320,
+            "height": 374
+          },
+          "contentBottom": 1988,
+          "contentShare": 2.76,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 2018,
+          "viewportHeight": 900,
+          "screenRatio": 2.24,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 1071,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · C-R",
+          "figure": {
+            "width": 320,
+            "height": 374
+          },
+          "contentBottom": 1922,
+          "contentShare": 2.14,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 2031,
+          "viewportHeight": 1080,
+          "screenRatio": 1.88,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 1071,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · C-R",
+          "figure": {
+            "width": 320,
+            "height": 374
+          },
+          "contentBottom": 1926,
+          "contentShare": 1.78,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3820,
+          "viewportHeight": 844,
+          "screenRatio": 4.53,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 1091,
+          "minFont": 12,
+          "minFontSample": "第 2 讲 · 解析函数 · C-R",
+          "figure": {
+            "width": 362,
+            "height": 376
+          },
+          "contentBottom": 3675,
+          "contentShare": 4.35,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2075,
+        "viewportHeight": 720,
+        "screenRatio": 2.88,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 1071,
+        "minFont": 12,
+        "minFontSample": "第 2 讲 · 解析函数 · C-R",
+        "figure": {
+          "width": 320,
+          "height": 374
+        },
+        "contentBottom": 1988,
+        "contentShare": 2.76,
+        "checks": 1,
+        "figureStates": 1
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2075,
+        "viewportHeight": 720,
+        "screenRatio": 2.88,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 1071,
+        "minFont": 12,
+        "minFontSample": "第 2 讲 · 解析函数 · C-R",
+        "figure": {
+          "width": 320,
+          "height": 374
+        },
+        "contentBottom": 1988,
+        "contentShare": 2.76,
+        "checks": 1,
+        "figureStates": 1
+      }
+    },
+    {
+      "page_id": 58,
+      "ordinal": 8,
+      "title": "复积分定义与直接计算",
+      "role": "worked_example",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 1922,
+          "viewportHeight": 720,
+          "screenRatio": 2.67,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 924,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 直接",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 1833,
+          "contentShare": 2.55,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 1884,
+          "viewportHeight": 900,
+          "screenRatio": 2.09,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 924,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 直接",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 1785,
+          "contentShare": 1.98,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 1898,
+          "viewportHeight": 1080,
+          "screenRatio": 1.76,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 924,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 直接",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 1789,
+          "contentShare": 1.66,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3603,
+          "viewportHeight": 844,
+          "screenRatio": 4.27,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 924,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 直接",
+          "figure": {
+            "width": 362,
+            "height": 397
+          },
+          "contentBottom": 3440,
+          "contentShare": 4.08,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1922,
+        "viewportHeight": 720,
+        "screenRatio": 2.67,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 924,
+        "minFont": 12,
+        "minFontSample": "第 3 讲 · 积分与留数 · 直接",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 1833,
+        "contentShare": 2.55,
+        "checks": 1,
+        "figureStates": 1
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1922,
+        "viewportHeight": 720,
+        "screenRatio": 2.67,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 924,
+        "minFont": 12,
+        "minFontSample": "第 3 讲 · 积分与留数 · 直接",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 1833,
+        "contentShare": 2.55,
+        "checks": 1,
+        "figureStates": 1
+      }
+    },
+    {
+      "page_id": 59,
+      "ordinal": 9,
+      "title": "柯西-古萨与路径无关",
+      "role": "mechanism",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 2134,
+          "viewportHeight": 720,
+          "screenRatio": 2.96,
+          "overflowX": 0,
+          "blocks": 8,
+          "visibleBlocks": 8,
+          "cjk": 886,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 单连",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 2045,
+          "contentShare": 2.84,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 2125,
+          "viewportHeight": 900,
+          "screenRatio": 2.36,
+          "overflowX": 0,
+          "blocks": 8,
+          "visibleBlocks": 8,
+          "cjk": 886,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 单连",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 2026,
+          "contentShare": 2.25,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 2139,
+          "viewportHeight": 1080,
+          "screenRatio": 1.98,
+          "overflowX": 0,
+          "blocks": 8,
+          "visibleBlocks": 8,
+          "cjk": 886,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 单连",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 2030,
+          "contentShare": 1.88,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3811,
+          "viewportHeight": 844,
+          "screenRatio": 4.52,
+          "overflowX": 0,
+          "blocks": 8,
+          "visibleBlocks": 8,
+          "cjk": 886,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 单连",
+          "figure": {
+            "width": 362,
+            "height": 376
+          },
+          "contentBottom": 3666,
+          "contentShare": 4.34,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2134,
+        "viewportHeight": 720,
+        "screenRatio": 2.96,
+        "overflowX": 0,
+        "blocks": 8,
+        "visibleBlocks": 8,
+        "cjk": 886,
+        "minFont": 12,
+        "minFontSample": "第 3 讲 · 积分与留数 · 单连",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 2045,
+        "contentShare": 2.84,
+        "checks": 1,
+        "figureStates": 1
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2134,
+        "viewportHeight": 720,
+        "screenRatio": 2.96,
+        "overflowX": 0,
+        "blocks": 8,
+        "visibleBlocks": 8,
+        "cjk": 886,
+        "minFont": 12,
+        "minFontSample": "第 3 讲 · 积分与留数 · 单连",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 2045,
+        "contentShare": 2.84,
+        "checks": 1,
+        "figureStates": 1
+      }
+    },
+    {
+      "page_id": 60,
+      "ordinal": 10,
+      "title": "留数定理与奇点",
+      "role": "mechanism",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 2007,
+          "viewportHeight": 720,
+          "screenRatio": 2.79,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 718,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 留数",
+          "figure": {
+            "width": 320,
+            "height": 395
+          },
+          "contentBottom": 1918,
+          "contentShare": 2.66,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 1995,
+          "viewportHeight": 900,
+          "screenRatio": 2.22,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 718,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 留数",
+          "figure": {
+            "width": 320,
+            "height": 395
+          },
+          "contentBottom": 1897,
+          "contentShare": 2.11,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 2009,
+          "viewportHeight": 1080,
+          "screenRatio": 1.86,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 718,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 留数",
+          "figure": {
+            "width": 320,
+            "height": 395
+          },
+          "contentBottom": 1900,
+          "contentShare": 1.76,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "mechanism",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3547,
+          "viewportHeight": 844,
+          "screenRatio": 4.2,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 718,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 留数",
+          "figure": {
+            "width": 362,
+            "height": 397
+          },
+          "contentBottom": 3402,
+          "contentShare": 4.03,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2007,
+        "viewportHeight": 720,
+        "screenRatio": 2.79,
+        "overflowX": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 718,
+        "minFont": 12,
+        "minFontSample": "第 3 讲 · 积分与留数 · 留数",
+        "figure": {
+          "width": 320,
+          "height": 395
+        },
+        "contentBottom": 1918,
+        "contentShare": 2.66,
+        "checks": 1,
+        "figureStates": 1
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "mechanism",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2007,
+        "viewportHeight": 720,
+        "screenRatio": 2.79,
+        "overflowX": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 718,
+        "minFont": 12,
+        "minFontSample": "第 3 讲 · 积分与留数 · 留数",
+        "figure": {
+          "width": 320,
+          "height": 395
+        },
+        "contentBottom": 1918,
+        "contentShare": 2.66,
+        "checks": 1,
+        "figureStates": 1
+      }
+    },
+    {
+      "page_id": 61,
+      "ordinal": 11,
+      "title": "留数计算真题",
+      "role": "worked_example",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 2132,
+          "viewportHeight": 720,
+          "screenRatio": 2.96,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 856,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 围道",
+          "figure": {
+            "width": 320,
+            "height": 395
+          },
+          "contentBottom": 2043,
+          "contentShare": 2.84,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 2039,
+          "viewportHeight": 900,
+          "screenRatio": 2.27,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 856,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 围道",
+          "figure": {
+            "width": 320,
+            "height": 395
+          },
+          "contentBottom": 1941,
+          "contentShare": 2.16,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 2053,
+          "viewportHeight": 1080,
+          "screenRatio": 1.9,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 856,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 围道",
+          "figure": {
+            "width": 320,
+            "height": 395
+          },
+          "contentBottom": 1944,
+          "contentShare": 1.8,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3817,
+          "viewportHeight": 844,
+          "screenRatio": 4.52,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 896,
+          "minFont": 12,
+          "minFontSample": "第 3 讲 · 积分与留数 · 围道",
+          "figure": {
+            "width": 362,
+            "height": 376
+          },
+          "contentBottom": 3672,
+          "contentShare": 4.35,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2132,
+        "viewportHeight": 720,
+        "screenRatio": 2.96,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 856,
+        "minFont": 12,
+        "minFontSample": "第 3 讲 · 积分与留数 · 围道",
+        "figure": {
+          "width": 320,
+          "height": 395
+        },
+        "contentBottom": 2043,
+        "contentShare": 2.84,
+        "checks": 1,
+        "figureStates": 1
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2132,
+        "viewportHeight": 720,
+        "screenRatio": 2.96,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 856,
+        "minFont": 12,
+        "minFontSample": "第 3 讲 · 积分与留数 · 围道",
+        "figure": {
+          "width": 320,
+          "height": 395
+        },
+        "contentBottom": 2043,
+        "contentShare": 2.84,
+        "checks": 1,
+        "figureStates": 1
+      }
+    },
+    {
+      "page_id": 62,
+      "ordinal": 12,
+      "title": "泰勒展开",
+      "role": "worked_example",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 1990,
+          "viewportHeight": 720,
+          "screenRatio": 2.76,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 772,
+          "minFont": 12,
+          "minFontSample": "第 4 讲 · 级数 · 泰勒展开",
+          "figure": null,
+          "contentBottom": 1904,
+          "contentShare": 2.64,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 1978,
+          "viewportHeight": 900,
+          "screenRatio": 2.2,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 772,
+          "minFont": 12,
+          "minFontSample": "第 4 讲 · 级数 · 泰勒展开",
+          "figure": null,
+          "contentBottom": 1883,
+          "contentShare": 2.09,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 1992,
+          "viewportHeight": 1080,
+          "screenRatio": 1.84,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 772,
+          "minFont": 12,
+          "minFontSample": "第 4 讲 · 级数 · 泰勒展开",
+          "figure": null,
+          "contentBottom": 1886,
+          "contentShare": 1.75,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3259,
+          "viewportHeight": 844,
+          "screenRatio": 3.86,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 782,
+          "minFont": 12,
+          "minFontSample": "第 4 讲 · 级数 · 泰勒展开",
+          "figure": null,
+          "contentBottom": 3114,
+          "contentShare": 3.69,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1990,
+        "viewportHeight": 720,
+        "screenRatio": 2.76,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 772,
+        "minFont": 12,
+        "minFontSample": "第 4 讲 · 级数 · 泰勒展开",
+        "figure": null,
+        "contentBottom": 1904,
+        "contentShare": 2.64,
+        "checks": 1,
+        "figureStates": 0
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1990,
+        "viewportHeight": 720,
+        "screenRatio": 2.76,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 772,
+        "minFont": 12,
+        "minFontSample": "第 4 讲 · 级数 · 泰勒展开",
+        "figure": null,
+        "contentBottom": 1904,
+        "contentShare": 2.64,
+        "checks": 1,
+        "figureStates": 0
+      }
+    },
+    {
+      "page_id": 63,
+      "ordinal": 13,
+      "title": "洛朗展开与奇点判定",
+      "role": "worked_example",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 2073,
+          "viewportHeight": 720,
+          "screenRatio": 2.88,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 781,
+          "minFont": 12,
+          "minFontSample": "第 4 讲 · 级数 · 洛朗展开与",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 1987,
+          "contentShare": 2.76,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 2036,
+          "viewportHeight": 900,
+          "screenRatio": 2.26,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 781,
+          "minFont": 12,
+          "minFontSample": "第 4 讲 · 级数 · 洛朗展开与",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 1940,
+          "contentShare": 2.16,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 2050,
+          "viewportHeight": 1080,
+          "screenRatio": 1.9,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 781,
+          "minFont": 12,
+          "minFontSample": "第 4 讲 · 级数 · 洛朗展开与",
+          "figure": {
+            "width": 320,
+            "height": 416
+          },
+          "contentBottom": 1944,
+          "contentShare": 1.8,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3610,
+          "viewportHeight": 844,
+          "screenRatio": 4.28,
+          "overflowX": 0,
+          "blocks": 6,
+          "visibleBlocks": 6,
+          "cjk": 781,
+          "minFont": 12,
+          "minFontSample": "第 4 讲 · 级数 · 洛朗展开与",
+          "figure": {
+            "width": 362,
+            "height": 418
+          },
+          "contentBottom": 3465,
+          "contentShare": 4.11,
+          "checks": 1,
+          "figureStates": 1,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2073,
+        "viewportHeight": 720,
+        "screenRatio": 2.88,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 781,
+        "minFont": 12,
+        "minFontSample": "第 4 讲 · 级数 · 洛朗展开与",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 1987,
+        "contentShare": 2.76,
+        "checks": 1,
+        "figureStates": 1
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2073,
+        "viewportHeight": 720,
+        "screenRatio": 2.88,
+        "overflowX": 0,
+        "blocks": 6,
+        "visibleBlocks": 6,
+        "cjk": 781,
+        "minFont": 12,
+        "minFontSample": "第 4 讲 · 级数 · 洛朗展开与",
+        "figure": {
+          "width": 320,
+          "height": 416
+        },
+        "contentBottom": 1987,
+        "contentShare": 2.76,
+        "checks": 1,
+        "figureStates": 1
+      }
+    },
+    {
+      "page_id": 64,
+      "ordinal": 14,
+      "title": "傅立叶变换与 δ 函数",
+      "role": "concept",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 2009,
+          "viewportHeight": 720,
+          "screenRatio": 2.79,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 709,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 傅立",
+          "figure": null,
+          "contentBottom": 1923,
+          "contentShare": 2.67,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 2026,
+          "viewportHeight": 900,
+          "screenRatio": 2.25,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 709,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 傅立",
+          "figure": null,
+          "contentBottom": 1930,
+          "contentShare": 2.14,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 2040,
+          "viewportHeight": 1080,
+          "screenRatio": 1.89,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 709,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 傅立",
+          "figure": null,
+          "contentBottom": 1934,
+          "contentShare": 1.79,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "concept",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3270,
+          "viewportHeight": 844,
+          "screenRatio": 3.87,
+          "overflowX": 0,
+          "blocks": 7,
+          "visibleBlocks": 7,
+          "cjk": 729,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 傅立",
+          "figure": null,
+          "contentBottom": 3125,
+          "contentShare": 3.7,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "concept",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2009,
+        "viewportHeight": 720,
+        "screenRatio": 2.79,
+        "overflowX": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 709,
+        "minFont": 12,
+        "minFontSample": "第 5 讲 · 变换与速查 · 傅立",
+        "figure": null,
+        "contentBottom": 1923,
+        "contentShare": 2.67,
+        "checks": 1,
+        "figureStates": 0
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "concept",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 2009,
+        "viewportHeight": 720,
+        "screenRatio": 2.79,
+        "overflowX": 0,
+        "blocks": 7,
+        "visibleBlocks": 7,
+        "cjk": 709,
+        "minFont": 12,
+        "minFontSample": "第 5 讲 · 变换与速查 · 傅立",
+        "figure": null,
+        "contentBottom": 1923,
+        "contentShare": 2.67,
+        "checks": 1,
+        "figureStates": 0
+      }
+    },
+    {
+      "page_id": 65,
+      "ordinal": 15,
+      "title": "拉普拉斯变换四步法",
+      "role": "worked_example",
+      "theme": "workbench",
+      "scroll": "flow",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 1982,
+          "viewportHeight": 720,
+          "screenRatio": 2.75,
+          "overflowX": 0,
+          "blocks": 5,
+          "visibleBlocks": 5,
+          "cjk": 751,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 拉普",
+          "figure": null,
+          "contentBottom": 1893,
+          "contentShare": 2.63,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 1946,
+          "viewportHeight": 900,
+          "screenRatio": 2.16,
+          "overflowX": 0,
+          "blocks": 5,
+          "visibleBlocks": 5,
+          "cjk": 751,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 拉普",
+          "figure": null,
+          "contentBottom": 1847,
+          "contentShare": 2.05,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 1960,
+          "viewportHeight": 1080,
+          "screenRatio": 1.81,
+          "overflowX": 0,
+          "blocks": 5,
+          "visibleBlocks": 5,
+          "cjk": 751,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 拉普",
+          "figure": null,
+          "contentBottom": 1851,
+          "contentShare": 1.71,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "worked_example",
+          "scroll": "flow",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 3189,
+          "viewportHeight": 844,
+          "screenRatio": 3.78,
+          "overflowX": 0,
+          "blocks": 5,
+          "visibleBlocks": 5,
+          "cjk": 771,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 拉普",
+          "figure": null,
+          "contentBottom": 3044,
+          "contentShare": 3.61,
+          "checks": 1,
+          "figureStates": 0,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1982,
+        "viewportHeight": 720,
+        "screenRatio": 2.75,
+        "overflowX": 0,
+        "blocks": 5,
+        "visibleBlocks": 5,
+        "cjk": 751,
+        "minFont": 12,
+        "minFontSample": "第 5 讲 · 变换与速查 · 拉普",
+        "figure": null,
+        "contentBottom": 1893,
+        "contentShare": 2.63,
+        "checks": 1,
+        "figureStates": 0
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "worked_example",
+        "scroll": "flow",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 1982,
+        "viewportHeight": 720,
+        "screenRatio": 2.75,
+        "overflowX": 0,
+        "blocks": 5,
+        "visibleBlocks": 5,
+        "cjk": 751,
+        "minFont": 12,
+        "minFontSample": "第 5 讲 · 变换与速查 · 拉普",
+        "figure": null,
+        "contentBottom": 1893,
+        "contentShare": 2.63,
+        "checks": 1,
+        "figureStates": 0
+      }
+    },
+    {
+      "page_id": 66,
+      "ordinal": 16,
+      "title": "全册公式与易错速查（小结）",
+      "role": "summary",
+      "theme": "workbench",
+      "scroll": "fit",
+      "runs": [
+        {
+          "theme": "workbench",
+          "role": "summary",
+          "scroll": "fit",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "documentHeight": 720,
+          "viewportHeight": 720,
+          "screenRatio": 1,
+          "overflowX": 0,
+          "blocks": 4,
+          "visibleBlocks": 4,
+          "cjk": 363,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 全册",
+          "figure": null,
+          "contentBottom": 634,
+          "contentShare": 0.88,
+          "checks": 0,
+          "figureStates": 0,
+          "viewportName": "1280",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "summary",
+          "scroll": "fit",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentHeight": 900,
+          "viewportHeight": 900,
+          "screenRatio": 1,
+          "overflowX": 0,
+          "blocks": 4,
+          "visibleBlocks": 4,
+          "cjk": 363,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 全册",
+          "figure": null,
+          "contentBottom": 804,
+          "contentShare": 0.89,
+          "checks": 0,
+          "figureStates": 0,
+          "viewportName": "1440",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "summary",
+          "scroll": "fit",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          },
+          "documentHeight": 1080,
+          "viewportHeight": 1080,
+          "screenRatio": 1,
+          "overflowX": 0,
+          "blocks": 4,
+          "visibleBlocks": 4,
+          "cjk": 363,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 全册",
+          "figure": null,
+          "contentBottom": 975,
+          "contentShare": 0.9,
+          "checks": 0,
+          "figureStates": 0,
+          "viewportName": "1920",
+          "consoleErrors": []
+        },
+        {
+          "theme": "workbench",
+          "role": "summary",
+          "scroll": "fit",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentHeight": 1544,
+          "viewportHeight": 844,
+          "screenRatio": 1.83,
+          "overflowX": 0,
+          "blocks": 4,
+          "visibleBlocks": 4,
+          "cjk": 363,
+          "minFont": 12,
+          "minFontSample": "第 5 讲 · 变换与速查 · 全册",
+          "figure": null,
+          "contentBottom": 1399,
+          "contentShare": 1.66,
+          "checks": 0,
+          "figureStates": 0,
+          "viewportName": "390",
+          "consoleErrors": []
+        }
+      ],
+      "dark": {
+        "theme": "workbench",
+        "role": "summary",
+        "scroll": "fit",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 720,
+        "viewportHeight": 720,
+        "screenRatio": 1,
+        "overflowX": 0,
+        "blocks": 4,
+        "visibleBlocks": 4,
+        "cjk": 363,
+        "minFont": 12,
+        "minFontSample": "第 5 讲 · 变换与速查 · 全册",
+        "figure": null,
+        "contentBottom": 634,
+        "contentShare": 0.88,
+        "checks": 0,
+        "figureStates": 0
+      },
+      "reduced": {
+        "theme": "workbench",
+        "role": "summary",
+        "scroll": "fit",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "documentHeight": 720,
+        "viewportHeight": 720,
+        "screenRatio": 1,
+        "overflowX": 0,
+        "blocks": 4,
+        "visibleBlocks": 4,
+        "cjk": 363,
+        "minFont": 12,
+        "minFontSample": "第 5 讲 · 变换与速查 · 全册",
+        "figure": null,
+        "contentBottom": 634,
+        "contentShare": 0.88,
+        "checks": 0,
+        "figureStates": 0
+      }
+    }
+  ]
+}

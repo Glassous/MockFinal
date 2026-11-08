@@ -1,0 +1,39 @@
+<div class="mp-page" data-mp-state="idle">
+  <header class="mp-head">
+    <p class="mp-eyebrow">概念 · 本页教学环节</p>
+    <h1 class="mp-title">本页标题（替换为 brief 的知识点标题）</h1>
+    <p class="mp-sub">一句话说明本页要解决的教学问题，不超过 40 字。</p>
+  </header>
+  <main class="mp-body mp-layout-split">
+    <section class="mp-panel" data-mp-block="b1" aria-label="讲解一">
+      <p class="mp-label">核心概念</p>
+      <div class="mp-stepper" data-mp-role="steps">
+        <button type="button" class="mp-step" aria-current="step" data-mp-step="0">第一步：替换为真实讲解要点</button>
+        <button type="button" class="mp-step" data-mp-step="1">第二步：替换为真实讲解要点</button>
+        <button type="button" class="mp-step" data-mp-step="2">第三步：替换为真实讲解要点</button>
+      </div>
+      <p class="mp-text" data-mp-text>把 brief 的 key_points 写成可读的讲解，不要编造资料外的事实。</p>
+    </section>
+    <section class="mp-panel" data-mp-block="b2" aria-label="讲解二">
+      <p class="mp-label">对比与边界</p>
+      <p class="mp-text" data-mp-text>用 brief 的 source_excerpts 支撑本块内容，公式使用 KaTeX 语法。</p>
+      <p class="mp-status" data-mp-role="status" aria-live="polite">初始状态：点击「下一步」后更新这里。</p>
+    </section>
+    <section class="mp-panel" data-mp-block="b3" aria-label="讲解三">
+      <p class="mp-label">易错提醒</p>
+      <div class="mp-check" data-mp-role="check">
+        <p class="mp-text">随堂检查：替换为能检验本页目标的具体问题。</p>
+        <button type="button" class="mp-option" data-mp-action="answer" data-mp-answer="0">选项 A（替换）</button>
+        <button type="button" class="mp-option" data-mp-action="answer" data-mp-answer="1">选项 B（替换）</button>
+        <p class="mp-caption" data-mp-role="explanation" hidden>选择后显示解析：为什么这个答案成立。</p>
+      </div>
+    </section>
+  </main>
+  <footer class="mp-foot">
+    <p class="mp-source">依据：brief.source_excerpts（section_id）</p>
+    <div class="mp-controls">
+      <button type="button" class="mp-btn mp-btn-primary" data-mp-action="step">下一步</button>
+      <button type="button" class="mp-btn" data-mp-action="reset">重置</button>
+    </div>
+  </footer>
+</div>

@@ -1,0 +1,93 @@
+{
+  "generated_at": "2026-11-08T05:05:56.986Z",
+  "base": "http://127.0.0.1:9100",
+  "mode": "pi",
+  "session_key": "deck_p11_reuse_lane0_1794114179",
+  "pages": [
+    {
+      "role": "mechanism",
+      "build_id": "p11_mechanism_1794114180109",
+      "status": "succeeded",
+      "error": null,
+      "session_key": "deck_p11_reuse_lane0_1794114179",
+      "usage": {
+        "input_tokens": 22094,
+        "output_tokens": 17527,
+        "cache_read_tokens": 488704,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 102981
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "screenshots": [],
+        "duration_ms": 1949,
+        "teaching": {
+          "score": 80,
+          "criteria": {
+            "objectives": 20,
+            "chain": 20,
+            "example": 0,
+            "misconceptions": 15,
+            "check": 15,
+            "sources": 10
+          },
+          "warnings": []
+        }
+      },
+      "duration_ms": 104520,
+      "bundle_http": 200,
+      "bundle_bytes": 14995,
+      "css_bytes": 3931
+    },
+    {
+      "role": "practice",
+      "build_id": "p11_practice_1794114284632",
+      "status": "succeeded",
+      "error": null,
+      "session_key": "deck_p11_reuse_lane0_1794114179",
+      "usage": {
+        "input_tokens": 8522,
+        "output_tokens": 12624,
+        "cache_read_tokens": 649344,
+        "cache_write_tokens": 0,
+        "cost": 0,
+        "duration_ms": 70750
+      },
+      "validation": {
+        "status": "passed",
+        "issues": [],
+        "screenshots": [],
+        "duration_ms": 1815,
+        "teaching": {
+          "score": 80,
+          "criteria": {
+            "objectives": 20,
+            "chain": 20,
+            "example": 0,
+            "misconceptions": 15,
+            "check": 15,
+            "sources": 10
+          },
+          "warnings": []
+        }
+      },
+      "duration_ms": 72344,
+      "bundle_http": 200,
+      "bundle_bytes": 12462,
+      "css_bytes": 3100
+    }
+  ],
+  "cleanup": {
+    "status": 202,
+    "body": {
+      "key": "deck_p11_reuse_lane0_1794114179",
+      "status": "closed"
+    }
+  },
+  "summary": {
+    "total": 2,
+    "succeeded": 2
+  }
+}

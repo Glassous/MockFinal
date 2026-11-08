@@ -86,6 +86,22 @@ class Settings(BaseSettings):
     # 整个构建任务总超时（秒）；超时取消 Builder 并把未完成页面落失败
     deck_job_timeout_seconds: int = 1800
 
+    # ===== P9 教学契约（默认关闭，黄金集门禁通过后开启） =====
+    deck_teaching_enabled: bool = False
+    # 教学评分门禁阈值（P11 校准后作为 Builder 重试条件）
+    deck_teaching_min_score: int = 70
+    # 单层可见正文建议值（warning 口径，非硬门禁）
+    deck_visible_layer_chars: int = 450
+    # 单页总正文硬上限（超出必须拆页）
+    deck_total_page_chars: int = 700
+    # 页内总块数上限（含隐藏层）
+    deck_max_page_blocks: int = 8
+
+    # ===== P11 Deck lane 会话（默认关闭，A/B 通过后开启） =====
+    deck_session_reuse_enabled: bool = False
+    # lane 数量上限；实际取 min(lane_count, page_builder_concurrency)
+    deck_lane_count: int = 2
+
     # CORS 允许来源（#24）：env CORS_ORIGINS 逗号分隔，默认本地前端
     cors_origins: list[str] = ["http://localhost:5173"]
 

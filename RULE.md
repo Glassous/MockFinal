@@ -234,6 +234,7 @@ refactor(sectioner): 拆分解析与资料分节流程
 - 前端：改动后必须 `pnpm typecheck` 与 `pnpm test`；合并前跑 `pnpm build`。UI 改动需在浏览器验证：正常、空态、加载、失败、深色模式、窄屏。
 - 后端：`pytest` 必须通过（`backend/tests`）；`docker compose up -d --build` 后 `/api/health` 为 ok，并实际请求受影响接口；后台任务类改动需观察 `job`/`material` 状态流转与日志。
 - 测试栈为 2026-11-07 确认的最小范围（pytest / Vitest / Playwright），只覆盖 PageRef 核心链路；没有 CI。**不要声称「测试通过」**，除非确实执行了对应命令。新增测试框架仍属于独立任务，需先确认。
+- PageContent 2.0 改动除后端/前端测试外，还必须跑 `builder npm test`、`validator npm test`、`node --test shared/page-shell/shell.test.mjs`；涉及 2.0 页面外观时用 `design_lab/build.mjs` + `validator/scripts/design-lab-shoot.mjs` 复核，规则见 `docs/pageref/PAGE_CONTENT_2.0.md`。
 - 无法验证的改动必须在交付说明中明确写出（例如「未能在浏览器中验证 OSS 直传」）。
 - 流式/长连接改动：必须验证关闭页面、刷新、断网后后端任务仍继续执行并落库；重新进入后可恢复状态；同时验证 0 个订阅者时任务仍能完成。
 
