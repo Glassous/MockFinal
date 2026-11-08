@@ -21,6 +21,7 @@ import {
   updateDeck,
 } from '@/api/decks'
 import { ApiError } from '@/api/client'
+import { FEATURES } from '@/lib/features'
 import {
   eventText,
   isActiveJob,
@@ -400,6 +401,24 @@ onBeforeUnmount(() => {
       </div>
 
       <template v-else-if="deck">
+        <!-- Serverless 版本：构建服务未部署 -->
+        <div v-if="!FEATURES.deckBuild" class="mx-auto max-w-2xl">
+          <div class="rounded-3xl border border-border bg-panel p-6 text-center">
+            <span class="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-raised text-muted">
+              <Hammer class="h-6 w-6" />
+            </span>
+            <h2 class="mt-4 text-xl font-bold tracking-tight text-ink">复习页构建暂不可用</h2>
+            <p class="mt-2 text-sm leading-relaxed text-muted">
+              当前 Serverless 版本暂不提供页面构建与单页重建服务；已有页面仍可正常阅读。
+            </p>
+            <AppButton class="mt-5" @click="goOverview">
+              <template #icon><ArrowLeft class="h-4 w-4" /></template>
+              返回总览
+            </AppButton>
+          </div>
+        </div>
+
+        <template v-else>
         <!-- 新建 Deck：构建设置 -->
         <div v-if="!job && !pages.length" class="mx-auto max-w-3xl">
           <div class="rounded-3xl border border-border bg-panel p-5 sm:p-7">
@@ -553,6 +572,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
         </div>
+        </template>
       </template>
     </main>
 

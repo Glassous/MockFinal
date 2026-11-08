@@ -2,13 +2,14 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Sparkles, Loader2, Trash2, Pencil, Check, Files, BookOpen, ClipboardList, Layers } from 'lucide-vue-next'
-import type { ArtifactKind, ArtifactMeta, Deck, Material, Workspace } from '@/types'
+import type { ArtifactKind, ArtifactMeta, Deck, Job, Material, Workspace } from '@/types'
 import { getWorkspace } from '@/api/workspaces'
 import { listMaterials } from '@/api/materials'
 import { listArtifacts } from '@/api/artifacts'
 import { listDecks } from '@/api/decks'
-import { generate, getJob } from '@/api/generation'
+import { generate, getJob, advanceJob } from '@/api/generation'
 import { ApiError } from '@/api/client'
+import { FEATURES } from '@/lib/features'
 import { useToastStore } from '@/stores/toast'
 import { useWorkspaceStore } from '@/stores/workspace'
 import AppButton from '@/components/AppButton.vue'
@@ -103,7 +104,7 @@ function openDeck(deckId: number) {
 function onDeckCreated(deck: Deck) {
   createDeckOpen.value = false
   void router.push({
-    name: 'deck-build',
+    name: FEATURES.deckBuild ? 'deck-build' : 'deck-overview',
     params: { id: workspaceId.value, deckId: deck.id },
   })
 }
@@ -132,6 +133,7 @@ async function loadAll(id: number) {
     workspace.value = await getWorkspace(id)
     await Promise.all([refreshMaterials(), refreshArtifacts(), refreshDecks()])
     scheduleMaterialPolling()
+    await resumeJob(id)
   } catch (error) {
     if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
       notFound.value = true
@@ -169,40 +171,127 @@ function onUploaded() {
   void refreshMaterials().then(scheduleMaterialPolling)
 }
 
-/* ------------------------- 生成任务轮询（2s） ------------------------- */
-let jobTimer: number | null = null
+/* ------------------------- 生成任务推进（前端驱动 advance） ------------------------- */
+let advanceTimer: number | null = null
+let jobFallbackTimer: number | null = null
+let advancing = false
+
+const JOB_KEY_PREFIX = 'mockfinal_job_'
+
+function jobStorageKey(id: number): string {
+  return `${JOB_KEY_PREFIX}${id}`
+}
+
+function rememberJob(workspaceIdValue: number, id: number | null): void {
+  try {
+    if (id === null) localStorage.removeItem(jobStorageKey(workspaceIdValue))
+    else localStorage.setItem(jobStorageKey(workspaceIdValue), String(id))
+  } catch {
+    /* 隐私模式下 localStorage 可能不可用 */
+  }
+}
+
+function forgetJob(workspaceIdValue: number): void {
+  rememberJob(workspaceIdValue, null)
+}
 
 function stopJobPolling() {
-  if (jobTimer !== null) {
-    window.clearInterval(jobTimer)
-    jobTimer = null
+  if (advanceTimer !== null) {
+    window.clearTimeout(advanceTimer)
+    advanceTimer = null
+  }
+  if (jobFallbackTimer !== null) {
+    window.clearInterval(jobFallbackTimer)
+    jobFallbackTimer = null
+  }
+  advancing = false
+}
+
+/** 应用一次任务快照；返回 true 表示已进入终态 */
+function applyJob(job: Job): boolean {
+  if (job.stage) jobStage.value = job.stage
+  if (job.status === 'done') {
+    stopJobPolling()
+    generating.value = false
+    jobId.value = null
+    forgetJob(workspaceId.value)
+    toast.success('生成完成，已为你切换到「终极复习」')
+    void refreshArtifacts()
+    tab.value = 'review'
+    return true
+  }
+  if (job.status === 'failed') {
+    stopJobPolling()
+    generating.value = false
+    jobId.value = null
+    forgetJob(workspaceId.value)
+    toast.error(job.error || '生成失败，请重试')
+    return true
+  }
+  return false
+}
+
+function scheduleAdvance(delay: number) {
+  if (advanceTimer !== null) window.clearTimeout(advanceTimer)
+  advanceTimer = window.setTimeout(() => {
+    advanceTimer = null
+    void advanceLoop()
+  }, delay)
+}
+
+async function advanceLoop() {
+  if (jobId.value == null) return
+  advancing = true
+  try {
+    const job = await advanceJob(jobId.value)
+    advancing = false
+    if (applyJob(job)) return
+    scheduleAdvance(400)
+  } catch (error) {
+    advancing = false
+    if (error instanceof ApiError && error.status === 401) return
+    // 429 / 502 / 网络抖动：退避后继续推进，任务状态由后端 cursor 保证可续
+    const retryable = error instanceof ApiError && (error.status === 429 || error.status === 502 || error.status === 0)
+    scheduleAdvance(retryable ? 3000 : 1200)
   }
 }
 
 function startJobPolling() {
   stopJobPolling()
-  jobTimer = window.setInterval(async () => {
-    if (jobId.value == null) return
+  scheduleAdvance(0)
+  jobFallbackTimer = window.setInterval(async () => {
+    if (jobId.value == null || advancing) return
     try {
-      const job = await getJob(jobId.value)
-      if (job.stage) jobStage.value = job.stage
-      if (job.status === 'done') {
-        stopJobPolling()
-        generating.value = false
-        jobId.value = null
-        toast.success('生成完成，已为你切换到「终极复习」')
-        await refreshArtifacts()
-        tab.value = 'review'
-      } else if (job.status === 'failed') {
-        stopJobPolling()
-        generating.value = false
-        jobId.value = null
-        toast.error(job.error || '生成失败，请重试')
-      }
+      applyJob(await getJob(jobId.value))
     } catch {
-      /* 单次轮询失败不中断，等待下次；401 由全局处理 */
+      /* 单次兜底读取失败不中断 */
     }
   }, 2000)
+}
+
+/** 重新进入页面时恢复未完成的生成任务 */
+async function resumeJob(id: number) {
+  let stored: string | null = null
+  try {
+    stored = localStorage.getItem(jobStorageKey(id))
+  } catch {
+    return
+  }
+  const cached = Number(stored)
+  if (!Number.isSafeInteger(cached) || cached <= 0) return
+  try {
+    const job = await getJob(cached)
+    if (job.status === 'pending' || job.status === 'running') {
+      jobId.value = job.id
+      generating.value = true
+      if (job.stage) jobStage.value = job.stage
+      startJobPolling()
+    } else {
+      forgetJob(id)
+    }
+  } catch {
+    forgetJob(id)
+  }
 }
 
 async function onGenerate() {
@@ -210,6 +299,7 @@ async function onGenerate() {
   try {
     const res = await generate(workspaceId.value)
     jobId.value = res.job_id
+    rememberJob(workspaceId.value, res.job_id)
     generating.value = true
     jobStage.value = '任务已提交，正在启动…'
     startJobPolling()
@@ -219,6 +309,7 @@ async function onGenerate() {
         toast.error(error.detail || '没有可用资料，请先上传并等待解析完成')
       } else if (error.status === 409) {
         toast.error(error.detail || '已有正在进行的生成任务，请稍候')
+        await resumeJob(workspaceId.value)
       } else {
         toast.error(error.detail)
       }

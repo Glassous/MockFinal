@@ -21,6 +21,7 @@ import {
   updateDeckProgress,
 } from '@/api/decks'
 import { ApiError } from '@/api/client'
+import { FEATURES } from '@/lib/features'
 import {
   nextPageId,
   prevPageId,
@@ -529,7 +530,7 @@ onBeforeUnmount(() => {
         >
           <PanelRight class="h-4 w-4" />
         </AppIconButton>
-        <AppIconButton label="打开 AI 助手" @click="openAssistant()">
+        <AppIconButton v-if="FEATURES.deckChat" label="打开 AI 助手" @click="openAssistant()">
           <MessageSquareText class="h-4 w-4" />
         </AppIconButton>
         <div class="hidden md:block">
@@ -544,7 +545,7 @@ onBeforeUnmount(() => {
             <Expand v-else class="h-4 w-4" />
           </AppIconButton>
         </div>
-        <AppIconButton label="重做这一页" @click="rebuildOpen = true">
+        <AppIconButton v-if="FEATURES.deckBuild" label="重做这一页" @click="rebuildOpen = true">
           <RotateCcw class="h-4 w-4" />
         </AppIconButton>
       </div>
@@ -629,7 +630,7 @@ onBeforeUnmount(() => {
       </div>
 
       <SelectionAction
-        :visible="!!selection && !drawerOpen"
+        :visible="FEATURES.deckChat && !!selection && !drawerOpen"
         :x="selection?.x ?? 0"
         :y="selection?.y ?? 0"
         :text="selection?.text ?? ''"

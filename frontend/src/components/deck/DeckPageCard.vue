@@ -7,11 +7,12 @@ import { pageDisplayTitle } from '@/lib/deck'
 import DeckRoleBadge from './DeckRoleBadge.vue'
 import DeckStatusPill from './DeckStatusPill.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   deckId: number
   page: DeckPageSummary
   active?: boolean
-}>()
+  buildEnabled?: boolean
+}>(), { buildEnabled: true })
 
 const emit = defineEmits<{ open: [pageId: number]; retry: [pageId: number] }>()
 
@@ -116,7 +117,7 @@ function open() {
           </template>
         </span>
         <button
-          v-if="page.status === 'failed' || (page.status === 'ready' && page.has_bundle)"
+          v-if="buildEnabled && (page.status === 'failed' || (page.status === 'ready' && page.has_bundle))"
           type="button"
           class="inline-flex h-7 items-center gap-1 rounded-full border border-border px-2 text-[11px] text-muted transition-colors hover:bg-raised hover:text-ink"
           @click="emit('retry', page.id)"

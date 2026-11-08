@@ -9,7 +9,7 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-vue-next'
-import { uploadFile, validateFile, ALLOWED_EXTENSIONS } from '@/lib/oss'
+import { uploadFile, validateFile, ALLOWED_EXTENSIONS } from '@/lib/upload'
 import { formatBytes } from '@/lib/format'
 import { useToastStore } from '@/stores/toast'
 import { ApiError } from '@/api/client'
@@ -178,7 +178,7 @@ function statusText(item: QueueItem): string {
         <span v-else>拖拽文件到此处，或 <span class="underline underline-offset-4">点击选择</span></span>
       </p>
       <p class="mt-1.5 text-xs text-muted">
-        支持 {{ ALLOWED_EXTENSIONS.join(' / ').toUpperCase() }} · 单个文件 ≤ 50MB · 可多选
+        支持 {{ ALLOWED_EXTENSIONS.join(' / ').toUpperCase() }} · 单个文件 ≤ 8MB · 可多选
       </p>
       <input
         ref="inputRef"

@@ -17,6 +17,7 @@ import {
   rebuildPage,
 } from '@/api/decks'
 import { ApiError } from '@/api/client'
+import { FEATURES } from '@/lib/features'
 import {
   buildRoadmap,
   continuePageId,
@@ -228,7 +229,7 @@ onBeforeUnmount(() => {
       :title="deck?.title ?? '复习页'"
       :subtitle="deck ? `${presetLabel(style.preset)} · ${densityLabel(style.density)}` : undefined"
     >
-      <AppButton v-if="deck && !deck.pages.length" size="sm" @click="goBuild">
+      <AppButton v-if="deck && !deck.pages.length && FEATURES.deckBuild" size="sm" @click="goBuild">
         <template #icon><Hammer class="h-4 w-4" /></template>
         开始构建
       </AppButton>
@@ -290,7 +291,7 @@ onBeforeUnmount(() => {
               <DeckStatusPill kind="deck" :status="deck.status" />
             </div>
 
-            <div v-if="deck.active_job_id" class="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border-strong bg-raised px-3.5 py-3">
+            <div v-if="deck.active_job_id && FEATURES.deckBuild" class="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border-strong bg-raised px-3.5 py-3">
               <Loader2 class="h-4 w-4 shrink-0 spin text-ink" />
               <p class="min-w-0 flex-1 text-sm text-muted">
                 构建任务正在进行，页面会在完成后逐页出现；可以离开，稍后回来继续查看。
@@ -310,7 +311,7 @@ onBeforeUnmount(() => {
                 <template #icon><ArrowRight class="h-4 w-4" /></template>
                 继续阅读
               </AppButton>
-              <AppButton v-if="deck.pages.length" variant="secondary" @click="rebuildOpen = true">
+              <AppButton v-if="deck.pages.length && FEATURES.deckBuild" variant="secondary" @click="rebuildOpen = true">
                 <template #icon><RotateCcw class="h-4 w-4" /></template>
                 整册重建
               </AppButton>
@@ -335,9 +336,12 @@ onBeforeUnmount(() => {
               <Hammer class="mx-auto h-6 w-6 text-faint" />
               <p class="mt-2 text-sm font-medium text-ink">尚未规划知识点</p>
               <p class="mt-1 text-xs leading-relaxed text-muted">
-                选择风格与密度后开始构建，系统会先规划大纲，再逐页生成。
+                <template v-if="FEATURES.deckBuild">
+                  选择风格与密度后开始构建，系统会先规划大纲，再逐页生成。
+                </template>
+                <template v-else>当前 Serverless 版本暂不提供页面构建服务。</template>
               </p>
-              <AppButton class="mt-4" size="sm" @click="goBuild">
+              <AppButton v-if="FEATURES.deckBuild" class="mt-4" size="sm" @click="goBuild">
                 去构建工作台
               </AppButton>
             </div>
@@ -347,6 +351,7 @@ onBeforeUnmount(() => {
         <div class="w-full lg:h-full lg:w-[380px] lg:shrink-0">
           <DeckWorkbench
             :deck="deck"
+            :build-enabled="FEATURES.deckBuild"
             @continue="openPage"
             @open="openPage"
             @build="goBuild"

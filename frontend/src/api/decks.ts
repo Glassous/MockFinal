@@ -6,6 +6,8 @@ import {
   request,
   requestBlob,
 } from './client'
+import { API_BASE } from './base'
+import { FEATURES } from '@/lib/features'
 import { createSseParser } from '@/lib/sse'
 import type {
   Deck,
@@ -40,10 +42,14 @@ export function deleteDeck(deckId: number): Promise<void> {
   return request<void>(`/decks/${deckId}`, { method: 'DELETE' })
 }
 
+const DECK_BUILD_UNAVAILABLE = '复习页构建服务未部署（Serverless 版本暂不提供）'
+const DECK_CHAT_UNAVAILABLE = '页面 AI 助手未部署（Serverless 版本暂不提供）'
+
 export function buildDeck(
   deckId: number,
   options: { rebuildAll?: boolean; replan?: boolean } = {},
 ): Promise<DeckBuildResponse> {
+  if (!FEATURES.deckBuild) return Promise.reject(new ApiError(503, DECK_BUILD_UNAVAILABLE))
   return request<DeckBuildResponse>(`/decks/${deckId}/build`, {
     method: 'POST',
     body: { rebuild_all: options.rebuildAll ?? false, replan: options.replan ?? false },
@@ -51,6 +57,7 @@ export function buildDeck(
 }
 
 export function cancelDeckBuild(deckId: number): Promise<DeckJob> {
+  if (!FEATURES.deckBuild) return Promise.reject(new ApiError(503, DECK_BUILD_UNAVAILABLE))
   return request<DeckJob>(`/decks/${deckId}/cancel`, { method: 'POST' })
 }
 
@@ -74,11 +81,12 @@ export function loadPageThumbnail(deckId: number, pageId: number): Promise<Blob>
   return requestBlob(`/decks/${deckId}/pages/${pageId}/thumbnail`)
 }
 
-export function rebuildPage(
+export async function rebuildPage(
   deckId: number,
   pageId: number,
   feedback?: string,
 ): Promise<DeckBuildResponse> {
+  if (!FEATURES.deckBuild) throw new ApiError(503, DECK_BUILD_UNAVAILABLE)
   return request<DeckBuildResponse>(`/decks/${deckId}/pages/${pageId}/rebuild`, {
     method: 'POST',
     body: { feedback: feedback?.trim() || null },
@@ -125,6 +133,7 @@ export async function streamPageMessage(
   handlers: PageMessageStreamHandlers,
   signal?: AbortSignal,
 ): Promise<void> {
+  if (!FEATURES.deckChat) throw new ApiError(501, DECK_CHAT_UNAVAILABLE)
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Accept: 'text/event-stream',
@@ -132,7 +141,7 @@ export async function streamPageMessage(
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
-  const res = await fetch(`/api/decks/${deckId}/pages/${pageId}/messages`, {
+  const res = await fetch(`${API_BASE}/decks/${deckId}/pages/${pageId}/messages`, {
     method: 'POST',
     headers,
     body: JSON.stringify(payload),

@@ -1,5 +1,7 @@
 // fetch 封装：统一鉴权、错误处理、401 跳转
 
+import { API_BASE } from './base'
+
 const TOKEN_KEY = 'mockfinal_token'
 
 export function getToken(): string | null {
@@ -89,7 +91,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     }
   }
 
-  const res = await fetch(`/api${path}`, { method, headers: finalHeaders, body: payload, signal })
+  const res = await fetch(`${API_BASE}${path}`, { method, headers: finalHeaders, body: payload, signal })
 
   if (res.status === 401) handleUnauthorized()
   if (!res.ok) throw await parseErrorResponse(res)
@@ -103,7 +105,7 @@ export async function requestBlob(path: string, signal?: AbortSignal): Promise<B
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
 
-  const res = await fetch(`/api${path}`, { headers, signal })
+  const res = await fetch(`${API_BASE}${path}`, { headers, signal })
   if (res.status === 401) handleUnauthorized()
   if (!res.ok) throw await parseErrorResponse(res)
   return await res.blob()

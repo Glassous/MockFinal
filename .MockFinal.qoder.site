@@ -1,0 +1,1 @@
+{"version":1,"name":"MockFinal","design":{"version":1,"pages":[{"path":"/","title":"工作区首页"},{"path":"/login","title":"登录"},{"path":"/register","title":"注册"},{"path":"/forgot","title":"找回密码"}],"capabilities":["appearance","radius","spacing","typography","motion"]}}

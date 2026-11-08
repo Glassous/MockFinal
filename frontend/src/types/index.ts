@@ -60,22 +60,16 @@ export interface MaterialCreate {
   content_type: string
 }
 
-export interface OssCredentials {
-  mode: 'oss'
-  accessKeyId: string
-  accessKeySecret: string
-  securityToken: string
-  expiration: string
-  region: string
-  bucket: string
-  key_prefix: string
+export interface SitesUploadCredentials {
+  mode: 'sites'
+  /** 服务端生成的对象路径，登记时必须原样回传 */
+  path: string
+  /** 同源相对地址，浏览器直接 PUT 文件字节 */
+  signedUrl: string
+  expiresIn: number
 }
 
-export interface LocalCredentials {
-  mode: 'local'
-}
-
-export type UploadCredentials = OssCredentials | LocalCredentials
+export type UploadCredentials = SitesUploadCredentials
 
 export type JobStatus = 'pending' | 'running' | 'done' | 'failed'
 

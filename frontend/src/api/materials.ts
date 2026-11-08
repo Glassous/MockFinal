@@ -1,14 +1,18 @@
-import { request, requestBlob, getToken, handleUnauthorized, ApiError } from './client'
+import { request, requestBlob, ApiError } from './client'
 import type { Material, MaterialCreate, UploadCredentials } from '@/types'
 
-/** 申请上传凭证（OSS STS 或 local 回退） */
-export function getUploadCredentials(workspaceId: number): Promise<UploadCredentials> {
-  return request<UploadCredentials>(`/workspaces/${workspaceId}/upload-credentials`, {
-    method: 'POST',
-  })
+/** 申请上传凭证：返回服务端生成的对象路径与同源签名上传地址 */
+export function getUploadCredentials(
+  workspaceId: number,
+  filename: string,
+): Promise<UploadCredentials> {
+  return request<UploadCredentials>(
+    `/workspaces/${workspaceId}/upload-credentials?filename=${encodeURIComponent(filename)}`,
+    { method: 'POST' },
+  )
 }
 
-/** OSS 模式：直传完成后登记资料元数据 */
+/** 直传完成后登记资料元数据（服务端同步下载、解析、分节） */
 export function registerMaterial(
   workspaceId: number,
   payload: MaterialCreate,
@@ -31,30 +35,27 @@ export function downloadMaterial(id: number): Promise<Blob> {
   return requestBlob(`/materials/${id}/download`)
 }
 
-/** local 回退模式上传超时（ms） */
-const LOCAL_UPLOAD_TIMEOUT = 120_000
+/** 签名直传超时（ms）：8MiB 文本在弱网下也足够 */
+const SIGNED_UPLOAD_TIMEOUT = 120_000
 
 /**
- * local 回退模式：multipart 直传后端，XMLHttpRequest 支持上传进度回调。
- * 传入 signal 可在组件卸载/切换工作区时中止上传（xhr.abort）。
+ * 用签名地址 PUT 文件字节（XMLHttpRequest 以支持上传进度）。
+ * 签名地址由服务端按 `materials/{uid}/{wid}/...` 生成，浏览器无法指定其他路径。
  */
-export function uploadMaterialLocal(
-  workspaceId: number,
+export function putToSignedUrl(
+  signedUrl: string,
   file: File,
+  contentType: string,
   onProgress?: (percent: number) => void,
   signal?: AbortSignal,
-): Promise<Material> {
-  return new Promise<Material>((resolve, reject) => {
+): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest()
-    const form = new FormData()
-    form.append('file', file)
+    xhr.open('PUT', signedUrl)
+    xhr.timeout = SIGNED_UPLOAD_TIMEOUT
+    xhr.setRequestHeader('Content-Type', contentType)
+    // 平台存储地址与站点同源，不额外携带业务 JWT
 
-    xhr.open('POST', `/api/workspaces/${workspaceId}/materials`)
-    xhr.timeout = LOCAL_UPLOAD_TIMEOUT
-    const token = getToken()
-    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-
-    // 外部中止：signal 触发时 abort 掉 XHR
     const onExternalAbort = () => xhr.abort()
     if (signal) {
       if (signal.aborted) {
@@ -73,25 +74,9 @@ export function uploadMaterialLocal(
 
     xhr.onload = () => {
       detach()
-      if (xhr.status === 401) handleUnauthorized()
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          resolve(JSON.parse(xhr.responseText) as Material)
-        } catch {
-          reject(new ApiError(xhr.status, '响应解析失败'))
-        }
-      } else {
-        let detail = `上传失败（HTTP ${xhr.status}）`
-        try {
-          const data = JSON.parse(xhr.responseText)
-          if (data && typeof data.detail === 'string') detail = data.detail
-        } catch {
-          /* 忽略 */
-        }
-        reject(new ApiError(xhr.status, detail))
-      }
+      if (xhr.status >= 200 && xhr.status < 300) resolve()
+      else reject(new ApiError(xhr.status, `文件上传失败（HTTP ${xhr.status}）`))
     }
-
     xhr.onerror = () => {
       detach()
       reject(new ApiError(0, '网络错误，上传失败'))
@@ -104,6 +89,12 @@ export function uploadMaterialLocal(
       detach()
       reject(new ApiError(0, '上传已取消'))
     }
-    xhr.send(form)
+    xhr.send(file)
   })
+}
+
+/** 兜底：确保签名地址相对站点根路径解析（平台返回的是同源相对地址）。 */
+export function resolveSignedUrl(signedUrl: string): string {
+  if (/^https?:\/\//i.test(signedUrl)) return signedUrl
+  return new URL(signedUrl, window.location.origin).toString()
 }

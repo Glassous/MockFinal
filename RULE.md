@@ -13,6 +13,23 @@
 6. **中文面向用户，英文面向代码**：UI 文案、错误信息、日志、注释、README/文档使用中文；变量、函数、类型、表名、API 字段使用英文。
 7. **前后端职责单一**：前端只负责展示与 API 调用；业务规则、最终校验、权限判断、状态机、任务编排、AI 与存储决策全部在后端执行。前端可保留展示所需的交互状态与轻量输入预检，但**后端是唯一事实来源**。
 8. **长任务生命周期独立于客户端**：生成、索引、流式输出等长任务的存续不依赖浏览器页面或 HTTP 连接；页面关闭、刷新、断网或连接断开，不得导致任务停止、回滚、丢弃结果或被标记失败。
+   **Serverless 例外**：Qoder Sites 无后台 worker，生成流水线由前端 `POST /jobs/:id/advance` 推进；
+   任务状态、阶段与游标必须持久化在 `generation_jobs`，刷新/重进页面后能继续推进，不得只存在于内存。
+
+### 1.1 Serverless 附加规范（`functions/`）
+
+1. **单函数**：只允许一个 `app` Edge Function；新增接口在 `functions/routes/` 注册，不新建入口。
+2. **零第三方依赖**：函数侧只用 WebCrypto、`fetch`、平台注入的 `_qoder/*`；不得引入 npm 依赖，
+   避免 `prepare_site` 打包解析失败。密码/JWT/分节/解析均自写。
+3. **无事务假设**：多表写入按顺序执行、单语句落库、失败即停；删除按子表→父表顺序手工级联，
+   所有写入必须幂等（唯一索引 + `insertIfAbsent` / 冲突容忍）。
+4. **ID 应用侧生成**：主键一律 `lib/ids.ts` 的 bigint（< 2^53）；不使用 serial/identity。
+5. **存储路径服务端派生**：对象 key 必须是 `materials/{userId}/{workspaceId}/...` 或工件/页面固定前缀，
+   禁止信任前端传入路径；签名 URL 不得写入日志、错误信息或前端持久化。
+6. **契约一致**：错误 `{detail:string}`、422 `{detail:[{loc,msg,type}]}`、删除 204 无体、他人资源 404。
+7. **秘密只走 Secrets**：`JWT_SECRET`、`LLM_*` 由 Sites Secrets 注入；不得硬编码或提交到仓库。
+8. **构建验证**：改动函数后必须跑 `npx tsc --noEmit -p ../functions/tsconfig.json` 与
+   `node --test "functions/tests/*.test.ts"`；不引入浏览器 E2E/视觉回归。
 
 ## 2. Git 分支与提交规范
 

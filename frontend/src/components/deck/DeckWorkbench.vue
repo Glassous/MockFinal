@@ -20,7 +20,9 @@ import AppButton from '@/components/AppButton.vue'
 import DeckPageCard from './DeckPageCard.vue'
 import DeckStatusPill from './DeckStatusPill.vue'
 
-const props = defineProps<{ deck: Deck }>()
+const props = withDefaults(defineProps<{ deck: Deck; buildEnabled?: boolean }>(), {
+  buildEnabled: true,
+})
 const emit = defineEmits<{
   continue: [pageId: number]
   open: [pageId: number]
@@ -96,12 +98,15 @@ const active = computed(() => !!props.deck.active_job_id)
           继续学习
         </AppButton>
       </div>
-      <div v-else-if="!pages.length" class="mt-3">
+      <div v-else-if="!pages.length && buildEnabled" class="mt-3">
         <AppButton block size="sm" @click="emit('build')">
           <template #icon><Hammer class="h-4 w-4" /></template>
           开始构建
         </AppButton>
       </div>
+      <p v-else-if="!pages.length" class="mt-3 text-[11px] leading-relaxed text-faint">
+        当前版本暂不提供页面构建服务。
+      </p>
     </header>
 
     <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4">
@@ -191,6 +196,7 @@ const active = computed(() => !!props.deck.active_job_id)
             :key="page.id"
             :deck-id="deck.id"
             :page="page"
+            :build-enabled="buildEnabled"
             @open="emit('open', $event)"
             @retry="emit('retry', $event)"
           />
@@ -203,14 +209,15 @@ const active = computed(() => !!props.deck.active_job_id)
         <p class="mt-1 text-xs leading-relaxed text-muted">
           从构建工作台选择风格与密度，开始生成第一版复习页。
         </p>
-        <AppButton class="mt-3" size="sm" @click="emit('build')">
+        <AppButton v-if="buildEnabled" class="mt-3" size="sm" @click="emit('build')">
           <template #icon><ArrowRight class="h-4 w-4" /></template>
           去构建
         </AppButton>
+        <p v-else class="mt-2 text-[11px] text-faint">当前版本暂不提供页面构建服务。</p>
       </section>
     </div>
 
-    <footer v-if="pages.length" class="shrink-0 border-t border-border px-5 py-3">
+    <footer v-if="pages.length && buildEnabled" class="shrink-0 border-t border-border px-5 py-3">
       <div class="flex flex-wrap gap-2">
         <AppButton
           v-if="deck.last_job_id && !active"

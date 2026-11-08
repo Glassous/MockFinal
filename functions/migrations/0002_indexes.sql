@@ -1,0 +1,13 @@
+CREATE INDEX workspaces_user_created_at_idx ON app.workspaces (user_id, created_at);
+CREATE INDEX materials_workspace_created_at_idx ON app.materials (workspace_id, created_at);
+CREATE INDEX material_sections_material_ordinal_idx ON app.material_sections (material_id, ordinal);
+CREATE INDEX material_sections_workspace_idx ON app.material_sections (workspace_id);
+CREATE INDEX generation_jobs_workspace_status_idx ON app.generation_jobs (workspace_id, status);
+CREATE INDEX artifacts_workspace_created_at_idx ON app.artifacts (workspace_id, created_at);
+CREATE INDEX review_decks_workspace_created_at_idx ON app.review_decks (workspace_id, created_at);
+CREATE INDEX knowledge_points_deck_ordinal_idx ON app.knowledge_points (deck_id, ordinal);
+CREATE INDEX deck_pages_deck_ordinal_idx ON app.deck_pages (deck_id, ordinal);
+CREATE INDEX deck_build_jobs_deck_idx ON app.deck_build_jobs (deck_id);
+CREATE INDEX deck_build_jobs_workspace_idx ON app.deck_build_jobs (workspace_id);
+CREATE INDEX deck_build_events_job_id_idx ON app.deck_build_events (job_id, id);
+CREATE INDEX page_chat_messages_deck_page_idx ON app.page_chat_messages (deck_id, page_id);

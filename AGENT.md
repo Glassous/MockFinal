@@ -7,6 +7,25 @@
 >
 > 文档与代码冲突时以代码为准，并顺手修正文档。
 
+## 0. Serverless 现状（当前主线，2026-11）
+
+**仓库当前主线是 Qoder Sites 全量 Serverless 形态**，下文第 1–10 节描述的 FastAPI/OSS/Builder 流程属于
+**已下线的旧实现**，仅在 `backend/` 回滚参考与契约对照时使用。
+
+- 运行时入口：`functions/index.ts`（唯一 Edge Function `app`，`Deno.serve`）→ `functions/router.ts`；
+  路由模块在 `functions/routes/`，公共库在 `functions/lib/`。前端调用前缀 `/functions/v1/app/api`。
+- 数据库：Qoder Sites 托管 PostgreSQL，schema 在 `functions/migrations/`；无事务、无外键、无 serial，
+  主键由 `lib/ids.ts` 应用侧生成，级联删除手工按表顺序执行。
+- 存储：Qoder Sites Storage 签名直传/下载（`lib/storage.ts`）；已移除阿里云 OSS / STS。
+- 生成：无后台 worker，前端循环调用 `POST /api/jobs/:id/advance`；进度存 `generation_jobs.cursor`，
+  租约 `lease_key` / `lease_until` 保证单实例推进。
+- Deck：只读接口保留；`build` / `rebuild` / `cancel` 返回 503，页面助手返回 501。
+- 资料：仅 `md` / `txt`，≤ 8 MiB；PDF/DOCX/PPTX 解析已移除。
+- 文档：平台边界与实测常量见 `docs/serverless/PLATFORM_LIMITS.md`；部署与冒烟见 `README.md`。
+- 验证：`pnpm typecheck && pnpm build`、`npx tsc --noEmit -p ../functions/tsconfig.json`、
+  `node --test "functions/tests/*.test.ts"`、`scripts/smoke-sites.mjs`。
+- `backend/`、`builder/`、`validator/` 已 deprecate：不再部署，也不再作为修改目标；`shared/` 保留。
+
 ## 1. 项目速览
 
 **MockFinal（期末终极复习助手）**：用户按科目建立工作区，上传课程资料（PDF / DOCX / PPTX / MD / TXT），后端解析、按章节分节入 `material_sections`；调用 LLM 并行提炼摘要后，生成两份 Markdown 成品：
