@@ -117,6 +117,7 @@ export type DeckPageStatus =
   | 'canceled'
 export type DeckJobStatus =
   | 'pending'
+  | 'running'
   | 'planning'
   | 'building'
   | 'validating'
@@ -271,6 +272,7 @@ export interface DeckEvent {
 
 export interface DeckBuildResponse {
   job_id: number
+  deck_id?: number
 }
 
 export interface DeckProgress {

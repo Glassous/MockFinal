@@ -12,6 +12,7 @@ import {
 } from 'lucide-vue-next'
 import type { Deck, DeckEvent, DeckJob, DeckPageSummary, DeckStyle } from '@/types'
 import {
+  advanceDeckJob,
   buildDeck,
   cancelDeckBuild,
   getDeck,
@@ -21,7 +22,6 @@ import {
   updateDeck,
 } from '@/api/decks'
 import { ApiError } from '@/api/client'
-import { FEATURES } from '@/lib/features'
 import {
   eventText,
   isActiveJob,
@@ -115,21 +115,50 @@ function stopPolling() {
   }
 }
 
-function nextDelay(): number {
+function nextDelay(override?: number): number {
+  if (override) return override
   return document.visibilityState === 'hidden' ? 5000 : 1000
 }
 
-function schedulePolling() {
+function schedulePolling(delay = 0) {
   stopPolling()
   if (disposed || !active.value) return
-  pollTimer = window.setTimeout(() => void poll(), nextDelay())
+  pollTimer = window.setTimeout(() => void poll(), nextDelay(delay))
 }
 
 async function poll() {
   if (!jobId) return
   const currentJobId = jobId
   const token = attachToken
+  let delay = 0
   try {
+    // 客户端驱动推进：每次只跑一个工作单元，租约冲突时后端返回当前快照
+    if (active.value) {
+      try {
+        const advanced = await advanceDeckJob(currentJobId)
+        if (token !== attachToken || currentJobId !== jobId) return
+        if (advanced.deck_id !== deckId.value) {
+          throw new ApiError(404, '构建任务不属于当前复习页')
+        }
+        job.value = advanced
+      } catch (error) {
+        if (token !== attachToken || currentJobId !== jobId) return
+        if (error instanceof ApiError && (error.status === 429 || error.status === 502 || error.status === 504)) {
+          // 模型限流 / 网关抖动：退避后继续，cursor 保证可续
+          delay = error.status === 429 ? 1200 : 3000
+          pollFailures += 1
+          if (pollFailures === 3) {
+            toast.error(
+              error.status === 429 ? '模型请求受限，正在自动重试' : '构建服务暂时繁忙，正在自动重试',
+            )
+          }
+          schedulePolling(delay)
+          return
+        }
+        throw error
+      }
+    }
+
     const nextJob = await getDeckJob(currentJobId)
     if (token !== attachToken || currentJobId !== jobId) return
     if (nextJob.deck_id !== deckId.value) throw new ApiError(404, '构建任务不属于当前复习页')
@@ -161,11 +190,12 @@ async function poll() {
       return
     }
     pollFailures += 1
+    if (!delay) delay = 2000
     if (pollFailures === 3) {
       toast.error(error instanceof ApiError ? error.detail : '构建进度暂时无法获取，正在重试')
     }
   }
-  if (token === attachToken && currentJobId === jobId) schedulePolling()
+  if (token === attachToken && currentJobId === jobId) schedulePolling(delay)
 }
 
 async function refreshDeck() {
@@ -401,24 +431,6 @@ onBeforeUnmount(() => {
       </div>
 
       <template v-else-if="deck">
-        <!-- Serverless 版本：构建服务未部署 -->
-        <div v-if="!FEATURES.deckBuild" class="mx-auto max-w-2xl">
-          <div class="rounded-3xl border border-border bg-panel p-6 text-center">
-            <span class="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-raised text-muted">
-              <Hammer class="h-6 w-6" />
-            </span>
-            <h2 class="mt-4 text-xl font-bold tracking-tight text-ink">复习页构建暂不可用</h2>
-            <p class="mt-2 text-sm leading-relaxed text-muted">
-              当前 Serverless 版本暂不提供页面构建与单页重建服务；已有页面仍可正常阅读。
-            </p>
-            <AppButton class="mt-5" @click="goOverview">
-              <template #icon><ArrowLeft class="h-4 w-4" /></template>
-              返回总览
-            </AppButton>
-          </div>
-        </div>
-
-        <template v-else>
         <!-- 新建 Deck：构建设置 -->
         <div v-if="!job && !pages.length" class="mx-auto max-w-3xl">
           <div class="rounded-3xl border border-border bg-panel p-5 sm:p-7">
@@ -572,7 +584,6 @@ onBeforeUnmount(() => {
             </div>
           </div>
         </div>
-        </template>
       </template>
     </main>
 

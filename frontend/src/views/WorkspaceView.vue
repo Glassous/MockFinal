@@ -251,7 +251,7 @@ async function advanceLoop() {
     advancing = false
     if (error instanceof ApiError && error.status === 401) return
     // 429 / 502 / 网络抖动：退避后继续推进，任务状态由后端 cursor 保证可续
-    const retryable = error instanceof ApiError && (error.status === 429 || error.status === 502 || error.status === 0)
+    const retryable = error instanceof ApiError && (error.status === 429 || error.status === 502 || error.status === 504 || error.status === 0)
     scheduleAdvance(retryable ? 3000 : 1200)
   }
 }

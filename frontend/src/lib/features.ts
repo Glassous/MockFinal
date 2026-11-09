@@ -1,10 +1,10 @@
 /**
  * Serverless 版本的功能开关。
  *
- * Deck 构建依赖常驻的 Builder / Validator 与流式 SSE，Serverless 版本暂不提供；
- * 后端对应接口分别返回 503 / 501，前端据此隐藏入口。
+ * 资料生成、复习页构建与页面问答全部由 Edge Function 承担，
+ * 客户端通过 advance 接口驱动长任务。
  */
 export const FEATURES = {
-  deckBuild: false,
-  deckChat: false,
+  deckBuild: true,
+  deckChat: true,
 } as const

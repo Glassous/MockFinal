@@ -68,6 +68,7 @@ export const TEACHING_ROLE_LABELS: Record<TeachingRole, string> = {
 
 export const JOB_STATUS_LABELS: Record<DeckJobStatus, string> = {
   pending: '排队中',
+  running: '构建中',
   planning: '规划中',
   building: '构建中',
   validating: '校验中',
@@ -79,6 +80,7 @@ export const JOB_STATUS_LABELS: Record<DeckJobStatus, string> = {
 
 const ACTIVE_JOB_STATUSES: DeckJobStatus[] = [
   'pending',
+  'running',
   'planning',
   'building',
   'validating',
@@ -264,7 +266,7 @@ export function buildStageIndex(job: DeckJob | null | undefined): number {
   }
   if (job.status === 'pending') return 0
   if (job.status === 'planning') return 1
-  if (job.status === 'building') {
+  if (job.status === 'building' || job.status === 'running') {
     return job.total_pages > 0 ? 3 : 2
   }
   if (job.status === 'validating') return 4
