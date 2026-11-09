@@ -1,1 +1,42 @@
-{"version":1,"name":"MockFinal","design":{"version":1,"pages":[{"path":"/","title":"工作区首页"},{"path":"/login","title":"登录"},{"path":"/register","title":"注册"},{"path":"/forgot","title":"找回密码"}],"capabilities":["appearance","radius","spacing","typography","motion"]}}
+{
+  "version": 1,
+  "name": "MockFinal",
+  "design": {
+    "version": 1,
+    "pages": [
+      {
+        "path": "/",
+        "title": "工作区首页"
+      },
+      {
+        "path": "/login",
+        "title": "登录"
+      },
+      {
+        "path": "/register",
+        "title": "注册"
+      },
+      {
+        "path": "/forgot",
+        "title": "找回密码"
+      }
+    ],
+    "capabilities": [
+      "appearance",
+      "radius",
+      "spacing",
+      "typography",
+      "motion"
+    ]
+  },
+  "publication": {
+    "actionId": "60e031c8-260a-4d32-87c3-28a917e5c6ea",
+    "projectId": "01a1bbf8-c08d-7cbc-a0d4-c2c25bb408c6",
+    "siteId": "01a1bbf8-c090-7c31-9562-bce2074ca9a2",
+    "deploymentId": "01a1c0ea-fd88-762e-b9b7-e4e5784b8e40",
+    "artifactSha256": "3464dc97e564193265acdddc1dba8a2e62edcde17dbc091c815d25d0626393dc",
+    "indexSha256": "474b462fd5b3b7a9a522bf31f306a914a11bbafaf2e88aa1e5c6ce09e588aed6",
+    "indexHtml": "PCFkb2N0eXBlIGh0bWw+DQo8aHRtbCBsYW5nPSJ6aC1DTiI+DQogIDxoZWFkPg0KICAgIDxtZXRhIGNoYXJzZXQ9IlVURi04IiAvPg0KICAgIDxsaW5rIHJlbD0iaWNvbiIgdHlwZT0iaW1hZ2Uvc3ZnK3htbCIgaHJlZj0iL2Zhdmljb24uc3ZnIiAvPg0KICAgIDxtZXRhIG5hbWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsIGluaXRpYWwtc2NhbGU9MS4wIiAvPg0KICAgIDxtZXRhIG5hbWU9ImRlc2NyaXB0aW9uIiBjb250ZW50PSJNb2NrRmluYWwgwrcg5pyf5pyr57uI5p6B5aSN5Lmg5Yqp5omLIiAvPg0KICAgIDx0aXRsZT5Nb2NrRmluYWwgwrcg5pyf5pyr57uI5p6B5aSN5Lmg5Yqp5omLPC90aXRsZT4NCiAgICA8c2NyaXB0Pg0KICAgICAgLy8g6ZiyIEZPVUPvvJrpppblsY/muLLmn5PliY3noa7lrprmt7HmtYXoibLkuLvpopgNCiAgICAgIDsoZnVuY3Rpb24gKCkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgIHZhciBzdG9yZWQgPSBsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgndGhlbWUnKQ0KICAgICAgICAgIHZhciBwcmVmZXJzRGFyayA9IHdpbmRvdy5tYXRjaE1lZGlhKCcocHJlZmVycy1jb2xvci1zY2hlbWU6IGRhcmspJykubWF0Y2hlcw0KICAgICAgICAgIHZhciBkYXJrID0gc3RvcmVkID8gc3RvcmVkID09PSAnZGFyaycgOiBwcmVmZXJzRGFyaw0KICAgICAgICAgIGlmIChkYXJrKSBkb2N1bWVudC5kb2N1bWVudEVsZW1lbnQuY2xhc3NMaXN0LmFkZCgnZGFyaycpDQogICAgICAgIH0gY2F0Y2ggKGUpIHsNCiAgICAgICAgICAvKiBpZ25vcmUgKi8NCiAgICAgICAgfQ0KICAgICAgfSkoKQ0KICAgIDwvc2NyaXB0Pg0KICAgIDxzY3JpcHQgdHlwZT0ibW9kdWxlIiBjcm9zc29yaWdpbiBzcmM9Ii9hc3NldHMvaW5kZXgtQ1ZVcEVmM3kuanMiPjwvc2NyaXB0PgogICAgPGxpbmsgcmVsPSJtb2R1bGVwcmVsb2FkIiBjcm9zc29yaWdpbiBocmVmPSIvYXNzZXRzL3J1bnRpbWUtY29yZS5lc20tYnVuZGxlci1EZkdZaFFaZC5qcyI+CiAgICA8bGluayByZWw9Im1vZHVsZXByZWxvYWQiIGNyb3Nzb3JpZ2luIGhyZWY9Ii9hc3NldHMvY2xpZW50LURSUzN2NU54LmpzIj4KICAgIDxsaW5rIHJlbD0ic3R5bGVzaGVldCIgY3Jvc3NvcmlnaW4gaHJlZj0iL2Fzc2V0cy9pbmRleC1EUWtpWFFNdi5jc3MiPgogIDwvaGVhZD4NCiAgPGJvZHk+DQogICAgPGRpdiBpZD0iYXBwIj48L2Rpdj4NDQogIDwvYm9keT4NCjwvaHRtbD4NCg==",
+    "releaseId": "01a1c0eb-68b5-75fc-92af-1a833044e63d"
+  }
+}
