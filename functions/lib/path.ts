@@ -7,9 +7,10 @@ export function normalizePath(pathname: string): string | null {
   const functionMatch = /^\/(?:functions\/v1\/)?(?:app|app-d[0-9a-f]{32})(\/.*)?$/.exec(path)
   if (functionMatch) {
     path = functionMatch[1] ?? '/'
-  } else if (path === '/api' || path.startsWith('/api/')) {
+  }
+  if (path === '/api' || path.startsWith('/api/')) {
     path = path.slice(4) || '/'
-  } else {
+  } else if (!functionMatch) {
     return null
   }
   if (path === '') return '/'

@@ -36,8 +36,12 @@ export const config = {
   get llmModel(): string {
     return env('LLM_MODEL') || 'qwen-plus'
   },
+  /** DashScope 兼容模式支持 response_format 与关闭思考。 */
+  get llmJsonModeSupported(): boolean {
+    return /dashscope|aliyuncs\.com/i.test(this.llmBaseUrl)
+  },
   get llmTimeoutMs(): number {
-    return intEnv('LLM_TIMEOUT_SECONDS', 90) * 1000
+    return intEnv('LLM_TIMEOUT_SECONDS', 45) * 1000
   },
   get llmMaxOutputTokens(): number {
     return intEnv('LLM_MAX_OUTPUT_TOKENS', 4096)
