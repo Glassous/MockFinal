@@ -6,11 +6,19 @@ declare module 'vue-router' {
   interface RouteMeta {
     /** 访客页（登录/注册/找回），已登录用户访问会被重定向到首页 */
     guest?: boolean
+    /** 公开入口页；已登录用户访问会被重定向到工作区首页 */
+    landing?: boolean
     title?: string
   }
 }
 
 const routes: RouteRecordRaw[] = [
+  {
+    path: '/',
+    name: 'landing',
+    component: () => import('@/views/LandingView.vue'),
+    meta: { landing: true, title: '从资料到考场' },
+  },
   {
     path: '/login',
     name: 'login',
@@ -34,7 +42,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/layouts/AppLayout.vue'),
     children: [
       {
-        path: '',
+        path: 'home',
         name: 'home',
         component: () => import('@/views/HomeView.vue'),
         meta: { title: '工作区' },
@@ -85,6 +93,10 @@ export const router = createRouter({
 // vue-router 5：守卫用返回值控制导航，不使用 next()
 router.beforeEach((to) => {
   const authed = !!getToken()
+
+  if (to.meta.landing) {
+    return authed ? { name: 'home' } : true
+  }
 
   if (to.meta.guest) {
     return authed ? { name: 'home' } : true

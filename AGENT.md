@@ -443,7 +443,7 @@ POST /api/decks/{deck_id}/pages/{page_id}/messages  (fetch + SSE)
 
 ## 7. 前端结构约定
 
-- **路由**：`/login`、`/register`、`/forgot` 为访客页（已登录会被重定向首页）；`/` 首页、`/workspace/:id` 位于 `AppLayout`；未登录访问受保护页会带 `redirect` 跳登录。守卫使用 vue-router 5 的返回值写法，**不要 `next()`**。
+- **路由**：`/login`、`/register`、`/forgot` 为访客页（已登录会被重定向首页）；`/` 为公开入口页（已登录重定向 `/home`），`/home` 与 `/workspace/:id` 位于 `AppLayout`；未登录访问受保护页会带 `redirect` 跳登录。守卫使用 vue-router 5 的返回值写法，**不要 `next()`**。
 - **API 层**：所有 HTTP 请求集中在 `src/api/`；`client.ts` 统一注入 Bearer token、解析 `detail`、处理 401（清 token + 跳登录）。组件内不要直接 `fetch`。
 - **状态**：Pinia setup store。跨页面共享（auth / theme / toast / workspace 列表）才放 store，页面局部状态用 `ref`。登录/登出必须清空 workspace 缓存，避免跨账号泄露。
 - **轮询**：资料索引与生成任务均为 2s 轮询，组件卸载时必须清理定时器；上传组件卸载时 AbortController 中止 XHR。

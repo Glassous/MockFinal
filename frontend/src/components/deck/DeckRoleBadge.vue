@@ -43,7 +43,7 @@ const detail = computed(() => {
 <template>
   <span
     v-if="meta"
-    class="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-border bg-panel px-2 py-0.5 text-[11px] font-medium text-muted"
+    class="inline-flex min-w-0 items-center gap-1.5 rounded-sm border border-border bg-panel px-2 py-0.5 text-[11px] font-medium text-muted"
     :title="detail || meta.label"
   >
     <component :is="meta.icon" class="h-3 w-3 shrink-0" aria-hidden="true" />

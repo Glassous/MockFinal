@@ -74,7 +74,7 @@ export const EDITORIAL_CSS = `
   background: transparent;
 }
 .pg-page[data-pg-theme="editorial"] .pg-option {
-  border-radius: 8px;
+  border-radius: 2px;
   background: transparent;
 }
 .pg-page[data-pg-theme="editorial"] .pg-explanation {
@@ -86,7 +86,7 @@ export const EDITORIAL_CSS = `
 .pg-page[data-pg-theme="editorial"] .pg-figure {
   padding: 10px;
   border: 1px solid var(--mp-border);
-  border-radius: 4px;
+  border-radius: 2px;
   background: var(--mp-raised);
 }
 .pg-page[data-pg-theme="editorial"] .pg-figure-svg { max-height: 230px; }

@@ -393,9 +393,9 @@ onBeforeUnmount(() => {
   <div class="min-h-full">
     <!-- 加载骨架 -->
     <div v-if="loadingWorkspace" class="mx-auto w-full max-w-5xl px-5 py-8 sm:px-8">
-      <div class="h-8 w-56 animate-pulse rounded-2xl bg-raised" />
-      <div class="mt-3 h-4 w-72 animate-pulse rounded-xl bg-raised" />
-      <div class="mt-8 h-40 animate-pulse rounded-3xl bg-raised" style="animation-duration: 1.4s" />
+      <div class="h-8 w-56 animate-pulse rounded-sm bg-raised" />
+      <div class="mt-3 h-4 w-72 animate-pulse rounded-sm bg-raised" />
+      <div class="mt-8 h-40 animate-pulse rounded-sm bg-raised" style="animation-duration: 1.4s" />
     </div>
 
     <!-- 工作区不存在 -->
@@ -403,10 +403,10 @@ onBeforeUnmount(() => {
       v-else-if="notFound"
       class="mx-auto flex w-full max-w-md flex-col items-center px-5 py-24 text-center"
     >
-      <span class="inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-raised text-muted">
+      <span class="inline-flex h-14 w-14 items-center justify-center rounded-sm border border-pen/40 bg-pen-soft text-pen">
         <Files class="h-7 w-7" />
       </span>
-      <h2 class="mt-5 text-xl font-bold text-ink">工作区不存在</h2>
+      <h2 class="mt-5 font-serif text-xl font-bold text-ink">工作区不存在</h2>
       <p class="mt-2 text-sm text-muted">它可能已被删除，或你没有访问权限。</p>
       <AppButton class="mt-6" @click="router.replace({ name: 'home' })">返回工作区列表</AppButton>
     </div>
@@ -415,10 +415,10 @@ onBeforeUnmount(() => {
       <!-- 头部 -->
       <header class="border-b border-border bg-panel">
         <div class="mx-auto w-full max-w-5xl px-5 py-5 sm:px-8 sm:py-6">
-          <div class="flex items-start justify-between gap-4">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0">
-              <p class="text-xs font-medium uppercase tracking-wider text-faint">工作区</p>
-              <h1 class="mt-1 truncate text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+              <p class="font-mono text-[10px] tracking-[0.14em] text-pen">工作区</p>
+              <h1 class="mt-1 truncate font-serif text-2xl font-bold tracking-tight text-ink sm:text-3xl">
                 {{ workspace?.name }}
               </h1>
               <p class="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted">
@@ -434,7 +434,7 @@ onBeforeUnmount(() => {
               </AppButton>
               <button
                 type="button"
-                class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border text-muted transition-colors hover:bg-raised hover:text-ink"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-border text-muted transition-colors hover:border-pen hover:text-pen"
                 aria-label="编辑工作区"
                 title="编辑工作区"
                 @click="openEdit"
@@ -443,7 +443,7 @@ onBeforeUnmount(() => {
               </button>
               <button
                 type="button"
-                class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border text-muted transition-colors hover:bg-raised hover:text-ink"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-border text-muted transition-colors hover:border-pen hover:text-pen"
                 aria-label="删除工作区"
                 title="删除工作区"
                 @click="pendingDeleteWs = true"
@@ -456,12 +456,12 @@ onBeforeUnmount(() => {
           <!-- 生成进度 -->
           <transition name="fade">
             <div v-if="generating" class="mt-5">
-              <div class="flex items-center gap-2 text-xs text-muted">
+              <div class="flex items-center gap-2 font-mono text-[10px] text-muted">
                 <Loader2 class="h-3.5 w-3.5 spin" />
                 <span class="truncate">{{ jobStage || '正在生成…' }}</span>
               </div>
-              <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-raised">
-                <div class="anim-indeterminate h-full w-1/3 rounded-full bg-invert" />
+              <div class="mt-2 h-1 w-full overflow-hidden rounded-sm bg-raised">
+                <div class="anim-indeterminate h-full w-1/3 rounded-sm bg-invert" />
               </div>
             </div>
           </transition>
@@ -475,21 +475,21 @@ onBeforeUnmount(() => {
               :key="t.key"
               type="button"
               class="relative flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors"
-              :class="tab === t.key ? 'text-ink' : 'text-muted hover:text-ink'"
+              :class="tab === t.key ? 'text-ink' : 'text-muted hover:text-pen'"
               @click="tab = t.key"
             >
               <component :is="t.icon" class="h-4 w-4" />
               {{ t.label }}
               <span
                 v-if="t.count > 0"
-                class="rounded-full px-1.5 py-0.5 text-[11px] font-semibold leading-none"
+                class="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold leading-none"
                 :class="tab === t.key ? 'bg-invert text-invert-ink' : 'bg-raised text-muted'"
               >
                 {{ t.count }}
               </span>
               <span
                 v-if="tab === t.key"
-                class="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-invert"
+                class="absolute inset-x-3 -bottom-px h-0.5 bg-pen"
               />
             </button>
           </div>

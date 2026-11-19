@@ -13,7 +13,7 @@ const emit = defineEmits<{ action: [] }>()
   <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
     <span
       v-if="icon"
-      class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-full bg-raised text-faint"
+      class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-sm border border-pen/40 bg-pen-soft text-pen"
       aria-hidden="true"
     >
       <slot name="icon" />
@@ -25,7 +25,7 @@ const emit = defineEmits<{ action: [] }>()
     <button
       v-if="actionLabel"
       type="button"
-      class="mt-4 inline-flex h-9 items-center rounded-2xl border border-border bg-panel px-3.5 text-sm font-medium text-ink transition-colors hover:border-border-strong hover:bg-raised"
+      class="mt-4 inline-flex h-9 items-center rounded-sm border border-border-strong bg-transparent px-3.5 text-sm font-medium text-ink transition-colors hover:border-pen hover:text-pen"
       @click="emit('action')"
     >
       {{ actionLabel }}

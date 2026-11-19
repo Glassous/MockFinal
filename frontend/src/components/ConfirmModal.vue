@@ -30,7 +30,7 @@ const emit = defineEmits<{ close: []; confirm: [] }>()
   <Modal :open="open" size="sm" :show-close="false" :close-on-overlay="!loading" @close="emit('close')">
     <div class="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
       <span
-        class="mb-4 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-raised text-ink sm:mb-0 sm:mr-4"
+        class="mb-4 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-pen/40 bg-pen-soft text-pen sm:mb-0 sm:mr-4"
       >
         <AlertTriangle class="h-5 w-5" />
       </span>

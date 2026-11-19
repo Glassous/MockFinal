@@ -468,7 +468,7 @@ onBeforeUnmount(() => {
       </AppIconButton>
       <div class="hidden min-w-0 sm:block">
         <div class="flex min-w-0 items-center gap-2">
-          <p class="truncate text-sm font-semibold text-ink">{{ deck?.title || '复习页' }}</p>
+          <p class="truncate font-serif text-sm font-bold text-ink">{{ deck?.title || '复习页' }}</p>
           <DeckRoleBadge
             :role="page?.teaching_role"
             :checks="page?.check_count"
@@ -477,7 +477,7 @@ onBeforeUnmount(() => {
             compact
           />
         </div>
-        <p class="truncate text-[11px] text-muted">{{ pageTitle || '加载中…' }}</p>
+        <p class="truncate font-mono text-[10px] tracking-wide text-muted">{{ pageTitle || '加载中…' }}</p>
       </div>
 
       <div class="mx-auto flex items-center gap-2">
@@ -509,7 +509,7 @@ onBeforeUnmount(() => {
         <button
           v-if="canComplete && !currentCompleted"
           type="button"
-          class="hidden h-9 items-center gap-1.5 rounded-2xl bg-invert px-3 text-xs font-medium text-invert-ink transition-opacity hover:opacity-90 disabled:opacity-45 sm:inline-flex"
+          class="hidden h-9 items-center gap-1.5 rounded-sm bg-invert px-3 text-xs font-medium text-invert-ink transition-colors hover:bg-pen disabled:opacity-45 sm:inline-flex"
           :disabled="completing"
           @click="markComplete"
         >
@@ -554,7 +554,7 @@ onBeforeUnmount(() => {
     <main class="relative flex min-h-0 flex-1 items-center justify-center bg-surface p-2 sm:p-3">
       <div
         ref="stageRef"
-        class="relative flex h-full w-full max-w-[1600px] items-center justify-center overflow-hidden rounded-2xl border border-border bg-panel shadow-sm"
+        class="relative flex h-full w-full max-w-[1600px] items-center justify-center overflow-hidden rounded-sm border border-border bg-panel shadow-sm"
       >
         <transition name="page-switch" mode="out-in">
           <PageFrame
@@ -602,7 +602,7 @@ onBeforeUnmount(() => {
           >
             <button
               type="button"
-              class="inline-flex h-9 items-center rounded-2xl border border-border bg-panel px-3.5 text-sm font-medium text-ink transition-colors hover:border-border-strong hover:bg-raised"
+              class="inline-flex h-9 items-center rounded-sm border border-border-strong bg-panel px-3.5 text-sm font-medium text-ink transition-colors hover:border-pen hover:text-pen"
               @click="goOverview"
             >
               返回总览
@@ -612,7 +612,7 @@ onBeforeUnmount(() => {
 
         <div
           v-if="runtimeError && !frameError"
-          class="absolute bottom-3 left-1/2 z-20 flex max-w-[92%] -translate-x-1/2 items-start gap-2 rounded-2xl border border-border-strong bg-panel px-3 py-2 shadow-card"
+          class="absolute bottom-3 left-1/2 z-20 flex max-w-[92%] -translate-x-1/2 items-start gap-2 rounded-sm border border-pen/40 bg-panel px-3 py-2 shadow-card"
           role="status"
         >
           <AlertCircle class="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink" />
@@ -684,7 +684,7 @@ onBeforeUnmount(() => {
         rows="4"
         maxlength="2000"
         placeholder="例如：动画太快，请放慢；公式推导再细一点；换一个例子。"
-        class="mt-2 w-full resize-none rounded-2xl border border-border bg-panel px-3.5 py-2.5 text-sm text-ink placeholder:text-faint focus:border-border-strong focus:outline-none"
+        class="mt-2 w-full resize-none rounded-sm border border-border bg-panel px-3.5 py-2.5 text-sm text-ink placeholder:text-faint focus:border-pen focus:outline-none"
       />
       <p class="mt-1.5 text-[11px] leading-relaxed text-faint">
         重做不会中断当前阅读；新版本通过校验后才会替换这一页。

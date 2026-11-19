@@ -25,9 +25,9 @@ function onClick(event: MouseEvent) {
   <button
     :type="type"
     :class="[
-      'inline-flex shrink-0 items-center justify-center rounded-2xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-35',
+      'inline-flex shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-35',
       sizeClass,
-      active ? 'bg-raised text-ink' : 'text-muted hover:bg-raised hover:text-ink',
+      active ? 'bg-raised text-pen' : 'text-muted hover:bg-raised hover:text-pen',
     ]"
     :disabled="disabled"
     :aria-label="label"

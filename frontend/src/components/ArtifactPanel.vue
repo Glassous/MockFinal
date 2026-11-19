@@ -99,8 +99,8 @@ watch(
 </script>
 
 <template>
-  <div v-if="artifacts.length === 0" class="rounded-3xl border border-dashed border-border px-6 py-16 text-center">
-    <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-raised text-faint">
+  <div v-if="artifacts.length === 0" class="rounded-sm border border-dashed border-border px-6 py-16 text-center">
+    <span class="inline-flex h-12 w-12 items-center justify-center rounded-sm border border-pen/40 bg-pen-soft text-pen">
       <Sparkles class="h-6 w-6" />
     </span>
     <p class="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-muted">{{ emptyText }}</p>
@@ -118,11 +118,11 @@ watch(
       >
         <button
           type="button"
-          class="flex w-full flex-col rounded-2xl border px-4 py-3 text-left transition-colors duration-150"
+          class="flex w-full flex-col rounded-sm border px-4 py-3 text-left transition-colors duration-150"
           :class="
             selectedId === a.id
-              ? 'border-transparent bg-invert text-invert-ink'
-              : 'border-border bg-panel text-ink hover:border-border-strong hover:bg-raised'
+              ? 'border-pen bg-raised text-ink'
+              : 'border-border bg-panel text-ink hover:border-pen/50 hover:bg-raised'
           "
           @click="select(a)"
         >
@@ -130,13 +130,13 @@ watch(
             <component
               :is="KindIcon"
               class="h-4 w-4 shrink-0"
-              :class="selectedId === a.id ? 'text-invert-ink' : 'text-muted'"
+              :class="selectedId === a.id ? 'text-pen' : 'text-muted'"
             />
             <span class="truncate text-sm font-medium">{{ a.title }}</span>
           </span>
           <span
-            class="mt-1 hidden items-center gap-1 text-xs lg:flex"
-            :class="selectedId === a.id ? 'text-invert-ink opacity-70' : 'text-faint'"
+            class="mt-1 hidden items-center gap-1 font-mono text-[10px] lg:flex"
+            :class="selectedId === a.id ? 'text-muted' : 'text-faint'"
           >
             <Clock class="h-3 w-3" />
             {{ formatDateTime(a.created_at) }}
@@ -144,7 +144,7 @@ watch(
         </button>
         <button
           type="button"
-          class="absolute right-2 top-2 hidden h-7 w-7 items-center justify-center rounded-full text-faint transition-colors hover:bg-overlay hover:text-ink group-hover:flex"
+          class="absolute right-2 top-2 hidden h-7 w-7 items-center justify-center rounded-sm text-faint transition-colors hover:bg-overlay hover:text-pen group-hover:flex"
           aria-label="删除该工件"
           title="删除"
           @click.stop="pendingDelete = a"
@@ -156,22 +156,22 @@ watch(
 
     <!-- 内容查看 -->
     <section class="min-w-0 flex-1">
-      <div class="overflow-hidden rounded-3xl border border-border bg-panel">
+      <div class="overflow-hidden rounded-sm border border-border border-t-2 border-t-pen bg-panel">
         <header
           class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-7"
         >
           <div class="min-w-0">
-            <h2 class="truncate text-base font-semibold tracking-tight text-ink">
+            <h2 class="truncate font-serif text-base font-bold tracking-tight text-ink">
               {{ selected?.title ?? '加载中…' }}
             </h2>
-            <p v-if="selected" class="mt-0.5 text-xs text-muted">
+            <p v-if="selected" class="mt-0.5 font-mono text-[10px] text-muted">
               生成于 {{ formatDateTime(selected.created_at) }}
             </p>
           </div>
           <div class="flex shrink-0 items-center gap-2">
             <button
               type="button"
-              class="inline-flex h-9 items-center gap-2 rounded-2xl border border-border px-3.5 text-sm font-medium text-ink transition-colors hover:bg-raised disabled:opacity-40"
+              class="inline-flex h-9 items-center gap-2 rounded-sm border border-border-strong px-3.5 text-sm font-medium text-ink transition-colors hover:border-pen hover:text-pen disabled:opacity-40"
               :disabled="!selected"
               @click="download"
             >
@@ -180,7 +180,7 @@ watch(
             </button>
             <button
               type="button"
-              class="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-border text-muted transition-colors hover:bg-raised hover:text-ink disabled:opacity-40"
+              class="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-border text-muted transition-colors hover:border-pen hover:text-pen disabled:opacity-40"
               :disabled="!selected"
               aria-label="删除当前工件"
               title="删除"

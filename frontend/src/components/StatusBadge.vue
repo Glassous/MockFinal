@@ -11,7 +11,7 @@ const config = computed(() => {
       return {
         label: '已就绪',
         icon: CheckCircle2,
-        cls: 'border-transparent bg-invert text-invert-ink',
+        cls: 'border-pen/40 bg-pen-soft text-pen',
         spin: false,
       }
     case 'indexing':
@@ -25,7 +25,7 @@ const config = computed(() => {
       return {
         label: '失败',
         icon: AlertCircle,
-        cls: 'border-border-strong bg-panel text-ink',
+        cls: 'border-pen/40 bg-panel text-pen',
         spin: false,
       }
     default:
@@ -41,7 +41,7 @@ const config = computed(() => {
 
 <template>
   <span
-    class="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap"
+    class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap"
     :class="config.cls"
   >
     <component :is="config.icon" class="h-3.5 w-3.5" :class="config.spin ? 'spin' : ''" />

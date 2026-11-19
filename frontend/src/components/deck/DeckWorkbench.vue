@@ -63,24 +63,24 @@ const active = computed(() => !!props.deck.active_job_id)
 </script>
 
 <template>
-  <aside class="flex h-full min-h-0 flex-col rounded-3xl border border-border bg-panel">
+  <aside class="flex h-full min-h-0 flex-col rounded-sm border border-border border-t-2 border-t-pen bg-panel">
     <header class="shrink-0 border-b border-border px-5 py-4">
       <div class="flex items-center justify-between gap-2">
-        <h2 class="text-sm font-semibold tracking-tight text-ink">工作台</h2>
+        <h2 class="font-serif text-sm font-bold tracking-tight text-ink">工作台</h2>
         <DeckStatusPill kind="deck" :status="deck.status" />
       </div>
-      <p class="mt-1 text-xs text-muted">
+      <p class="mt-1 font-mono text-[10px] tracking-wide text-muted">
         已学完 {{ completedCount }} / {{ deck.total_pages }} 页 · {{ deckUpdatedSummary(deck) }}
       </p>
 
       <div class="mt-3">
-        <div class="flex items-center justify-between text-[11px] text-muted">
+        <div class="flex items-center justify-between font-mono text-[10px] text-muted">
           <span>学习进度</span>
           <span>{{ learnedPercent }}%</span>
         </div>
-        <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-raised">
+        <div class="mt-1.5 h-1 overflow-hidden rounded-sm bg-raised">
           <div
-            class="h-full rounded-full bg-invert transition-all duration-300"
+            class="h-full rounded-sm bg-invert transition-all duration-300"
             :style="{ width: `${learnedPercent}%` }"
           />
         </div>
@@ -110,45 +110,45 @@ const active = computed(() => !!props.deck.active_job_id)
     </header>
 
     <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-      <div v-if="deck.source_changed" class="mb-4 flex items-start gap-2 rounded-2xl border border-border-strong bg-raised px-3 py-2.5">
-        <AlertCircle class="mt-0.5 h-4 w-4 shrink-0 text-ink" />
+      <div v-if="deck.source_changed" class="mb-4 flex items-start gap-2 rounded-sm border border-pen/30 bg-raised px-3 py-2.5">
+        <AlertCircle class="mt-0.5 h-4 w-4 shrink-0 text-pen" />
         <p class="text-xs leading-relaxed text-muted">
           资料已在构建后发生变化。建议整册重建，使页面引用与最新资料一致。
         </p>
       </div>
 
       <div class="mb-4 grid grid-cols-2 gap-2 text-center">
-        <div class="rounded-2xl border border-border bg-raised px-2 py-2">
-          <p class="text-lg font-bold text-ink">{{ deck.ready_pages }}</p>
-          <p class="text-[11px] text-faint">已构建</p>
+        <div class="rounded-sm border border-border bg-raised px-2 py-2">
+          <p class="font-serif text-lg font-bold text-ink">{{ deck.ready_pages }}</p>
+          <p class="font-mono text-[10px] text-faint">已构建</p>
         </div>
-        <div class="rounded-2xl border border-border bg-raised px-2 py-2">
-          <p class="text-lg font-bold text-ink">{{ deck.failed_pages }}</p>
-          <p class="text-[11px] text-faint">失败</p>
+        <div class="rounded-sm border border-border bg-raised px-2 py-2">
+          <p class="font-serif text-lg font-bold text-ink">{{ deck.failed_pages }}</p>
+          <p class="font-mono text-[10px] text-faint">失败</p>
         </div>
-        <div class="rounded-2xl border border-border bg-raised px-2 py-2">
-          <p class="text-lg font-bold text-ink">{{ completedCount }}</p>
-          <p class="text-[11px] text-faint">已学完</p>
+        <div class="rounded-sm border border-border bg-raised px-2 py-2">
+          <p class="font-serif text-lg font-bold text-ink">{{ completedCount }}</p>
+          <p class="font-mono text-[10px] text-faint">已学完</p>
         </div>
-        <div class="rounded-2xl border border-border bg-raised px-2 py-2">
-          <p class="text-lg font-bold text-ink">{{ checkTotal }}</p>
-          <p class="text-[11px] text-faint">随堂检查</p>
+        <div class="rounded-sm border border-border bg-raised px-2 py-2">
+          <p class="font-serif text-lg font-bold text-ink">{{ checkTotal }}</p>
+          <p class="font-mono text-[10px] text-faint">随堂检查</p>
         </div>
       </div>
 
       <section class="mb-4">
-        <h3 class="text-xs font-semibold text-ink">风格</h3>
+        <h3 class="font-mono text-[10px] tracking-[0.14em] text-faint">风格</h3>
         <div class="mt-1.5 flex flex-wrap gap-1.5">
-          <span class="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted">
+          <span class="rounded-sm border border-border px-2 py-0.5 font-mono text-[10px] text-muted">
             {{ presetLabel(style.preset) }}
           </span>
-          <span class="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted">
+          <span class="rounded-sm border border-border px-2 py-0.5 font-mono text-[10px] text-muted">
             {{ densityLabel(style.density) }}
           </span>
           <span
             v-for="item in style.content.slice(0, 3)"
             :key="item"
-            class="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted"
+            class="rounded-sm border border-border px-2 py-0.5 font-mono text-[10px] text-muted"
           >
             {{ item }}
           </span>
@@ -160,22 +160,22 @@ const active = computed(() => !!props.deck.active_job_id)
 
       <section class="mb-4">
         <div class="flex items-center justify-between">
-          <h3 class="text-xs font-semibold text-ink">教学完整度</h3>
-          <span class="text-[11px] text-faint">{{ teachingPercent }}%</span>
+          <h3 class="font-mono text-[10px] tracking-[0.14em] text-faint">教学完整度</h3>
+          <span class="font-mono text-[10px] text-faint">{{ teachingPercent }}%</span>
         </div>
-        <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-raised">
+        <div class="mt-1.5 h-1 overflow-hidden rounded-sm bg-raised">
           <div
-            class="h-full rounded-full bg-invert transition-all duration-300"
+            class="h-full rounded-sm bg-invert transition-all duration-300"
             :style="{ width: `${teachingPercent}%` }"
           />
         </div>
-        <p class="mt-1 text-[11px] leading-relaxed text-muted">
+        <p class="mt-1 font-mono text-[10px] leading-relaxed text-muted">
           {{ teachingReady }} / {{ deck.ready_pages }} 个已构建页面带教学结构。
         </p>
       </section>
 
       <section class="mb-4">
-        <h3 class="text-xs font-semibold text-ink">资料覆盖</h3>
+        <h3 class="font-mono text-[10px] tracking-[0.14em] text-faint">资料覆盖</h3>
         <p class="mt-1 text-[11px] leading-relaxed text-muted">
           <template v-if="deck.outline?.unverified_knowledge_points">
             {{ deck.outline.unverified_knowledge_points }} 个知识点未能可靠引用资料，已标记待核对。
@@ -187,8 +187,8 @@ const active = computed(() => !!props.deck.active_job_id)
 
       <section v-if="pages.length">
         <div class="mb-2 flex items-center justify-between">
-          <h3 class="text-xs font-semibold text-ink">页面</h3>
-          <span class="text-[11px] text-faint">{{ pages.length }} 页</span>
+          <h3 class="font-mono text-[10px] tracking-[0.14em] text-faint">页面</h3>
+          <span class="font-mono text-[10px] text-faint">{{ pages.length }} 页</span>
         </div>
         <div class="space-y-2.5">
           <DeckPageCard
@@ -203,9 +203,9 @@ const active = computed(() => !!props.deck.active_job_id)
         </div>
       </section>
 
-      <section v-else class="rounded-2xl border border-dashed border-border px-4 py-8 text-center">
+      <section v-else class="rounded-sm border border-dashed border-border px-4 py-8 text-center">
         <Hammer class="mx-auto h-6 w-6 text-faint" />
-        <p class="mt-2 text-sm font-medium text-ink">还没有页面</p>
+        <p class="mt-2 font-serif text-sm font-bold text-ink">还没有页面</p>
         <p class="mt-1 text-xs leading-relaxed text-muted">
           从构建工作台选择风格与密度，开始生成第一版复习页。
         </p>

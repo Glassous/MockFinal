@@ -71,18 +71,23 @@ function onPromptInput(event: Event) {
           v-for="preset in DECK_PRESETS"
           :key="preset.value"
           type="button"
-          class="rounded-2xl border px-3 py-2.5 text-left transition-colors"
+          class="rounded-sm border px-3 py-2.5 text-left transition-colors"
           :class="
             modelValue.preset === preset.value
-              ? 'border-transparent bg-invert text-invert-ink'
-              : 'border-border bg-panel text-ink hover:border-border-strong'
+              ? 'border-pen bg-pen-soft text-ink'
+              : 'border-border bg-panel text-ink hover:border-pen/60'
           "
           @click="setPreset(preset.value)"
         >
-          <span class="block text-sm font-semibold">{{ preset.label }}</span>
+          <span
+            class="block font-serif text-sm font-bold"
+            :class="modelValue.preset === preset.value ? 'text-pen' : ''"
+          >
+            {{ preset.label }}
+          </span>
           <span
             class="mt-0.5 block text-[11px] leading-snug"
-            :class="modelValue.preset === preset.value ? 'text-invert-ink/70' : 'text-faint'"
+            :class="modelValue.preset === preset.value ? 'text-muted' : 'text-faint'"
           >
             {{ preset.hint }}
           </span>
@@ -98,11 +103,11 @@ function onPromptInput(event: Event) {
           v-for="item in DECK_CONTENT_OPTIONS"
           :key="item"
           type="button"
-          class="rounded-full border px-3 py-1 text-xs transition-colors"
+          class="rounded-sm border px-3 py-1 text-xs transition-colors"
           :class="
             modelValue.content.includes(item)
-              ? 'border-transparent bg-invert text-invert-ink'
-              : 'border-border bg-panel text-muted hover:border-border-strong hover:text-ink'
+              ? 'border-pen bg-pen-soft text-pen'
+              : 'border-border bg-panel text-muted hover:border-pen/60 hover:text-ink'
           "
           :aria-pressed="modelValue.content.includes(item)"
           @click="toggleContent(item)"
@@ -119,18 +124,18 @@ function onPromptInput(event: Event) {
           v-for="density in DECK_DENSITIES"
           :key="density.value"
           type="button"
-          class="rounded-2xl border px-3 py-2 text-left transition-colors"
+          class="rounded-sm border px-3 py-2 text-left transition-colors"
           :class="
             modelValue.density === density.value
-              ? 'border-transparent bg-invert text-invert-ink'
-              : 'border-border bg-panel text-ink hover:border-border-strong'
+              ? 'border-pen bg-pen-soft text-pen'
+              : 'border-border bg-panel text-ink hover:border-pen/60'
           "
           @click="setDensity(density.value)"
         >
           <span class="block text-sm font-medium">{{ density.label }}</span>
           <span
             class="block text-[11px]"
-            :class="modelValue.density === density.value ? 'text-invert-ink/70' : 'text-faint'"
+            :class="modelValue.density === density.value ? 'text-muted' : 'text-faint'"
           >
             {{ density.range }}
           </span>
@@ -148,7 +153,7 @@ function onPromptInput(event: Event) {
         rows="3"
         maxlength="500"
         placeholder="例如：多用生活类比；公式推导要一步步来。"
-        class="mt-2 w-full resize-none rounded-2xl border border-border bg-panel px-3.5 py-2.5 text-sm text-ink placeholder:text-faint focus:border-border-strong focus:outline-none"
+        class="mt-2 w-full resize-none rounded-sm border border-border-strong bg-panel px-3.5 py-2.5 text-sm text-ink placeholder:text-faint focus:border-pen focus:outline-none"
         @input="onPromptInput"
       />
     </section>

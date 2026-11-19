@@ -236,7 +236,7 @@ onBeforeUnmount(() => {
       <button
         v-if="deck"
         type="button"
-        class="inline-flex h-9 w-9 items-center justify-center rounded-2xl text-muted transition-colors hover:bg-raised hover:text-ink"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-sm text-muted transition-colors hover:bg-raised hover:text-pen"
         aria-label="删除复习页"
         title="删除复习页"
         @click="deleteOpen = true"
@@ -247,18 +247,18 @@ onBeforeUnmount(() => {
 
     <main class="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:overflow-hidden">
       <div v-if="loading" class="mx-auto max-w-[1440px] space-y-4">
-        <div class="h-24 animate-pulse rounded-3xl bg-raised" />
-        <div class="h-72 animate-pulse rounded-3xl bg-raised" style="animation-duration: 1.3s" />
+        <div class="h-24 animate-pulse rounded-sm bg-raised" />
+        <div class="h-72 animate-pulse rounded-sm bg-raised" style="animation-duration: 1.3s" />
       </div>
 
       <div
         v-else-if="notFound"
         class="mx-auto flex max-w-md flex-col items-center px-5 py-24 text-center"
       >
-        <span class="inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-raised text-muted">
+        <span class="inline-flex h-14 w-14 items-center justify-center rounded-sm border border-pen/40 bg-pen-soft text-pen">
           <AlertCircle class="h-7 w-7" />
         </span>
-        <h2 class="mt-5 text-xl font-bold text-ink">复习页不存在</h2>
+        <h2 class="mt-5 font-serif text-xl font-bold text-ink">复习页不存在</h2>
         <p class="mt-2 text-sm text-muted">它可能已被删除，或你没有访问权限。</p>
         <AppButton
           class="mt-6"
@@ -273,16 +273,16 @@ onBeforeUnmount(() => {
         class="mx-auto flex h-full min-h-0 max-w-[1440px] flex-col gap-4 lg:flex-row"
       >
         <section class="min-w-0 flex-1 lg:overflow-y-auto lg:pr-1">
-          <div class="rounded-3xl border border-border bg-panel p-5 sm:p-6">
+          <div class="rounded-sm border border-border border-t-2 border-t-pen bg-panel p-5 sm:p-6">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div class="min-w-0">
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-faint">
+                <p class="font-mono text-[10px] tracking-[0.14em] text-pen">
                   复习页总览
                 </p>
-                <h2 class="mt-1 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+                <h2 class="mt-1 font-serif text-2xl font-bold tracking-tight text-ink sm:text-3xl">
                   {{ deck.title }}
                 </h2>
-                <p class="mt-1.5 text-sm text-muted">
+                <p class="mt-1.5 font-mono text-[10px] tracking-wide text-muted">
                   {{ chapterCount }} 章 ·
                   {{ deck.total_pages || '—' }} 页 ·
                   更新于 {{ formatRelative(deck.updated_at) }}
@@ -291,16 +291,16 @@ onBeforeUnmount(() => {
               <DeckStatusPill kind="deck" :status="deck.status" />
             </div>
 
-            <div v-if="deck.active_job_id && FEATURES.deckBuild" class="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border-strong bg-raised px-3.5 py-3">
-              <Loader2 class="h-4 w-4 shrink-0 spin text-ink" />
+            <div v-if="deck.active_job_id && FEATURES.deckBuild" class="mt-4 flex flex-wrap items-center gap-3 rounded-sm border border-pen/30 bg-raised px-3.5 py-3">
+              <Loader2 class="h-4 w-4 shrink-0 spin text-pen" />
               <p class="min-w-0 flex-1 text-sm text-muted">
                 构建任务正在进行，页面会在完成后逐页出现；可以离开，稍后回来继续查看。
               </p>
               <AppButton size="sm" variant="secondary" @click="goBuild">查看进度</AppButton>
             </div>
 
-            <div v-else-if="deck.source_changed" class="mt-4 flex items-start gap-2 rounded-2xl border border-border-strong bg-raised px-3.5 py-3">
-              <AlertCircle class="mt-0.5 h-4 w-4 shrink-0 text-ink" />
+            <div v-else-if="deck.source_changed" class="mt-4 flex items-start gap-2 rounded-sm border border-pen/30 bg-raised px-3.5 py-3">
+              <AlertCircle class="mt-0.5 h-4 w-4 shrink-0 text-pen" />
               <p class="text-sm leading-relaxed text-muted">
                 资料在构建后发生了变化。建议整册重建，让页面引用与最新资料一致。
               </p>
@@ -318,23 +318,23 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <div class="mt-4 rounded-3xl border border-border bg-panel p-5 sm:p-6">
+          <div class="mt-4 rounded-sm border border-border bg-panel p-5 sm:p-6">
             <div class="flex flex-wrap items-baseline justify-between gap-2">
               <div>
-                <h2 class="text-base font-semibold tracking-tight text-ink">知识点路线图</h2>
+                <h2 class="font-serif text-base font-bold tracking-tight text-ink">知识点路线图</h2>
                 <p class="mt-1 text-xs text-muted">
                   节点状态来自页面计划；点击已就绪节点直接进入阅读。
                 </p>
               </div>
-              <span class="text-[11px] text-faint">{{ chapterCount }} 章</span>
+              <span class="font-mono text-[10px] text-faint">{{ chapterCount }} 章</span>
             </div>
 
             <div v-if="roadmap.length" class="mt-4">
               <DeckRoadmap :chapters="roadmap" @open="openPage" />
             </div>
-            <div v-else class="mt-4 rounded-2xl border border-dashed border-border px-4 py-10 text-center">
+            <div v-else class="mt-4 rounded-sm border border-dashed border-border px-4 py-10 text-center">
               <Hammer class="mx-auto h-6 w-6 text-faint" />
-              <p class="mt-2 text-sm font-medium text-ink">尚未规划知识点</p>
+              <p class="mt-2 font-serif text-sm font-bold text-ink">尚未规划知识点</p>
               <p class="mt-1 text-xs leading-relaxed text-muted">
                 <template v-if="FEATURES.deckBuild">
                   选择风格与密度后开始构建，系统会先规划大纲，再逐页生成。
@@ -411,7 +411,7 @@ onBeforeUnmount(() => {
         rows="4"
         maxlength="2000"
         placeholder="例如：动画太快，请放慢；公式推导再细一点；换一个例子。"
-        class="mt-2 w-full resize-none rounded-2xl border border-border bg-panel px-3.5 py-2.5 text-sm text-ink placeholder:text-faint focus:border-border-strong focus:outline-none"
+        class="mt-2 w-full resize-none rounded-sm border border-border bg-panel px-3.5 py-2.5 text-sm text-ink placeholder:text-faint focus:border-pen focus:outline-none"
       />
       <p class="mt-1.5 text-[11px] text-faint">
         反馈只作为该页重建的偏好，不会覆盖页面安全约束；旧版本在新版本就绪前仍可阅读。

@@ -30,8 +30,8 @@ const newPassword = ref('')
 const confirmPassword = ref('')
 
 function dotClass(n: number): string {
-  if (step.value > n) return 'border-transparent bg-invert text-invert-ink'
-  if (step.value === n) return 'border-ink bg-panel text-ink'
+  if (step.value > n) return 'border-invert bg-invert text-invert-ink'
+  if (step.value === n) return 'border-pen bg-panel text-pen'
   return 'border-border bg-panel text-faint'
 }
 
@@ -113,152 +113,152 @@ function back() {
 </script>
 
 <template>
-  <AuthShell>
+  <AuthShell label="签到表 · 找回密码">
     <div class="anim-rise">
-      <div class="mb-7 flex flex-col items-center text-center">
-        <span
-          class="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-invert text-invert-ink shadow-card"
-        >
-          <KeyRound class="h-7 w-7" />
-        </span>
-        <h1 class="text-2xl font-bold tracking-tight text-ink">找回密码</h1>
-        <p class="mt-1 text-sm text-muted">通过密保问题重置你的登录密码</p>
-      </div>
+      <p class="flex items-center gap-2 font-mono text-[11px] tracking-wide text-pen">
+        <KeyRound class="h-3.5 w-3.5" />
+        找回密码
+      </p>
+      <h1 class="mt-1 font-serif text-2xl font-bold tracking-tight text-ink">
+        拿回你的复习本。
+      </h1>
+      <p class="mt-1.5 text-sm leading-relaxed text-muted">
+        通过密保问题验证身份，然后设置新的登录密码。
+      </p>
 
-      <div class="rounded-3xl border border-border bg-panel p-6 shadow-card sm:p-8">
-        <!-- 步骤指示器 -->
-        <div class="relative mb-8">
-          <div class="absolute left-[16.66%] right-[50%] top-[18px] h-0.5 -z-10 rounded-full transition-colors duration-300"
-               :class="step > 1 ? 'bg-invert' : 'bg-border'" />
-          <div class="absolute left-[50%] right-[16.66%] top-[18px] h-0.5 -z-10 rounded-full transition-colors duration-300"
-               :class="step > 2 ? 'bg-invert' : 'bg-border'" />
-          <div class="grid grid-cols-3">
-            <div v-for="s in steps" :key="s.n" class="flex flex-col items-center gap-2">
-              <span
-                class="flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors duration-200"
-                :class="dotClass(s.n)"
-              >
-                <Check v-if="step > s.n" class="h-4 w-4" />
-                <template v-else>{{ s.n }}</template>
-              </span>
-              <span
-                class="text-xs transition-colors"
-                :class="step === s.n ? 'font-medium text-ink' : 'text-muted'"
-              >
-                {{ s.label }}
-              </span>
-            </div>
+      <!-- 步骤指示器 -->
+      <div class="relative mb-8 mt-7">
+        <div
+          class="absolute left-[16.66%] right-[50%] top-[17px] h-px -z-10 transition-colors duration-300"
+          :class="step > 1 ? 'bg-pen' : 'bg-border'"
+        />
+        <div
+          class="absolute left-[50%] right-[16.66%] top-[17px] h-px -z-10 transition-colors duration-300"
+          :class="step > 2 ? 'bg-pen' : 'bg-border'"
+        />
+        <div class="grid grid-cols-3">
+          <div v-for="s in steps" :key="s.n" class="flex flex-col items-center gap-2">
+            <span
+              class="flex h-9 w-9 items-center justify-center rounded-sm border-2 text-sm font-semibold transition-colors duration-200"
+              :class="dotClass(s.n)"
+            >
+              <Check v-if="step > s.n" class="h-4 w-4" />
+              <template v-else>{{ s.n }}</template>
+            </span>
+            <span
+              class="text-xs transition-colors"
+              :class="step === s.n ? 'font-medium text-ink' : 'text-muted'"
+            >
+              {{ s.label }}
+            </span>
           </div>
         </div>
+      </div>
 
-        <transition name="step" mode="out-in">
-          <!-- 步骤 1：用户名 -->
-          <form v-if="step === 1" key="s1" class="space-y-4" @submit.prevent="submitUsername">
-            <AppInput
-              v-model="username"
-              label="用户名"
-              placeholder="请输入你的注册用户名"
-              autocomplete="username"
-              :maxlength="32"
-              name="username"
-            />
-            <div
-              v-if="error"
-              class="flex items-start gap-2 rounded-2xl border border-border-strong bg-raised px-3.5 py-2.5 text-sm text-ink"
-            >
-              <AlertCircle class="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{{ error }}</span>
-            </div>
-            <AppButton type="submit" block size="lg" :loading="loading">
-              下一步
-              <template #icon><ArrowRight class="h-4 w-4" /></template>
-            </AppButton>
-          </form>
-
-          <!-- 步骤 2：密保问题 -->
-          <form v-else-if="step === 2" key="s2" class="space-y-4" @submit.prevent="submitAnswer">
-            <div class="rounded-2xl border border-border bg-raised p-4">
-              <p class="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted">
-                <ShieldCheck class="h-3.5 w-3.5" />
-                你的密保问题
-              </p>
-              <p class="text-sm font-medium leading-relaxed text-ink">{{ question }}</p>
-            </div>
-            <AppInput
-              v-model="answer"
-              label="密保答案"
-              placeholder="请输入注册时填写的答案"
-              autocomplete="off"
-              :maxlength="60"
-              name="answer"
-            />
-            <div
-              v-if="error"
-              class="flex items-start gap-2 rounded-2xl border border-border-strong bg-raised px-3.5 py-2.5 text-sm text-ink"
-            >
-              <AlertCircle class="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{{ error }}</span>
-            </div>
-            <div class="flex gap-2">
-              <AppButton variant="secondary" size="lg" :disabled="loading" @click="back">
-                <template #icon><ArrowLeft class="h-4 w-4" /></template>
-                上一步
-              </AppButton>
-              <AppButton type="submit" block size="lg" :loading="loading">
-                验证答案
-              </AppButton>
-            </div>
-          </form>
-
-          <!-- 步骤 3：新密码 -->
-          <form v-else key="s3" class="space-y-4" @submit.prevent="submitReset">
-            <AppInput
-              v-model="newPassword"
-              type="password"
-              label="新密码"
-              placeholder="至少 6 位"
-              autocomplete="new-password"
-              :maxlength="72"
-              name="new-password"
-            />
-            <AppInput
-              v-model="confirmPassword"
-              type="password"
-              label="确认新密码"
-              placeholder="再次输入新密码"
-              autocomplete="new-password"
-              :maxlength="72"
-              name="confirm-new-password"
-            />
-            <div
-              v-if="error"
-              class="flex items-start gap-2 rounded-2xl border border-border-strong bg-raised px-3.5 py-2.5 text-sm text-ink"
-            >
-              <AlertCircle class="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{{ error }}</span>
-            </div>
-            <div class="flex gap-2">
-              <AppButton variant="secondary" size="lg" :disabled="loading" @click="back">
-                <template #icon><ArrowLeft class="h-4 w-4" /></template>
-                上一步
-              </AppButton>
-              <AppButton type="submit" block size="lg" :loading="loading">
-                <template #icon><Check class="h-4 w-4" /></template>
-                重置密码
-              </AppButton>
-            </div>
-          </form>
-        </transition>
-
-        <div class="mt-6 text-center text-sm text-muted">
-          想起密码了？
-          <router-link
-            :to="{ name: 'login' }"
-            class="font-medium text-ink underline-offset-4 transition-colors hover:underline"
+      <transition name="step" mode="out-in">
+        <!-- 步骤 1：用户名 -->
+        <form v-if="step === 1" key="s1" class="space-y-4" @submit.prevent="submitUsername">
+          <AppInput
+            v-model="username"
+            label="用户名"
+            placeholder="请输入你的注册用户名"
+            autocomplete="username"
+            :maxlength="32"
+            name="username"
+          />
+          <div
+            v-if="error"
+            class="flex items-start gap-2 border-l-2 border-pen bg-pen-soft px-3.5 py-2.5 text-sm text-ink"
           >
-            返回登录
-          </router-link>
-        </div>
+            <AlertCircle class="mt-0.5 h-4 w-4 shrink-0 text-pen" />
+            <span>{{ error }}</span>
+          </div>
+          <AppButton type="submit" block size="lg" :loading="loading">
+            下一步
+            <template #icon><ArrowRight class="h-4 w-4" /></template>
+          </AppButton>
+        </form>
+
+        <!-- 步骤 2：密保问题 -->
+        <form v-else-if="step === 2" key="s2" class="space-y-4" @submit.prevent="submitAnswer">
+          <div class="border-l-2 border-pen bg-raised px-4 py-4">
+            <p class="mb-1 flex items-center gap-1.5 font-mono text-[10px] tracking-wide text-muted">
+              <ShieldCheck class="h-3.5 w-3.5" />
+              你的密保问题
+            </p>
+            <p class="text-sm font-medium leading-relaxed text-ink">{{ question }}</p>
+          </div>
+          <AppInput
+            v-model="answer"
+            label="密保答案"
+            placeholder="请输入注册时填写的答案"
+            autocomplete="off"
+            :maxlength="60"
+            name="answer"
+          />
+          <div
+            v-if="error"
+            class="flex items-start gap-2 border-l-2 border-pen bg-pen-soft px-3.5 py-2.5 text-sm text-ink"
+          >
+            <AlertCircle class="mt-0.5 h-4 w-4 shrink-0 text-pen" />
+            <span>{{ error }}</span>
+          </div>
+          <div class="flex gap-2">
+            <AppButton variant="secondary" size="lg" :disabled="loading" @click="back">
+              <template #icon><ArrowLeft class="h-4 w-4" /></template>
+              上一步
+            </AppButton>
+            <AppButton type="submit" block size="lg" :loading="loading">
+              验证答案
+            </AppButton>
+          </div>
+        </form>
+
+        <!-- 步骤 3：新密码 -->
+        <form v-else key="s3" class="space-y-4" @submit.prevent="submitReset">
+          <AppInput
+            v-model="newPassword"
+            type="password"
+            label="新密码"
+            placeholder="至少 6 位"
+            autocomplete="new-password"
+            :maxlength="72"
+            name="new-password"
+          />
+          <AppInput
+            v-model="confirmPassword"
+            type="password"
+            label="确认新密码"
+            placeholder="再次输入新密码"
+            autocomplete="new-password"
+            :maxlength="72"
+            name="confirm-new-password"
+          />
+          <div
+            v-if="error"
+            class="flex items-start gap-2 border-l-2 border-pen bg-pen-soft px-3.5 py-2.5 text-sm text-ink"
+          >
+            <AlertCircle class="mt-0.5 h-4 w-4 shrink-0 text-pen" />
+            <span>{{ error }}</span>
+          </div>
+          <div class="flex gap-2">
+            <AppButton variant="secondary" size="lg" :disabled="loading" @click="back">
+              <template #icon><ArrowLeft class="h-4 w-4" /></template>
+              上一步
+            </AppButton>
+            <AppButton type="submit" block size="lg" :loading="loading">
+              <template #icon><Check class="h-4 w-4" /></template>
+              重置密码
+            </AppButton>
+          </div>
+        </form>
+      </transition>
+
+      <div class="mt-6 flex items-center justify-between gap-4 border-t border-border pt-4 text-sm text-muted">
+        <span>想起密码了？</span>
+        <router-link :to="{ name: 'login' }" class="e-link">
+          返回登录
+        </router-link>
       </div>
     </div>
   </AuthShell>

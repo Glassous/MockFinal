@@ -95,12 +95,12 @@ html[data-mp-scroll="fit"] .pg-page[data-pg-theme="problem"] {
 .pg-page[data-pg-theme="problem"] .pg-check {
   padding: 16px 18px;
   border: 1px solid var(--mp-border-strong);
-  border-radius: 12px;
+  border-radius: 2px;
   background: var(--mp-raised);
 }
-.pg-page[data-pg-theme="problem"] .pg-figure { padding: 10px; border-radius: 12px; }
+.pg-page[data-pg-theme="problem"] .pg-figure { padding: 10px; border-radius: 2px; }
 .pg-page[data-pg-theme="problem"] .pg-figure-svg { max-height: 220px; }
-.pg-page[data-pg-theme="problem"] .pg-quickfacts { padding: 10px 12px; border-radius: 12px; }
+.pg-page[data-pg-theme="problem"] .pg-quickfacts { padding: 10px 12px; border-radius: 2px; }
 .pg-page[data-pg-theme="problem"] .pg-quickfacts ul { font-size: 12.5px; }
 
 @media (max-width: 1180px) {

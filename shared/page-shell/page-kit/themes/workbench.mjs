@@ -51,7 +51,7 @@ html[data-mp-scroll="fit"] .pg-page[data-pg-theme="workbench"] {
   z-index: 5;
   padding: 14px 16px;
   border: 1px solid var(--pg-glass-border);
-  border-radius: 16px;
+  border-radius: 2px;
   background: var(--pg-glass-bg);
   -webkit-backdrop-filter: var(--pg-glass-blur);
   backdrop-filter: var(--pg-glass-blur);
@@ -72,7 +72,7 @@ html[data-mp-scroll="fit"] .pg-page[data-pg-theme="workbench"] {
   padding: 12px 14px;
   border: 1px solid var(--mp-border);
   border-left: 2px solid var(--mp-ink);
-  border-radius: 12px;
+  border-radius: 2px;
   background: var(--mp-panel);
 }
 .pg-page[data-pg-theme="workbench"] .pg-callout-key { border-left: 2px solid var(--mp-ink); }
@@ -81,7 +81,7 @@ html[data-mp-scroll="fit"] .pg-page[data-pg-theme="workbench"] {
 
 .pg-page[data-pg-theme="workbench"] .pg-example {
   padding: 16px 18px;
-  border-radius: 14px;
+  border-radius: 2px;
 }
 .pg-page[data-pg-theme="workbench"] .pg-example-problem { font-size: 16px; margin: 6px 0 12px; }
 .pg-page[data-pg-theme="workbench"] .pg-step-title { font-size: 15px; }
@@ -90,15 +90,15 @@ html[data-mp-scroll="fit"] .pg-page[data-pg-theme="workbench"] {
 .pg-page[data-pg-theme="workbench"] .pg-step { scroll-margin-top: 24px; }
 .pg-page[data-pg-theme="workbench"] .pg-step:not(:last-child)::after { bottom: -12px; }
 
-.pg-page[data-pg-theme="workbench"] .pg-check { padding: 16px 18px; border-radius: 14px; }
+.pg-page[data-pg-theme="workbench"] .pg-check { padding: 16px 18px; border-radius: 2px; }
 .pg-page[data-pg-theme="workbench"] .pg-question { font-size: 16.5px; line-height: 1.65; }
 .pg-page[data-pg-theme="workbench"] .pg-option { font-size: 15px; line-height: 1.65; padding: 9px 11px; }
 
-.pg-page[data-pg-theme="workbench"] .pg-figure { padding: 8px; border-radius: 14px; }
+.pg-page[data-pg-theme="workbench"] .pg-figure { padding: 8px; border-radius: 2px; }
 .pg-page[data-pg-theme="workbench"] .pg-figure-svg { max-height: 240px; }
 .pg-page[data-pg-theme="workbench"] .pg-figure-caption { font-size: 13px; line-height: 1.6; }
 .pg-page[data-pg-theme="workbench"] .pg-figure-takeaway { font-size: 13px; line-height: 1.6; }
-.pg-page[data-pg-theme="workbench"] .pg-quickfacts { padding: 12px 14px; border-radius: 14px; }
+.pg-page[data-pg-theme="workbench"] .pg-quickfacts { padding: 12px 14px; border-radius: 2px; }
 .pg-page[data-pg-theme="workbench"] .pg-quickfacts ul { font-size: 13px; line-height: 1.65; }
 
 /* 亚克力：右栏、题解、检查与核心卡浮在纸面上，而不是嵌进页面 */
@@ -153,7 +153,7 @@ html[data-mp-scroll="fit"] .pg-page[data-pg-theme="workbench"] {
     top: 8px !important;
     z-index: 9;
     padding: 10px 12px;
-    border-radius: 14px;
+    border-radius: 2px;
     background: var(--pg-glass-bg-strong);
     -webkit-backdrop-filter: var(--pg-glass-blur);
     backdrop-filter: var(--pg-glass-blur);

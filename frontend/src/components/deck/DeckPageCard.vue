@@ -60,8 +60,8 @@ function open() {
 
 <template>
   <div
-    class="group relative flex flex-col overflow-hidden rounded-2xl border bg-panel transition-colors"
-    :class="active ? 'border-border-strong' : 'border-border hover:border-border-strong'"
+    class="group relative flex flex-col overflow-hidden rounded-sm border bg-panel transition-colors"
+    :class="active ? 'border-pen' : 'border-border hover:border-pen/60'"
   >
     <button
       type="button"
@@ -90,7 +90,7 @@ function open() {
         </span>
       </span>
       <span
-        class="absolute left-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-panel/95 px-1.5 text-[11px] font-bold text-ink shadow-sm"
+        class="absolute left-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-sm border border-pen/40 bg-panel px-1.5 font-mono text-[10px] font-bold text-pen shadow-sm"
       >
         {{ String(page.ordinal + 1).padStart(2, '0') }}
       </span>
@@ -119,7 +119,7 @@ function open() {
         <button
           v-if="buildEnabled && (page.status === 'failed' || (page.status === 'ready' && page.has_bundle))"
           type="button"
-          class="inline-flex h-7 items-center gap-1 rounded-full border border-border px-2 text-[11px] text-muted transition-colors hover:bg-raised hover:text-ink"
+          class="inline-flex h-7 items-center gap-1 rounded-sm border border-border px-2 text-[11px] text-muted transition-colors hover:border-pen hover:text-pen"
           @click="emit('retry', page.id)"
         >
           <RotateCcw class="h-3 w-3" />

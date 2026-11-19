@@ -12,7 +12,7 @@ const { isDark } = storeToRefs(themeStore)
 <template>
   <button
     type="button"
-    class="group relative inline-flex items-center justify-center overflow-hidden rounded-full border border-border bg-panel text-ink transition-colors duration-150 hover:border-border-strong hover:bg-raised"
+    class="group relative inline-flex items-center justify-center overflow-hidden rounded-sm border border-border bg-transparent text-ink transition-colors duration-150 hover:border-pen hover:text-pen"
     :class="size === 'sm' ? 'h-8 w-8' : 'h-9 w-9'"
     :aria-label="isDark ? '切换到浅色模式' : '切换到深色模式'"
     :title="isDark ? '切换到浅色模式' : '切换到深色模式'"

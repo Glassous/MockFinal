@@ -100,7 +100,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <div v-if="open" class="fixed inset-0 z-panel">
         <div class="absolute inset-0 bg-overlay/30 md:bg-transparent" @click="emit('close')" />
         <aside
-          class="absolute inset-x-0 bottom-0 flex max-h-[86dvh] flex-col rounded-t-3xl border border-border bg-panel shadow-pop md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[390px] md:rounded-none md:border-y-0 md:border-r-0"
+          class="absolute inset-x-0 bottom-0 flex max-h-[86dvh] flex-col rounded-t-sm border border-border bg-panel shadow-pop md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[390px] md:rounded-none md:border-y-0 md:border-r-0"
           role="dialog"
           aria-modal="true"
           aria-label="学习面板"
@@ -121,14 +121,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
               </div>
               <button
                 type="button"
-                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-faint transition-colors hover:bg-raised hover:text-ink"
+                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-faint transition-colors hover:bg-raised hover:text-ink"
                 aria-label="关闭学习面板"
                 @click="emit('close')"
               >
                 <X class="h-4 w-4" />
               </button>
             </div>
-            <div class="mt-3 flex gap-1 rounded-2xl bg-raised p-1" role="tablist">
+            <div class="mt-3 flex gap-1 rounded-sm bg-raised p-1" role="tablist">
               <button
                 v-for="item in [
                   { key: 'page', label: '本页' },
@@ -140,7 +140,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                 type="button"
                 role="tab"
                 :aria-selected="tab === item.key"
-                class="flex-1 rounded-xl px-2 py-1.5 text-xs font-medium transition-colors"
+                class="flex-1 rounded-sm px-2 py-1.5 text-xs font-medium transition-colors"
                 :class="tab === item.key ? 'bg-panel text-ink shadow-sm' : 'text-muted hover:text-ink'"
                 @click="tab = item.key as Tab"
               >
@@ -151,7 +151,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
           <div class="min-h-0 flex-1 overflow-y-auto px-4 py-4">
             <template v-if="tab === 'page'">
-              <div v-if="!hasTeaching" class="rounded-2xl border border-border bg-raised px-3.5 py-3">
+              <div v-if="!hasTeaching" class="rounded-sm border border-border bg-raised px-3.5 py-3">
                 <p class="text-sm font-medium text-ink">这是旧版页面，暂无教学目标</p>
                 <p class="mt-1 text-xs leading-relaxed text-muted">
                   仍可查看来源依据，或直接向 AI 助手提问。
@@ -160,7 +160,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
               <template v-else>
                 <p
                   v-if="teaching?.hook"
-                  class="rounded-2xl border border-border bg-raised px-3.5 py-3 text-sm leading-relaxed text-ink"
+                  class="rounded-sm border border-border bg-raised px-3.5 py-3 text-sm leading-relaxed text-ink"
                 >
                   {{ teaching.hook }}
                 </p>
@@ -201,7 +201,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                       v-for="(step, index) in chain"
                       :key="step.id"
                       type="button"
-                      class="flex w-full items-center gap-2 rounded-xl border border-border bg-panel px-3 py-2 text-left text-sm text-ink transition-colors hover:border-border-strong hover:bg-raised"
+                      class="flex w-full items-center gap-2 rounded-sm border border-border bg-panel px-3 py-2 text-left text-sm text-ink transition-colors hover:border-border-strong hover:bg-raised"
                       @click="emit('focusBlock', step.block_id)"
                     >
                       <span class="text-[11px] font-bold tabular-nums text-faint">
@@ -222,7 +222,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                     <li
                       v-for="step in example.steps"
                       :key="step.id"
-                      class="rounded-xl border border-border bg-panel px-3 py-2"
+                      class="rounded-sm border border-border bg-panel px-3 py-2"
                     >
                       <p class="text-[11px] font-semibold text-muted">{{ step.title }}</p>
                       <MarkdownView :content="step.body" />
@@ -246,7 +246,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                       <span>{{ point }}</span>
                     </li>
                   </ul>
-                  <div v-if="summary.misconceptions?.length" class="mt-2 rounded-xl bg-raised px-3 py-2">
+                  <div v-if="summary.misconceptions?.length" class="mt-2 rounded-sm bg-raised px-3 py-2">
                     <p class="text-[11px] font-semibold text-muted">易错点</p>
                     <ul class="mt-1 space-y-1">
                       <li
@@ -281,7 +281,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                       v-for="(option, optionIndex) in check.options"
                       :key="option"
                       type="button"
-                      class="flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition-colors"
+                      class="flex w-full items-center gap-2 rounded-sm border px-3 py-2 text-left text-sm transition-colors"
                       :class="answerState(check, optionIndex)"
                       :disabled="answers[check.id] !== undefined"
                       @click="selectAnswer(check, optionIndex)"
@@ -298,7 +298,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                   </div>
                   <div
                     v-if="answers[check.id] !== undefined"
-                    class="mt-2 rounded-xl border border-border bg-raised px-3 py-2"
+                    class="mt-2 rounded-sm border border-border bg-raised px-3 py-2"
                   >
                     <p class="text-xs font-medium text-ink">
                       {{ answers[check.id] === check.answer_index ? '回答正确' : '再想一想' }}
@@ -309,7 +309,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                 <button
                   v-if="answeredCount > 0"
                   type="button"
-                  class="mt-4 inline-flex h-9 items-center gap-1.5 rounded-2xl border border-border px-3 text-sm text-muted transition-colors hover:border-border-strong hover:text-ink"
+                  class="mt-4 inline-flex h-9 items-center gap-1.5 rounded-sm border border-border px-3 text-sm text-muted transition-colors hover:border-border-strong hover:text-ink"
                   @click="resetChecks"
                 >
                   再做一次
@@ -318,7 +318,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             </template>
 
             <template v-else-if="tab === 'sources'">
-              <div v-if="assistant.summary" class="rounded-2xl border border-border bg-raised px-3.5 py-3">
+              <div v-if="assistant.summary" class="rounded-sm border border-border bg-raised px-3.5 py-3">
                 <p class="text-[11px] font-semibold uppercase tracking-wider text-faint">页面摘要</p>
                 <p class="mt-1.5 text-sm leading-relaxed text-ink">{{ assistant.summary }}</p>
                 <ul v-if="assistant.key_facts?.length" class="mt-2 space-y-1">
@@ -336,7 +336,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                 <div
                   v-for="(ref, index) in refs"
                   :key="`${ref.section_id}-${index}`"
-                  class="rounded-2xl border border-border bg-panel px-3.5 py-3"
+                  class="rounded-sm border border-border bg-panel px-3.5 py-3"
                 >
                   <div class="flex flex-wrap items-center gap-2">
                     <span class="text-[11px] font-semibold uppercase tracking-wider text-faint">
@@ -345,7 +345,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                     <span v-if="ref.heading" class="text-sm font-medium text-ink">{{ ref.heading }}</span>
                     <span
                       v-if="ref.unverified"
-                      class="rounded-full border border-border-strong px-2 py-0.5 text-[11px] text-muted"
+                      class="rounded-sm border border-border-strong px-2 py-0.5 text-[11px] text-muted"
                     >
                       待核对
                     </span>
@@ -370,7 +370,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                 </p>
                 <button
                   type="button"
-                  class="mt-3 inline-flex h-9 items-center rounded-2xl bg-invert px-3.5 text-sm font-medium text-invert-ink transition-opacity hover:opacity-90"
+                  class="mt-3 inline-flex h-9 items-center rounded-sm bg-invert px-3.5 text-sm font-medium text-invert-ink transition-opacity hover:opacity-90"
                   @click="emit('ask', '')"
                 >
                   打开 AI 助手
@@ -383,7 +383,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                     v-for="question in suggestedQuestions.slice(0, 5)"
                     :key="question"
                     type="button"
-                    class="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted transition-colors hover:border-border-strong hover:text-ink"
+                    class="rounded-sm border border-border px-2.5 py-1 text-[11px] text-muted transition-colors hover:border-border-strong hover:text-ink"
                     @click="emit('ask', question)"
                   >
                     {{ question }}
@@ -401,7 +401,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             <button
               v-else
               type="button"
-              class="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-2xl bg-invert text-sm font-medium text-invert-ink transition-opacity disabled:opacity-45"
+              class="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-sm bg-invert text-sm font-medium text-invert-ink transition-opacity disabled:opacity-45"
               :disabled="!canComplete"
               :title="canComplete ? '标记本页已学完' : '完成页面交互或随堂检查后即可标记'"
               @click="emit('complete')"

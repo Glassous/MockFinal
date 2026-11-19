@@ -10,6 +10,8 @@ import { useThemeStore } from './stores/theme'
 import 'katex/dist/katex.min.css'
 // 项目主题与语义 token（须在 katex 之后，便于必要覆盖）
 import './style.css'
+// v3 预设计：入口页 / 登录页专用 token，作用域限定在 .entry-v3
+import './styles/entry-v3.css'
 
 const app = createApp(App)
 const pinia = createPinia()

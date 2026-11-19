@@ -379,15 +379,15 @@ onBeforeUnmount(() => {
 
     <main class="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
       <div v-if="loading" class="mx-auto max-w-5xl space-y-4">
-        <div class="h-24 animate-pulse rounded-3xl bg-raised" />
-        <div class="h-64 animate-pulse rounded-3xl bg-raised" style="animation-duration: 1.3s" />
+        <div class="h-24 animate-pulse rounded-sm bg-raised" />
+        <div class="h-64 animate-pulse rounded-sm bg-raised" style="animation-duration: 1.3s" />
       </div>
 
       <div
         v-else-if="notFound"
         class="mx-auto flex max-w-md flex-col items-center px-5 py-24 text-center"
       >
-        <span class="inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-raised text-muted">
+        <span class="inline-flex h-14 w-14 items-center justify-center rounded-sm border border-pen/40 bg-pen-soft text-pen">
           <AlertCircle class="h-7 w-7" />
         </span>
         <h2 class="mt-5 text-xl font-bold text-ink">复习页不存在</h2>
@@ -403,8 +403,8 @@ onBeforeUnmount(() => {
       <template v-else-if="deck">
         <!-- Serverless 版本：构建服务未部署 -->
         <div v-if="!FEATURES.deckBuild" class="mx-auto max-w-2xl">
-          <div class="rounded-3xl border border-border bg-panel p-6 text-center">
-            <span class="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-raised text-muted">
+          <div class="rounded-sm border border-border border-t-2 border-t-pen bg-panel p-6 text-center">
+            <span class="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-sm border border-pen/40 bg-pen-soft text-pen">
               <Hammer class="h-6 w-6" />
             </span>
             <h2 class="mt-4 text-xl font-bold tracking-tight text-ink">复习页构建暂不可用</h2>
@@ -421,9 +421,9 @@ onBeforeUnmount(() => {
         <template v-else>
         <!-- 新建 Deck：构建设置 -->
         <div v-if="!job && !pages.length" class="mx-auto max-w-3xl">
-          <div class="rounded-3xl border border-border bg-panel p-5 sm:p-7">
+          <div class="rounded-sm border border-border border-t-2 border-t-pen bg-panel p-5 sm:p-7">
             <div class="flex items-start gap-3">
-              <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-raised text-ink">
+              <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-pen/40 bg-pen-soft text-pen">
                 <Hammer class="h-5 w-5" />
               </span>
               <div>
@@ -447,7 +447,7 @@ onBeforeUnmount(() => {
 
         <!-- 没有活跃任务但已有页面 -->
         <div v-else-if="!job" class="mx-auto max-w-2xl">
-          <div class="rounded-3xl border border-border bg-panel p-6 text-center">
+          <div class="rounded-sm border border-border border-t-2 border-t-pen bg-panel p-6 text-center">
             <CheckCircle2 class="mx-auto h-8 w-8 text-muted" />
             <h2 class="mt-3 text-lg font-semibold text-ink">当前没有进行中的构建</h2>
             <p class="mt-1.5 text-sm text-muted">
@@ -461,7 +461,7 @@ onBeforeUnmount(() => {
 
         <!-- 构建中 / 构建结束 -->
         <div v-else class="mx-auto max-w-6xl space-y-4">
-          <section class="rounded-3xl border border-border bg-panel p-5">
+          <section class="rounded-sm border border-border border-t-2 border-t-pen bg-panel p-5">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
@@ -496,9 +496,9 @@ onBeforeUnmount(() => {
                 <span>{{ jobProgressText(job) }}</span>
                 <span>{{ jobPercent }}%</span>
               </div>
-              <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-raised">
+              <div class="mt-1.5 h-1 overflow-hidden rounded-sm bg-raised">
                 <div
-                  class="h-full rounded-full bg-invert transition-all duration-300"
+                  class="h-full rounded-sm bg-invert transition-all duration-300"
                   :class="active && !job.total_pages ? 'anim-indeterminate w-1/3' : ''"
                   :style="job.total_pages ? { width: `${jobPercent}%` } : undefined"
                 />
@@ -511,17 +511,17 @@ onBeforeUnmount(() => {
 
             <div
               v-if="jobErrorText"
-              class="mt-4 flex items-start gap-2 rounded-2xl border border-border-strong bg-raised px-3.5 py-3"
+              class="mt-4 flex items-start gap-2 rounded-sm border border-pen/30 bg-raised px-3.5 py-3"
             >
-              <AlertCircle class="mt-0.5 h-4 w-4 shrink-0 text-ink" />
+              <AlertCircle class="mt-0.5 h-4 w-4 shrink-0 text-pen" />
               <p class="text-sm leading-relaxed text-muted">{{ jobErrorText }}</p>
             </div>
 
             <div
               v-if="terminal && job.status === 'done'"
-              class="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-raised px-3.5 py-3"
+              class="mt-4 flex items-center gap-2 rounded-sm border border-pen/30 bg-raised px-3.5 py-3"
             >
-              <CheckCircle2 class="h-4 w-4 text-ink" />
+              <CheckCircle2 class="h-4 w-4 text-pen" />
               <p class="text-sm text-muted">全部页面已就绪并完成校验，可以开始阅读。</p>
             </div>
           </section>
@@ -556,7 +556,7 @@ onBeforeUnmount(() => {
                 <div
                   v-for="page in failedPages"
                   :key="page.id"
-                  class="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-panel px-3 py-2.5"
+                  class="flex flex-wrap items-center gap-2 rounded-sm border border-border bg-panel px-3 py-2.5"
                 >
                   <span class="text-[11px] text-faint">
                     {{ String(page.ordinal + 1).padStart(2, '0') }}
@@ -604,7 +604,7 @@ onBeforeUnmount(() => {
         rows="4"
         maxlength="2000"
         placeholder="例如：动画太快，请放慢；公式推导再细一点；换一个例子。"
-        class="mt-2 w-full resize-none rounded-2xl border border-border bg-panel px-3.5 py-2.5 text-sm text-ink placeholder:text-faint focus:border-border-strong focus:outline-none"
+        class="mt-2 w-full resize-none rounded-sm border border-border bg-panel px-3.5 py-2.5 text-sm text-ink placeholder:text-faint focus:border-border-strong focus:outline-none"
       />
       <template #footer>
         <div class="flex justify-end gap-2">

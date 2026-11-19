@@ -29,12 +29,12 @@ function canOpen(node: RoadmapNode): boolean {
 function nodeClass(node: RoadmapNode): string {
   switch (node.status) {
     case 'ready':
-      return 'border-transparent bg-invert text-invert-ink'
+      return 'border-pen bg-pen-soft text-ink'
     case 'building':
     case 'validating':
-      return 'border-border-strong bg-panel text-ink'
+      return 'border-pen/60 bg-panel text-ink'
     case 'failed':
-      return 'border-border-strong bg-raised text-ink'
+      return 'border-pen/40 bg-raised text-ink'
     case 'planned':
       return 'border-border bg-panel text-ink'
     default:
@@ -71,10 +71,10 @@ function openNode(node: RoadmapNode) {
           class="min-w-0"
         >
           <header class="mb-2 flex items-baseline gap-2 border-b border-border pb-1.5">
-            <span class="text-[11px] font-bold tracking-wider text-faint">
+            <span class="text-[11px] font-bold tracking-wider text-pen">
               {{ String(chapterIndex + 1).padStart(2, '0') }}
             </span>
-            <h3 class="truncate text-xs font-semibold text-ink" :title="chapter.title">
+            <h3 class="truncate font-serif text-xs font-bold text-ink" :title="chapter.title">
               {{ chapter.title }}
             </h3>
           </header>
@@ -88,7 +88,7 @@ function openNode(node: RoadmapNode) {
               v-for="node in chapter.nodes"
               :key="node.index"
               type="button"
-              class="relative flex w-full items-center gap-2 rounded-2xl border px-2 py-1.5 text-left transition-all duration-150"
+              class="relative flex w-full items-center gap-2 rounded-sm border px-2 py-1.5 text-left transition-all duration-150"
               :class="[
                 nodeClass(node),
                 node.importance === 'core' ? 'font-semibold' : '',
@@ -100,10 +100,10 @@ function openNode(node: RoadmapNode) {
               @click="openNode(node)"
             >
               <span
-                class="relative z-10 inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border text-[11px] font-bold"
+                class="relative z-10 inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-sm border text-[11px] font-bold"
                 :class="
                   node.status === 'ready'
-                    ? 'border-transparent bg-invert-ink/15 text-invert-ink'
+                    ? 'border-pen bg-panel text-pen'
                     : 'border-border bg-panel text-muted'
                 "
               >
@@ -119,7 +119,7 @@ function openNode(node: RoadmapNode) {
                 <span class="block truncate text-xs leading-tight">{{ node.title }}</span>
                 <span
                   class="mt-0.5 block text-[11px] leading-tight"
-                  :class="node.status === 'ready' ? 'text-invert-ink/65' : 'text-faint'"
+                  :class="node.status === 'ready' ? 'text-muted' : 'text-faint'"
                 >
                   {{ statusLabel(node) }}
                   <template v-if="node.learned"> · 已学完</template>
@@ -132,7 +132,7 @@ function openNode(node: RoadmapNode) {
               <span
                 v-if="node.page"
                 class="shrink-0 text-[11px] font-medium"
-                :class="node.status === 'ready' ? 'text-invert-ink/65' : 'text-faint'"
+                :class="node.status === 'ready' ? 'text-pen' : 'text-faint'"
               >
                 {{ String(node.page.ordinal + 1).padStart(2, '0') }}
               </span>

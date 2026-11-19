@@ -65,8 +65,8 @@ async function confirmDelete() {
 
 <template>
   <div>
-    <div v-if="materials.length === 0" class="rounded-3xl border border-dashed border-border px-6 py-12 text-center">
-      <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-raised text-faint">
+    <div v-if="materials.length === 0" class="rounded-sm border border-dashed border-border px-6 py-12 text-center">
+      <span class="inline-flex h-12 w-12 items-center justify-center rounded-sm border border-pen/40 bg-pen-soft text-pen">
         <Inbox class="h-6 w-6" />
       </span>
       <p class="mt-3 text-sm text-muted">还没有学习资料，上传后系统会自动解析并按章节分节。</p>
@@ -74,13 +74,16 @@ async function confirmDelete() {
 
     <ul v-else class="space-y-2">
       <li
-        v-for="m in materials"
+        v-for="(m, index) in materials"
         :key="m.id"
-        class="rounded-2xl border border-border bg-panel px-4 py-3 transition-colors hover:border-border-strong"
+        class="rounded-sm border border-border bg-panel px-4 py-3 transition-colors hover:border-pen/50"
       >
         <div class="flex items-center gap-3">
+          <span class="hidden w-5 shrink-0 font-mono text-[10px] text-faint sm:inline">
+            {{ String(index + 1).padStart(2, '0') }}
+          </span>
           <span
-            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-raised text-muted"
+            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-border bg-raised text-muted"
           >
             <component :is="iconFor(m.filename)" class="h-5 w-5" />
           </span>
@@ -97,12 +100,14 @@ async function confirmDelete() {
             </p>
           </div>
 
-          <StatusBadge :status="m.status" class="hidden sm:inline-flex" />
+          <span class="hidden shrink-0 sm:inline-flex">
+            <StatusBadge :status="m.status" />
+          </span>
 
           <div class="flex shrink-0 items-center gap-1">
             <button
               type="button"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink disabled:opacity-40"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-sm text-muted transition-colors hover:bg-raised hover:text-pen disabled:opacity-40"
               aria-label="下载"
               title="下载"
               :disabled="downloadingId === m.id"
@@ -112,7 +117,7 @@ async function confirmDelete() {
             </button>
             <button
               type="button"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-sm text-muted transition-colors hover:bg-raised hover:text-pen"
               aria-label="删除"
               title="删除"
               @click="pendingDelete = m"
@@ -130,7 +135,7 @@ async function confirmDelete() {
         <!-- 失败原因 -->
         <p
           v-if="m.status === 'failed' && m.error"
-          class="mt-2 rounded-xl bg-raised px-3 py-2 text-xs leading-relaxed text-muted"
+          class="mt-2 rounded-sm bg-raised px-3 py-2 text-xs leading-relaxed text-muted"
         >
           {{ m.error }}
         </p>
