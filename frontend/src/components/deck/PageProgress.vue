@@ -19,9 +19,9 @@ const percent = computed(() =>
       {{ String(current).padStart(2, '0') }}
       <span class="text-faint">/ {{ String(total).padStart(2, '0') }}</span>
     </span>
-    <div class="hidden h-1 w-24 overflow-hidden rounded-full bg-raised sm:block">
+    <div class="hidden h-1 w-24 overflow-hidden rounded-sm bg-raised sm:block">
       <div
-        class="h-full rounded-full bg-invert transition-all duration-200"
+        class="h-full rounded-sm bg-invert transition-all duration-200"
         :style="{ width: `${percent}%` }"
       />
     </div>

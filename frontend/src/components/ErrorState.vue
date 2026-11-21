@@ -16,7 +16,7 @@ const emit = defineEmits<{ retry: [] }>()
 
 <template>
   <div class="flex flex-col items-center justify-center px-6 py-12 text-center" role="alert">
-    <span class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-raised text-ink">
+    <span class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-sm border border-pen/40 bg-pen-soft text-pen">
       <AlertCircle class="h-5 w-5" />
     </span>
     <p class="text-sm font-semibold text-ink">{{ title }}</p>
@@ -25,7 +25,7 @@ const emit = defineEmits<{ retry: [] }>()
       <button
         v-if="retry"
         type="button"
-        class="inline-flex h-9 items-center rounded-2xl bg-invert px-3.5 text-sm font-medium text-invert-ink transition-opacity hover:opacity-90"
+        class="inline-flex h-9 items-center rounded-sm bg-invert px-3.5 text-sm font-medium text-invert-ink transition-colors hover:bg-pen"
         @click="emit('retry')"
       >
         {{ retryLabel }}

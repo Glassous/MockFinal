@@ -31,7 +31,7 @@ const config = computed(() => {
     case 'done':
       return {
         icon: CheckCircle2,
-        cls: 'border-transparent bg-invert text-invert-ink',
+        cls: 'border-pen/40 bg-pen-soft text-pen',
         spin: false,
       }
     case 'planning':
@@ -41,9 +41,9 @@ const config = computed(() => {
     case 'pending':
       return { icon: Loader2, cls: 'border-border bg-raised text-ink', spin: true }
     case 'partial':
-      return { icon: CircleDot, cls: 'border-border-strong bg-panel text-ink', spin: false }
+      return { icon: CircleDot, cls: 'border-border-strong bg-raised text-ink', spin: false }
     case 'failed':
-      return { icon: AlertCircle, cls: 'border-border-strong bg-panel text-ink', spin: false }
+      return { icon: AlertCircle, cls: 'border-pen/40 bg-panel text-pen', spin: false }
     case 'canceled':
       return { icon: Ban, cls: 'border-border bg-panel text-muted', spin: false }
     default:
@@ -54,7 +54,7 @@ const config = computed(() => {
 
 <template>
   <span
-    class="inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium"
+    class="inline-flex items-center gap-1 whitespace-nowrap rounded-sm border px-2 py-0.5 text-xs font-medium"
     :class="config.cls"
   >
     <component :is="config.icon" class="h-3.5 w-3.5" :class="config.spin ? 'spin' : ''" />

@@ -153,11 +153,11 @@ function statusText(item: QueueItem): string {
     <div
       role="button"
       tabindex="0"
-      class="group relative flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed px-6 py-10 text-center transition-all duration-150"
+      class="group relative flex cursor-pointer flex-col items-center justify-center rounded-sm border border-dashed px-6 py-10 text-center transition-all duration-150"
       :class="
         dragging
-          ? 'border-ink bg-raised'
-          : 'border-border-strong bg-panel hover:border-ink hover:bg-raised'
+          ? 'border-pen bg-pen-soft'
+          : 'border-border-strong bg-panel hover:border-pen hover:bg-raised'
       "
       @click="openFileDialog"
       @keydown.enter.prevent="openFileDialog"
@@ -168,16 +168,20 @@ function statusText(item: QueueItem): string {
       @drop.prevent="onDrop"
     >
       <span
-        class="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-200"
-        :class="dragging ? 'scale-110 bg-invert text-invert-ink' : 'bg-raised text-muted group-hover:text-ink'"
+        class="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-sm border transition-transform duration-200"
+        :class="
+          dragging
+            ? 'scale-105 border-pen bg-pen-soft text-pen'
+            : 'border-border bg-raised text-muted group-hover:border-pen group-hover:text-pen'
+        "
       >
         <UploadCloud class="h-7 w-7" />
       </span>
-      <p class="text-sm font-medium text-ink">
+      <p class="font-serif text-lg font-bold text-ink">
         <span v-if="dragging">松开鼠标即可上传</span>
-        <span v-else>拖拽文件到此处，或 <span class="underline underline-offset-4">点击选择</span></span>
+        <span v-else>拖拽文件到此处，或 <span class="text-pen underline underline-offset-4">点击选择</span></span>
       </p>
-      <p class="mt-1.5 text-xs text-muted">
+      <p class="mt-1.5 font-mono text-[10px] tracking-wide text-faint">
         支持 {{ ALLOWED_EXTENSIONS.join(' / ').toUpperCase() }} · 单个文件 ≤ 8MB · 可多选
       </p>
       <input
@@ -195,16 +199,16 @@ function statusText(item: QueueItem): string {
       <li
         v-for="item in items"
         :key="item.id"
-        class="anim-fade rounded-2xl border border-border bg-panel px-4 py-3"
+        class="anim-fade rounded-sm border border-border bg-panel px-4 py-3"
       >
         <div class="flex items-center gap-3">
-          <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-raised text-muted">
+          <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-border bg-raised text-muted">
             <FileText class="h-4 w-4" />
           </span>
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-medium text-ink">{{ item.file.name }}</p>
             <p class="mt-0.5 flex items-center gap-1.5 text-xs"
-               :class="item.status === 'error' ? 'text-ink' : 'text-muted'">
+               :class="item.status === 'error' ? 'text-pen' : 'text-muted'">
               <component
                 :is="
                   item.status === 'done'
@@ -217,14 +221,14 @@ function statusText(item: QueueItem): string {
                 :class="item.status === 'uploading' || item.status === 'registering' ? 'spin' : ''"
               />
               <span class="truncate">{{ statusText(item) }}</span>
-              <span class="shrink-0 text-faint">· {{ formatBytes(item.file.size) }}</span>
+              <span class="shrink-0 font-mono text-[10px] text-faint">· {{ formatBytes(item.file.size) }}</span>
             </p>
           </div>
           <div class="flex shrink-0 items-center gap-1">
             <button
               v-if="item.status === 'error'"
               type="button"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-sm text-muted transition-colors hover:bg-raised hover:text-pen"
               aria-label="重试"
               title="重试"
               @click="retry(item)"
@@ -233,7 +237,7 @@ function statusText(item: QueueItem): string {
             </button>
             <button
               type="button"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-full text-faint transition-colors hover:bg-raised hover:text-ink"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-sm text-faint transition-colors hover:bg-raised hover:text-pen"
               aria-label="移除"
               title="移除"
               @click="removeItem(item.id)"
@@ -246,10 +250,10 @@ function statusText(item: QueueItem): string {
         <!-- 进度条 -->
         <div
           v-if="item.status === 'uploading' || item.status === 'registering'"
-          class="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-raised"
+          class="mt-2.5 h-1 w-full overflow-hidden rounded-sm bg-raised"
         >
           <div
-            class="h-full rounded-full bg-invert transition-[width] duration-200 ease-out"
+            class="h-full rounded-sm bg-invert transition-[width] duration-200 ease-out"
             :style="{ width: item.percent + '%' }"
           />
         </div>

@@ -14,7 +14,7 @@ withDefaults(
     <span
       v-for="index in lines"
       :key="index"
-      class="block h-3 rounded-full bg-raised motion-safe:animate-pulse"
+      class="block h-3 rounded-sm bg-raised motion-safe:animate-pulse"
       :style="{ width: index === lines ? '62%' : `${100 - index * 7}%` }"
       aria-hidden="true"
     />

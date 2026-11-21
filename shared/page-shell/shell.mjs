@@ -42,33 +42,38 @@ export const CSP_CONTENT =
 /** reset + 语义 token 映射 + runtime base（契约 §6.2、§7.1）。 */
 const BASE_CSS = `:root {
   color-scheme: light;
-  --mp-surface: #f4f4f5;
-  --mp-panel: #ffffff;
-  --mp-raised: #fafafb;
-  --mp-border: #e4e4e7;
-  --mp-border-strong: #d4d4d8;
-  --mp-ink: #16161a;
-  --mp-muted: #6b6b73;
-  --mp-faint: #9a9aa2;
-  --mp-invert: #16161a;
-  --mp-invert-ink: #ffffff;
-  --mp-code-bg: #f4f4f5;
+  --mp-surface: #f1efe9;
+  --mp-panel: #fbfaf6;
+  --mp-raised: #f4f1e9;
+  --mp-border: rgba(26, 24, 20, 0.14);
+  --mp-border-strong: rgba(26, 24, 20, 0.3);
+  --mp-ink: #1a1814;
+  --mp-muted: #6d675c;
+  --mp-faint: #716b5f;
+  --mp-invert: #b83326;
+  --mp-invert-ink: #fffaf4;
+  --mp-pen: #c2382a;
+  --mp-pen-soft: rgba(194, 56, 42, 0.1);
+  --mp-code-bg: #f4f1e9;
   --mp-font-sans: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --mp-font-serif: "Songti SC", STSong, "Noto Serif SC", "Source Han Serif SC", SimSun, Georgia, serif;
   --mp-font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 }
 html[data-mp-theme="dark"] {
   color-scheme: dark;
-  --mp-surface: #09090b;
-  --mp-panel: #131316;
-  --mp-raised: #1c1c20;
-  --mp-border: #26262b;
-  --mp-border-strong: #3a3a41;
-  --mp-ink: #f5f5f6;
-  --mp-muted: #a0a0a8;
-  --mp-faint: #6e6e77;
-  --mp-invert: #f5f5f6;
-  --mp-invert-ink: #09090b;
-  --mp-code-bg: #0e0e11;
+  --mp-surface: #100f0d;
+  --mp-panel: #1a1917;
+  --mp-raised: #211f1c;
+  --mp-border: rgba(237, 233, 223, 0.14);
+  --mp-border-strong: rgba(237, 233, 223, 0.3);
+  --mp-ink: #ede9df;
+  --mp-muted: #a49d90;
+  --mp-faint: #8a8376;
+  --mp-invert: #b53a2c;
+  --mp-invert-ink: #fff8f1;
+  --mp-pen: #e46755;
+  --mp-pen-soft: rgba(228, 103, 85, 0.12);
+  --mp-code-bg: #151411;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--mp-panel); color: var(--mp-ink); font-family: var(--mp-font-sans); }
@@ -78,7 +83,7 @@ html[data-mp-scroll="flow"] { height: auto; overflow-x: hidden; overflow-y: auto
 html[data-mp-scroll="flow"] body { height: auto; overflow: visible; }
 html[data-mp-scroll="flow"] #mp-root { height: auto; min-height: 100dvh; overflow: visible; }
 #mp-root :focus-visible { outline: 2px solid var(--mp-invert); outline-offset: 2px; }
-#mp-root [data-mp-focus="true"] { outline: 2px solid var(--mp-invert); outline-offset: 3px; border-radius: 6px; }
+#mp-root [data-mp-focus="true"] { outline: 2px solid var(--mp-invert); outline-offset: 3px; border-radius: 2px; }
 /* 移动端阅读模式：允许页面纵向滚动，禁止横向溢出；桌面零滚动规则不变 */
 @media (max-width: 767px) {
   html, body { height: auto !important; overflow-y: auto !important; overflow-x: hidden !important; }
@@ -118,26 +123,26 @@ export const DECK_KIT_CSS = `
 .mp-text { margin: 0; font-size: 15px; line-height: 1.75; color: var(--mp-ink); }
 .mp-caption { font-size: 12px; line-height: 1.55; color: var(--mp-muted); }
 .mp-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--mp-faint); }
-.mp-formula { padding: 10px 14px; border: 1px solid var(--mp-border); border-radius: 12px; background: var(--mp-raised); overflow-x: auto; }
-.mp-card { padding: 16px 18px; border: 1px solid var(--mp-border); border-radius: 18px; background: var(--mp-panel); min-width: 0; }
-.mp-callout { padding: 12px 14px; border-left: 3px solid var(--mp-border-strong); border-radius: 0 12px 12px 0; background: var(--mp-raised); }
-.mp-quote { margin: 0; padding: 12px 16px; border-left: 3px solid var(--mp-border-strong); border-radius: 0 12px 12px 0; background: var(--mp-raised); color: var(--mp-muted); font-size: 14px; }
-.mp-figure { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px; border: 1px solid var(--mp-border); border-radius: 18px; background: var(--mp-raised); min-width: 0; }
+.mp-formula { padding: 10px 14px; border: 1px solid var(--mp-border); border-radius: 2px; background: var(--mp-raised); overflow-x: auto; }
+.mp-card { padding: 16px 18px; border: 1px solid var(--mp-border); border-radius: 2px; background: var(--mp-panel); min-width: 0; }
+.mp-callout { padding: 12px 14px; border-left: 3px solid var(--mp-border-strong); border-radius: 0 2px 2px 0; background: var(--mp-raised); }
+.mp-quote { margin: 0; padding: 12px 16px; border-left: 3px solid var(--mp-border-strong); border-radius: 0 2px 2px 0; background: var(--mp-raised); color: var(--mp-muted); font-size: 14px; }
+.mp-figure { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px; border: 1px solid var(--mp-border); border-radius: 2px; background: var(--mp-raised); min-width: 0; }
 .mp-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--mp-muted); }
-.mp-badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border: 1px solid var(--mp-border); border-radius: 999px; font-size: 12px; color: var(--mp-muted); }
+.mp-badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border: 1px solid var(--mp-border); border-radius: 2px; font-size: 12px; color: var(--mp-muted); }
 .mp-stepper { display: flex; flex-direction: column; gap: 8px; }
-.mp-step { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--mp-border); border-radius: 14px; background: var(--mp-panel); color: var(--mp-ink); text-align: left; font: inherit; font-size: 14px; }
+.mp-step { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--mp-border); border-radius: 2px; background: var(--mp-panel); color: var(--mp-ink); text-align: left; font: inherit; font-size: 14px; }
 .mp-step[aria-current="step"], .mp-step[data-mp-state="active"] { border-color: var(--mp-ink); background: var(--mp-raised); }
 .mp-step[data-mp-state="done"] { color: var(--mp-muted); }
 .mp-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--mp-border); }
 .mp-tabs [role="tab"] { padding: 8px 12px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--mp-muted); font: inherit; font-size: 14px; cursor: pointer; }
 .mp-tabs [role="tab"][aria-selected="true"] { color: var(--mp-ink); border-bottom-color: var(--mp-ink); font-weight: 600; }
-.mp-panel { padding: 16px 18px; border: 1px solid var(--mp-border); border-radius: 18px; background: var(--mp-panel); min-width: 0; }
+.mp-panel { padding: 16px 18px; border: 1px solid var(--mp-border); border-radius: 2px; background: var(--mp-panel); min-width: 0; }
 .mp-check { display: flex; flex-direction: column; gap: 8px; }
-.mp-option { display: flex; gap: 8px; align-items: flex-start; padding: 9px 12px; border: 1px solid var(--mp-border); border-radius: 12px; background: var(--mp-panel); color: var(--mp-ink); text-align: left; font: inherit; font-size: 14px; }
+.mp-option { display: flex; gap: 8px; align-items: flex-start; padding: 9px 12px; border: 1px solid var(--mp-border); border-radius: 2px; background: var(--mp-panel); color: var(--mp-ink); text-align: left; font: inherit; font-size: 14px; }
 .mp-option[data-mp-state="correct"] { border-color: var(--mp-ink); background: var(--mp-raised); }
 .mp-option[data-mp-state="wrong"] { border-color: var(--mp-border-strong); color: var(--mp-muted); }
-.mp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 7px 14px; border: 1px solid var(--mp-border); border-radius: 12px; background: var(--mp-panel); color: var(--mp-ink); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
+.mp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 7px 14px; border: 1px solid var(--mp-border); border-radius: 2px; background: var(--mp-panel); color: var(--mp-ink); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
 .mp-btn:hover { border-color: var(--mp-border-strong); background: var(--mp-raised); }
 .mp-btn-primary { border-color: var(--mp-invert); background: var(--mp-invert); color: var(--mp-invert-ink); }
 .mp-btn:disabled { opacity: .45; cursor: not-allowed; }

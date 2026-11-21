@@ -17,8 +17,7 @@ const { toasts } = storeToRefs(toastStore)
       <div
         v-for="t in toasts"
         :key="t.id"
-        class="pointer-events-auto flex w-full items-start gap-3 rounded-2xl border bg-panel px-4 py-3 shadow-pop"
-        :class="t.type === 'error' ? 'border-border-strong' : 'border-border'"
+        class="pointer-events-auto flex w-full items-start gap-3 rounded-sm border border-border border-l-2 border-l-pen bg-panel px-4 py-3 shadow-card"
       >
         <span class="mt-0.5 shrink-0">
           <CheckCircle2 v-if="t.type === 'success'" class="h-[18px] w-[18px] text-ink" />

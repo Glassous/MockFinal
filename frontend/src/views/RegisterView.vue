@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { GraduationCap, UserPlus, AlertCircle } from 'lucide-vue-next'
+import { UserPlus, AlertCircle } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
 import { ApiError } from '@/api/client'
@@ -78,109 +78,99 @@ async function onSubmit() {
 </script>
 
 <template>
-  <AuthShell>
+  <AuthShell label="签到表 · 注册" size="lg">
     <div class="anim-rise">
-      <div class="mb-7 flex flex-col items-center text-center">
-        <span
-          class="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-invert text-invert-ink shadow-card"
-        >
-          <GraduationCap class="h-7 w-7" />
-        </span>
-        <h1 class="text-2xl font-bold tracking-tight text-ink">MockFinal</h1>
-        <p class="mt-1 text-sm text-muted">期末终极复习助手</p>
-      </div>
+      <p class="font-mono text-[11px] tracking-wide text-pen">创建账号</p>
+      <h1 class="mt-1 font-serif text-2xl font-bold tracking-tight text-ink">
+        开始你的复习本。
+      </h1>
+      <p class="mt-1.5 text-sm leading-relaxed text-muted">
+        注册后，资料、复习讲义与模拟卷都会归到你的工作区。
+      </p>
 
-      <div class="rounded-3xl border border-border bg-panel p-6 shadow-card sm:p-8">
-        <h2 class="text-lg font-semibold tracking-tight text-ink">注册账号</h2>
-        <p class="mt-1 text-sm text-muted">创建账号，开始你的期末复习之旅。</p>
+      <form class="mt-6 space-y-4" @submit.prevent="onSubmit">
+        <AppInput
+          v-model="username"
+          label="用户名"
+          placeholder="至少 3 个字符"
+          autocomplete="username"
+          :maxlength="32"
+          :error="fieldErrors.username"
+          name="username"
+        />
+        <AppInput
+          v-model="password"
+          type="password"
+          label="密码"
+          placeholder="至少 6 位"
+          autocomplete="new-password"
+          :maxlength="72"
+          :error="fieldErrors.password"
+          name="password"
+        />
+        <AppInput
+          v-model="confirmPassword"
+          type="password"
+          label="确认密码"
+          placeholder="再次输入密码"
+          autocomplete="new-password"
+          :maxlength="72"
+          :error="fieldErrors.confirm"
+          name="confirm-password"
+        />
 
-        <form class="mt-6 space-y-4" @submit.prevent="onSubmit">
-          <AppInput
-            v-model="username"
-            label="用户名"
-            placeholder="至少 3 个字符"
-            autocomplete="username"
-            :maxlength="32"
-            :error="fieldErrors.username"
-            name="username"
-          />
-          <AppInput
-            v-model="password"
-            type="password"
-            label="密码"
-            placeholder="至少 6 位"
-            autocomplete="new-password"
-            :maxlength="72"
-            :error="fieldErrors.password"
-            name="password"
-          />
-          <AppInput
-            v-model="confirmPassword"
-            type="password"
-            label="确认密码"
-            placeholder="再次输入密码"
-            autocomplete="new-password"
-            :maxlength="72"
-            :error="fieldErrors.confirm"
-            name="confirm-password"
-          />
-
-          <div class="rounded-2xl border border-border bg-raised p-4">
-            <p class="mb-3 flex items-center gap-1.5 text-xs font-medium text-muted">
-              密保问题用于找回密码，请牢记答案
-            </p>
-            <div class="space-y-4">
-              <AppInput
-                v-model="questionSelect"
-                type="select"
-                label="密保问题"
-                :options="questionOptions"
-                :error="fieldErrors.question"
-                name="security-question"
-              />
-              <AppInput
-                v-if="questionSelect === CUSTOM"
-                v-model="customQuestion"
-                label="自定义密保问题"
-                placeholder="请输入你的密保问题"
-                :maxlength="60"
-                name="custom-question"
-              />
-              <AppInput
-                v-model="securityAnswer"
-                label="密保答案"
-                placeholder="请输入密保答案"
-                :error="fieldErrors.answer"
-                :maxlength="60"
-                autocomplete="off"
-                name="security-answer"
-              />
-            </div>
+        <div class="border-l-2 border-pen bg-raised px-4 py-4">
+          <p class="mb-3 font-mono text-[10px] tracking-wide text-muted">
+            密保问题用于找回密码，请牢记答案
+          </p>
+          <div class="space-y-4">
+            <AppInput
+              v-model="questionSelect"
+              type="select"
+              label="密保问题"
+              :options="questionOptions"
+              :error="fieldErrors.question"
+              name="security-question"
+            />
+            <AppInput
+              v-if="questionSelect === CUSTOM"
+              v-model="customQuestion"
+              label="自定义密保问题"
+              placeholder="请输入你的密保问题"
+              :maxlength="60"
+              name="custom-question"
+            />
+            <AppInput
+              v-model="securityAnswer"
+              label="密保答案"
+              placeholder="请输入密保答案"
+              :error="fieldErrors.answer"
+              :maxlength="60"
+              autocomplete="off"
+              name="security-answer"
+            />
           </div>
-
-          <div
-            v-if="formError"
-            class="flex items-start gap-2 rounded-2xl border border-border-strong bg-raised px-3.5 py-2.5 text-sm text-ink"
-          >
-            <AlertCircle class="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{{ formError }}</span>
-          </div>
-
-          <AppButton type="submit" block size="lg" :loading="loading">
-            <template #icon><UserPlus class="h-4 w-4" /></template>
-            注册
-          </AppButton>
-        </form>
-
-        <div class="mt-6 text-center text-sm text-muted">
-          已有账号？
-          <router-link
-            :to="{ name: 'login' }"
-            class="font-medium text-ink underline-offset-4 transition-colors hover:underline"
-          >
-            返回登录
-          </router-link>
         </div>
+
+        <div
+          v-if="formError"
+          class="flex items-start gap-2 border-l-2 border-pen bg-pen-soft px-3.5 py-2.5 text-sm text-ink"
+        >
+          <AlertCircle class="mt-0.5 h-4 w-4 shrink-0 text-pen" />
+          <span>{{ formError }}</span>
+        </div>
+
+        <AppButton type="submit" block size="lg" :loading="loading">
+          <template #icon><UserPlus class="h-4 w-4" /></template>
+          注册
+        </AppButton>
+      </form>
+
+      <div class="mt-6 flex items-center justify-between gap-4 border-t border-border pt-4 text-sm text-muted">
+        <span>已有账号？</span>
+        <router-link :to="{ name: 'login' }" class="e-link">
+          返回登录
+        </router-link>
       </div>
     </div>
   </AuthShell>

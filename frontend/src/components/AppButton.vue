@@ -34,20 +34,20 @@ const emit = defineEmits<{ click: [event: MouseEvent] }>()
 const base =
   'relative inline-flex items-center justify-center gap-2 font-medium select-none ' +
   'transition-all duration-150 ease-out disabled:opacity-45 disabled:pointer-events-none ' +
-  'active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2'
+  'active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2'
 
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'bg-invert text-invert-ink hover:opacity-90 shadow-sm rounded-2xl'
+      return 'bg-invert text-invert-ink hover:bg-pen rounded-sm'
     case 'danger':
-      return 'bg-invert text-invert-ink hover:opacity-90 shadow-sm rounded-2xl'
+      return 'bg-pen text-pen-ink hover:bg-invert rounded-sm'
     case 'secondary':
-      return 'bg-panel text-ink border border-border hover:bg-raised hover:border-border-strong rounded-2xl'
+      return 'bg-transparent text-ink border border-border-strong hover:bg-raised hover:border-ink rounded-sm'
     case 'outline':
-      return 'bg-transparent text-ink border border-border-strong hover:bg-raised rounded-2xl'
+      return 'bg-transparent text-ink border border-border hover:bg-raised hover:border-pen hover:text-pen rounded-sm'
     case 'ghost':
-      return 'bg-transparent text-muted hover:text-ink hover:bg-raised rounded-2xl'
+      return 'bg-transparent text-muted hover:text-pen rounded-sm'
     default:
       return ''
   }

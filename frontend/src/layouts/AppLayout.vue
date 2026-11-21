@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { Menu, GraduationCap } from 'lucide-vue-next'
+import { Menu } from 'lucide-vue-next'
 import Sidebar from '@/components/Sidebar.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -53,7 +53,7 @@ function closeDrawer() {
       >
         <button
           type="button"
-          class="inline-flex h-9 w-9 items-center justify-center rounded-2xl text-ink transition-colors hover:bg-raised"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-sm text-ink transition-colors hover:bg-raised hover:text-pen"
           aria-label="打开菜单"
           @click="drawerOpen = true"
         >
@@ -61,11 +61,11 @@ function closeDrawer() {
         </button>
         <span class="inline-flex items-center gap-2">
           <span
-            class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-invert text-invert-ink"
+            class="inline-flex h-6 w-6 items-center justify-center rounded-sm bg-invert font-serif text-xs font-bold text-invert-ink"
           >
-            <GraduationCap class="h-3.5 w-3.5" />
+            M
           </span>
-          <span class="text-sm font-bold tracking-tight text-ink">MockFinal</span>
+          <span class="font-serif text-sm font-bold tracking-tight text-ink">MockFinal</span>
         </span>
         <span class="ml-auto">
           <ThemeToggle size="sm" />

@@ -74,7 +74,7 @@ onBeforeUnmount(() => {
           role="dialog"
           aria-modal="true"
           :aria-label="title || undefined"
-          class="anim-pop relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl border border-border bg-panel shadow-pop sm:rounded-3xl"
+          class="anim-pop relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl border border-border border-t-2 border-t-pen bg-panel shadow-pop sm:rounded-3xl"
           :class="sizeClass"
         >
           <header
@@ -92,7 +92,7 @@ onBeforeUnmount(() => {
             <button
               v-if="showClose"
               type="button"
-              class="-mr-1 -mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-faint transition-colors hover:bg-raised hover:text-ink"
+              class="-mr-1 -mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-faint transition-colors hover:bg-raised hover:text-pen"
               aria-label="关闭"
               @click="emit('close')"
             >

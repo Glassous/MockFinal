@@ -62,11 +62,11 @@ defineExpose({ scrollToBottom })
 </script>
 
 <template>
-  <div class="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-panel">
+  <div class="relative flex h-full min-h-0 flex-col overflow-hidden rounded-sm border border-border bg-panel">
     <div class="flex shrink-0 items-center gap-2 border-b border-border px-3.5 py-2.5">
-      <TerminalSquare class="h-4 w-4 text-muted" />
-      <span class="text-xs font-semibold text-ink">构建输出</span>
-      <span class="ml-auto text-[11px] text-faint">仅展示可见文本与动作摘要</span>
+      <TerminalSquare class="h-4 w-4 text-pen" />
+      <span class="font-mono text-[11px] font-semibold tracking-wide text-ink">构建输出</span>
+      <span class="ml-auto font-mono text-[10px] text-faint">仅展示可见文本与动作摘要</span>
     </div>
 
     <div
@@ -96,7 +96,7 @@ defineExpose({ scrollToBottom })
     <button
       v-if="!stickToBottom"
       type="button"
-      class="absolute bottom-3 right-3 inline-flex h-8 items-center gap-1 rounded-full border border-border-strong bg-panel px-3 text-[11px] text-ink shadow-card"
+      class="absolute bottom-3 right-3 inline-flex h-8 items-center gap-1 rounded-sm border border-border-strong bg-panel px-3 text-[11px] text-ink shadow-card"
       @click="scrollToBottom"
     >
       <ArrowDown class="h-3.5 w-3.5" />

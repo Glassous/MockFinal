@@ -14,16 +14,13 @@ export const PAGE_KIT_BASE_CSS = `
   --pg-gap: clamp(16px, 2.2vh, 26px);
   --pg-pad-y: clamp(22px, 3.2vh, 44px);
   --pg-pad-x: clamp(22px, 3.4vw, 56px);
-  --pg-radius: 16px;
-  --pg-font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Songti SC", "STSong", "SimSun", Georgia, serif;
-  --pg-glass-bg: rgba(255, 255, 255, .58);
-  --pg-glass-bg-strong: rgba(255, 255, 255, .78);
-  --pg-glass-border: rgba(255, 255, 255, .65);
-  --pg-glass-shadow:
-    0 24px 60px -30px rgba(15, 15, 20, .45),
-    0 2px 8px rgba(15, 15, 20, .05),
-    inset 0 1px 0 rgba(255, 255, 255, .85);
-  --pg-glass-blur: blur(24px) saturate(120%);
+  --pg-radius: 2px;
+  --pg-font-display: var(--mp-font-serif);
+  --pg-glass-bg: var(--mp-panel);
+  --pg-glass-bg-strong: var(--mp-panel);
+  --pg-glass-border: var(--mp-border);
+  --pg-glass-shadow: 0 16px 32px -24px rgba(35, 28, 20, .28), 0 1px 3px rgba(35, 28, 20, .06);
+  --pg-glass-blur: none;
 
   width: 100%;
   max-width: 1500px;
@@ -40,11 +37,6 @@ export const PAGE_KIT_BASE_CSS = `
     "foot foot";
   gap: var(--pg-gap);
   background: var(--mp-panel);
-  background:
-    radial-gradient(900px 620px at 5% -10%, rgba(20, 20, 26, .09), transparent 62%),
-    radial-gradient(680px 480px at 100% 4%, rgba(20, 20, 26, .07), transparent 60%),
-    radial-gradient(760px 540px at 86% 62%, rgba(20, 20, 26, .055), transparent 64%),
-    linear-gradient(180deg, #fbfbfc, #f0f0f3);
   color: var(--mp-ink);
   font-family: var(--mp-font-sans);
   font-size: var(--pg-body-size);
@@ -57,18 +49,11 @@ export const PAGE_KIT_BASE_CSS = `
 }
 
 html[data-mp-theme="dark"] .pg-page {
-  --pg-glass-bg: rgba(30, 30, 35, .56);
-  --pg-glass-bg-strong: rgba(38, 38, 44, .76);
-  --pg-glass-border: rgba(255, 255, 255, .12);
-  --pg-glass-shadow:
-    0 24px 70px -30px rgba(0, 0, 0, .9),
-    0 2px 10px rgba(0, 0, 0, .3),
-    inset 0 1px 0 rgba(255, 255, 255, .08);
-  background:
-    radial-gradient(900px 620px at 5% -10%, rgba(255, 255, 255, .06), transparent 64%),
-    radial-gradient(700px 500px at 100% 4%, rgba(255, 255, 255, .05), transparent 62%),
-    radial-gradient(760px 540px at 86% 62%, rgba(255, 255, 255, .035), transparent 66%),
-    linear-gradient(180deg, #111114, #0b0b0d);
+  --pg-glass-bg: var(--mp-panel);
+  --pg-glass-bg-strong: var(--mp-panel);
+  --pg-glass-border: var(--mp-border);
+  --pg-glass-shadow: 0 18px 36px -26px rgba(0, 0, 0, .7);
+  background: var(--mp-panel);
 }
 
 html[data-mp-scroll="fit"] .pg-page { height: 100dvh; overflow: hidden; }
@@ -82,7 +67,7 @@ html[data-mp-scroll="flow"] { scrollbar-width: thin; scrollbar-color: var(--mp-b
 .pg-page [data-mp-focus="true"] {
   outline: 2px solid var(--mp-invert);
   outline-offset: 6px;
-  border-radius: 8px;
+  border-radius: 2px;
 }
 
 /* ---------- 页头 ---------- */
@@ -217,7 +202,7 @@ html[data-mp-scroll="flow"] .pg-rail { position: sticky; top: 22px; align-self: 
   min-height: 34px;
   padding: 6px 14px;
   border: 1px solid var(--mp-border);
-  border-radius: 10px;
+  border-radius: 2px;
   background: var(--mp-panel);
   color: var(--mp-ink);
   font: inherit;
@@ -228,7 +213,7 @@ html[data-mp-scroll="flow"] .pg-rail { position: sticky; top: 22px; align-self: 
 .pg-btn:hover { border-color: var(--mp-border-strong); background: var(--mp-raised); }
 .pg-btn-primary { border-color: var(--mp-invert); background: var(--mp-invert); color: var(--mp-invert-ink); }
 .pg-btn-primary:hover { background: var(--mp-invert); color: var(--mp-invert-ink); opacity: .9; }
-.pg-btn-sm { min-height: 27px; padding: 3px 10px; border-radius: 8px; font-size: 12px; }
+.pg-btn-sm { min-height: 27px; padding: 3px 10px; border-radius: 2px; font-size: 12px; }
 .pg-btn[disabled] { opacity: .4; cursor: not-allowed; }
 
 /* ---------- 文本块 ---------- */
@@ -253,7 +238,7 @@ html[data-mp-scroll="flow"] .pg-rail { position: sticky; top: 22px; align-self: 
 .pg-prose strong { font-weight: 650; }
 .pg-prose code {
   padding: 1px 5px;
-  border-radius: 5px;
+  border-radius: 2px;
   background: var(--mp-code-bg);
   font-family: var(--mp-font-mono);
   font-size: .92em;
@@ -271,7 +256,7 @@ html[data-mp-scroll="flow"] .pg-rail { position: sticky; top: 22px; align-self: 
   margin: 10px 0 12px;
   padding: 10px 12px;
   border: 1px solid var(--pg-glass-border);
-  border-radius: 10px;
+  border-radius: 2px;
   background: color-mix(in srgb, var(--mp-raised) 55%, transparent);
 }
 .pg-check-formula { margin: 8px 0 10px; }
@@ -293,7 +278,7 @@ html[data-mp-scroll="flow"] .pg-rail { position: sticky; top: 22px; align-self: 
   padding: 14px 16px;
   border: 1px solid var(--mp-border);
   border-left: 2px solid var(--mp-ink);
-  border-radius: 12px;
+  border-radius: 2px;
   background: var(--mp-raised);
 }
 .pg-callout-pitfall { border-left: 2px solid var(--mp-ink); }
@@ -346,7 +331,7 @@ html[data-mp-scroll="flow"] .pg-rail { position: sticky; top: 22px; align-self: 
   margin-top: 14px;
   padding: 10px 12px;
   border: 1px solid var(--mp-border-strong);
-  border-radius: 10px;
+  border-radius: 2px;
   background: var(--mp-raised);
   font-size: 15px;
   line-height: 1.7;
@@ -364,10 +349,10 @@ html[data-mp-scroll="flow"] .pg-rail { position: sticky; top: 22px; align-self: 
 /* ---------- 对照 / 表格 / 小结 ---------- */
 .pg-compare { display: grid; gap: 12px; max-width: calc(var(--pg-content) + 2rem); }
 .pg-compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
-.pg-compare-col { min-width: 0; padding: 12px 14px; border: 1px solid var(--mp-border); border-radius: 12px; }
+.pg-compare-col { min-width: 0; padding: 12px 14px; border: 1px solid var(--mp-border); border-radius: 2px; }
 .pg-compare-col h3 { margin: 0 0 7px; font-size: 15.5px; line-height: 1.4; }
 .pg-compare-col ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 14px; line-height: 1.65; color: var(--mp-muted); }
-.pg-verdict { margin: 0; padding: 9px 12px; border: 1px solid var(--mp-ink); border-radius: 10px; font-size: 14px; line-height: 1.65; font-weight: 600; }
+.pg-verdict { margin: 0; padding: 9px 12px; border: 1px solid var(--mp-ink); border-radius: 2px; font-size: 14px; line-height: 1.65; font-weight: 600; }
 
 .pg-table { width: 100%; max-width: calc(var(--pg-content) + 2rem); border-collapse: collapse; table-layout: fixed; font-size: 14px; line-height: 1.6; }
 .pg-table th, .pg-table td { padding: 7px 8px; border-bottom: 1px solid var(--mp-border); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
@@ -376,7 +361,7 @@ html[data-mp-scroll="flow"] .pg-rail { position: sticky; top: 22px; align-self: 
 
 .pg-summary { display: grid; gap: 12px; }
 .pg-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.pg-summary-card { min-width: 0; padding: 12px 14px; border: 1px solid var(--mp-border); border-radius: 12px; }
+.pg-summary-card { min-width: 0; padding: 12px 14px; border: 1px solid var(--mp-border); border-radius: 2px; }
 .pg-summary-card h3 { margin: 0 0 6px; font-size: 14px; line-height: 1.4; }
 .pg-summary-card ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 13.5px; line-height: 1.65; color: var(--mp-muted); }
 /* summary 页把「记住/易错/下一步」放进右栏，正文只保留公式与表格，保证 fit 一屏 */
@@ -403,7 +388,7 @@ html[data-mp-scroll="flow"] .pg-rail { position: sticky; top: 22px; align-self: 
   width: 100%;
   padding: 9px 12px;
   border: 1px solid var(--mp-border);
-  border-radius: 10px;
+  border-radius: 2px;
   background: var(--mp-panel);
   color: var(--mp-ink);
   font: inherit;
@@ -422,7 +407,7 @@ html[data-mp-scroll="flow"] .pg-rail { position: sticky; top: 22px; align-self: 
   width: 20px; height: 20px;
   display: grid; place-items: center;
   border: 1px solid var(--mp-border-strong);
-  border-radius: 6px;
+  border-radius: 2px;
   color: var(--mp-muted);
   font-family: var(--mp-font-mono);
   font-size: 12px;

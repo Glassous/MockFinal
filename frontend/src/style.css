@@ -11,6 +11,9 @@
   --font-sans:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
     'Microsoft YaHei', 'Noto Sans SC', 'Source Han Sans SC', sans-serif;
+  --font-serif:
+    'Songti SC', STSong, 'Noto Serif SC', 'Source Han Serif SC', SimSun, Georgia, serif;
+  --font-hand: 'Kaiti SC', STKaiti, KaiTi, Kaiti, 'Songti SC', SimSun, serif;
   --font-mono:
     ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo, Consolas,
     'Liberation Mono', monospace;
@@ -21,6 +24,7 @@
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-invert: var(--invert);
@@ -30,57 +34,104 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-success: var(--success);
+  --color-pen: var(--pen);
+  --color-pen-soft: var(--pen-soft);
+  --color-paper: var(--surface);
+  --color-sheet: var(--panel);
+  --color-sheet-deep: var(--raised);
 
-  --radius-card: 1.5rem;
+  --radius-card: 2px;
 }
 
 /* ---------------------------------------------------------------
-   运行时主题变量：浅色（白底黑字）
+   运行时主题变量：红笔批注 · 浅色（暖纸 + 墨 + 朱红）
    --------------------------------------------------------------- */
 :root {
-  --surface: #f4f4f5;
-  --panel: #ffffff;
-  --raised: #fafafb;
-  --border: #e4e4e7;
-  --border-strong: #d4d4d8;
-  --ink: #16161a;
-  --muted: #6b6b73;
-  --faint: #9a9aa2;
-  --invert: #16161a;
-  --invert-ink: #ffffff;
-  --overlay: rgba(10, 10, 12, 0.45);
-  --code-bg: #f4f4f5;
-  --danger: #b42318;
-  --danger-soft: #fef3f2;
-  --success: #067647;
+  --surface: #f1efe9;
+  --panel: #fbfaf6;
+  --raised: #f4f1e9;
+  --border: rgba(26, 24, 20, 0.14);
+  --border-strong: rgba(26, 24, 20, 0.3);
+  --ink: #1a1814;
+  --ink-2: #45413a;
+  --muted: #6d675c;
+  --faint: #716b5f;
+  --invert: #b83326;
+  --invert-ink: #fffaf4;
+  --overlay: rgba(35, 28, 20, 0.5);
+  --code-bg: #f4f1e9;
+  --danger: #b83326;
+  --danger-soft: rgba(184, 51, 38, 0.09);
+  --success: #3f6b4f;
+  --pen: #c2382a;
+  --pen-ink: #fffaf4;
+  --pen-soft: rgba(194, 56, 42, 0.1);
+  --pen-line: rgba(194, 56, 42, 0.42);
 
-  --shadow-sm: 0 1px 2px rgba(16, 16, 20, 0.04), 0 1px 3px rgba(16, 16, 20, 0.06);
-  --shadow-md: 0 4px 16px rgba(16, 16, 20, 0.06), 0 2px 6px rgba(16, 16, 20, 0.04);
-  --shadow-lg: 0 18px 48px rgba(16, 16, 20, 0.14), 0 6px 16px rgba(16, 16, 20, 0.06);
+  /* 入口页原子组件（装订线、印章、红勾）在全站可复用 */
+  --e-paper: var(--surface);
+  --e-sheet: var(--panel);
+  --e-sheet-deep: var(--raised);
+  --e-ink: var(--ink);
+  --e-ink-2: var(--ink-2);
+  --e-muted: var(--muted);
+  --e-faint: var(--faint);
+  --e-line: var(--border);
+  --e-line-strong: var(--border-strong);
+  --e-pen: var(--pen);
+  --e-pen-fill: var(--invert);
+  --e-pen-ink: var(--pen-ink);
+  --e-pen-soft: var(--pen-soft);
+  --e-pen-line: var(--pen-line);
+  --e-shadow: var(--shadow-lg);
+  --e-shadow-soft: var(--shadow-md);
+  --e-font-serif: var(--font-serif);
+  --e-font-sans: var(--font-sans);
+  --e-font-hand: var(--font-hand);
+  --e-font-mono: var(--font-mono);
+
+  --shadow-sm: 0 1px 2px rgba(35, 28, 20, 0.05);
+  --shadow-md:
+    0 16px 32px -24px rgba(35, 28, 20, 0.28), 0 1px 3px rgba(35, 28, 20, 0.06);
+  --shadow-lg:
+    0 32px 64px -36px rgba(35, 28, 20, 0.4), 0 2px 6px rgba(35, 28, 20, 0.07);
+
+  /* 全站纸张语言：方角替掉大圆角卡片 */
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 2px;
   color-scheme: light;
 }
 
-/* 运行时主题变量：深色（近黑底白字） */
+/* 运行时主题变量：红笔批注 · 深色（暖黑纸 + 提亮朱红） */
 .dark {
-  --surface: #09090b;
-  --panel: #131316;
-  --raised: #1c1c20;
-  --border: #26262b;
-  --border-strong: #3a3a41;
-  --ink: #f5f5f6;
-  --muted: #a0a0a8;
-  --faint: #6e6e77;
-  --invert: #f5f5f6;
-  --invert-ink: #09090b;
+  --surface: #100f0d;
+  --panel: #1a1917;
+  --raised: #211f1c;
+  --border: rgba(237, 233, 223, 0.14);
+  --border-strong: rgba(237, 233, 223, 0.3);
+  --ink: #ede9df;
+  --ink-2: #c7c1b5;
+  --muted: #a49d90;
+  --faint: #8a8376;
+  --invert: #b53a2c;
+  --invert-ink: #fff8f1;
   --overlay: rgba(0, 0, 0, 0.68);
-  --code-bg: #0e0e11;
-  --danger: #f97066;
-  --danger-soft: #2a1412;
-  --success: #47cd89;
+  --code-bg: #151411;
+  --danger: #e46755;
+  --danger-soft: rgba(228, 103, 85, 0.12);
+  --success: #7fbf94;
+  --pen: #e46755;
+  --pen-ink: #fff8f1;
+  --pen-soft: rgba(228, 103, 85, 0.12);
+  --pen-line: rgba(228, 103, 85, 0.45);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 18px 36px -26px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 36px 70px -32px rgba(0, 0, 0, 0.75);
   color-scheme: dark;
 }
 
@@ -112,14 +163,22 @@
   }
 
   ::selection {
-    background: var(--invert);
-    color: var(--invert-ink);
+    background: var(--pen);
+    color: var(--pen-ink);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.012em;
   }
 
   :focus-visible {
-    outline: 2px solid var(--ink);
+    outline: 2px solid var(--pen);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 2px;
   }
 
   /* 滚动条（单色） */
@@ -381,9 +440,9 @@
   margin: 1.2em 0;
   padding: 0.4em 1.1em;
   color: var(--muted);
-  border-left: 3px solid var(--border-strong);
+  border-left: 2px solid var(--pen);
   background: var(--raised);
-  border-radius: 0 0.75rem 0.75rem 0;
+  border-radius: 0;
 }
 .markdown-body blockquote p {
   margin: 0.4em 0;
@@ -400,7 +459,7 @@
   padding: 0.18em 0.42em;
   background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 0.4rem;
+  border-radius: 2px;
   color: var(--ink);
 }
 .markdown-body pre {
@@ -409,7 +468,7 @@
   overflow-x: auto;
   background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 1rem;
+  border-radius: 2px;
   line-height: 1.6;
 }
 .markdown-body pre code {
@@ -442,7 +501,7 @@
 }
 .markdown-body img {
   max-width: 100%;
-  border-radius: 0.75rem;
+  border-radius: 2px;
 }
 /* KaTeX 公式容器可横向滚动，避免溢出 */
 .markdown-body .katex-display {

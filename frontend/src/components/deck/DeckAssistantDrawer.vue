@@ -268,7 +268,7 @@ defineExpose({ send, setDraft })
                 <h2 class="text-sm font-semibold text-ink">页面 AI 助手</h2>
                 <span
                   v-if="streaming"
-                  class="rounded-full border border-border px-1.5 py-0.5 text-[11px] text-muted"
+                  class="rounded-sm border border-border px-1.5 py-0.5 text-[11px] text-muted"
                 >
                   回答中
                 </span>
@@ -278,7 +278,7 @@ defineExpose({ send, setDraft })
             <button
               ref="closeEl"
               type="button"
-              class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-faint transition-colors hover:bg-raised hover:text-ink"
+              class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-faint transition-colors hover:bg-raised hover:text-ink"
               aria-label="关闭助手"
               @click="emit('close')"
             >
@@ -313,13 +313,13 @@ defineExpose({ send, setDraft })
                 >
                   <div
                     v-if="message.role === 'user'"
-                    class="max-w-[85%] rounded-2xl border border-transparent bg-invert px-3.5 py-2.5 text-sm leading-relaxed text-invert-ink"
+                    class="max-w-[85%] rounded-sm border border-transparent bg-invert px-3.5 py-2.5 text-sm leading-relaxed text-invert-ink"
                   >
                     <p class="whitespace-pre-wrap break-words">{{ message.content }}</p>
                   </div>
                   <div
                     v-else
-                    class="max-w-[92%] rounded-2xl border px-3.5 py-2.5 text-sm leading-relaxed"
+                    class="max-w-[92%] rounded-sm border px-3.5 py-2.5 text-sm leading-relaxed"
                     :class="
                       message.status === 'failed'
                         ? 'border-danger/40 bg-danger-soft text-ink'
@@ -345,7 +345,7 @@ defineExpose({ send, setDraft })
                       <span
                         v-for="label in uniqueRefLabels(refsOf(message))"
                         :key="label"
-                        class="rounded-full bg-raised px-2 py-0.5 text-[11px] text-muted"
+                        class="rounded-sm bg-raised px-2 py-0.5 text-[11px] text-muted"
                       >
                         {{ label }}
                       </span>
@@ -371,7 +371,7 @@ defineExpose({ send, setDraft })
               <button
                 v-if="retryQuestion"
                 type="button"
-                class="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-panel px-2 py-0.5 text-[11px] text-ink transition-colors hover:border-border-strong"
+                class="inline-flex shrink-0 items-center gap-1 rounded-sm border border-border bg-panel px-2 py-0.5 text-[11px] text-ink transition-colors hover:border-border-strong"
                 @click="retry"
               >
                 <RotateCcw class="h-3 w-3" />
@@ -386,7 +386,7 @@ defineExpose({ send, setDraft })
                 v-for="action in quickActions"
                 :key="action"
                 type="button"
-                class="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted transition-colors hover:border-border-strong hover:text-ink"
+                class="rounded-sm border border-border px-2.5 py-1 text-[11px] text-muted transition-colors hover:border-border-strong hover:text-ink"
                 @click="insertQuickAction(action)"
               >
                 {{ action }}
@@ -398,13 +398,13 @@ defineExpose({ send, setDraft })
                 v-model="draft"
                 rows="2"
                 placeholder="就当前页面提问，Enter 发送，Shift+Enter 换行"
-                class="min-h-11 flex-1 resize-none rounded-2xl border border-border bg-raised px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-border-strong focus:outline-none"
+                class="min-h-11 flex-1 resize-none rounded-sm border border-border bg-raised px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-border-strong focus:outline-none"
                 @keydown="onKeydown"
               />
               <button
                 type="button"
                 :disabled="!canSend"
-                class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-invert text-invert-ink transition-opacity disabled:opacity-45"
+                class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-invert text-invert-ink transition-opacity disabled:opacity-45"
                 :aria-label="streaming ? '正在回答' : '发送问题'"
                 @click="send()"
               >

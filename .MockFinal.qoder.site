@@ -6,6 +6,10 @@
     "pages": [
       {
         "path": "/",
+        "title": "入口页"
+      },
+      {
+        "path": "/home",
         "title": "工作区首页"
       },
       {

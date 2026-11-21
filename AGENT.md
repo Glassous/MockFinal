@@ -226,15 +226,20 @@ POST /decks/:deckId/pages/:pageId/messages     {content, quote?, block_text?}
 
 ## 7. 前端结构约定
 
-- **路由**：`/login`、`/register`、`/forgot` 为访客页；未登录访问受保护页带 `redirect` 跳登录。
+- **路由**：`/` 为公开入口页（已登录重定向 `/home`）；`/login`、`/register`、`/forgot` 为访客页（已登录重定向 `/home`）。`/home`、`/workspace/:id` 位于 `AppLayout`，`/workspace/:id/decks/:deckId` 位于 `DeckLayout`；未登录访问受保护页会带 `redirect` 跳登录。
   守卫使用 vue-router 5 返回值写法，**不要 `next()`**。
-- **API 层**：所有请求走 `src/api/client.ts`（Bearer、`{detail}` 解析、401 跳登录）；
+- **API 层**：所有请求走 `src/api/client.ts`（Bearer、`{detail}` 解析、401 清 token 跳登录）；
   组件内不直接 `fetch`。
-- **状态**：Pinia setup store；登录/登出必须 `workspaceStore.reset()`。
+- **状态**：Pinia setup store；登录/登出必须 `workspaceStore.reset()`，避免跨账号泄露。
 - **推进循环**：`WorkspaceView` 与 `DeckBuildView` 由前端循环调用 `advance`；
   429/502 退避 1.2s/3s，其余错误 2s 兜底；组件卸载必须清理定时器。
-- **Markdown**：`html:false` + KaTeX + DOMPurify 后才允许 `v-html`。
-- **视觉**：只使用 `style.css` 的语义 token，先读 `DESIGN.md`。
+- **Markdown**：`markdown-it html:false` + KaTeX + DOMPurify 后才允许 `v-html`；
+  代码高亮只有 GitHub light/dark 两套主题，动态挂 `<link>`。
+- **主题**：`index.html` 内联脚本负责防 FOUC，`stores/theme.ts` 负责运行时切换；
+  两处逻辑必须保持一致，深浅色全部由 `style.css` 的语义变量驱动。
+- **上传**：`src/lib/upload.ts` 先预检扩展名/大小，再经 `api/materials` 申请签名 URL 直传；
+  组件卸载时中止进行中的请求。
+- **视觉**：任何新 UI 必须先读 `DESIGN.md`，只使用语义 token（`bg-panel`、`text-ink`、`border-border` 等），不要写裸色值。
 
 ## 8. 不可破坏的契约与陷阱
 

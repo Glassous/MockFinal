@@ -21,14 +21,14 @@ const canceled = computed(() => props.job?.status === 'canceled')
       >
         <div class="flex min-w-0 flex-1 items-center gap-1.5">
           <span
-            class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold"
+            class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border text-[11px] font-bold"
             :class="[
               index < stageIndex
-                ? 'border-transparent bg-invert text-invert-ink'
+                ? 'border-pen bg-pen-soft text-pen'
                 : index === stageIndex
                   ? failed
-                    ? 'border-border-strong bg-panel text-ink'
-                    : 'border-border-strong bg-raised text-ink'
+                    ? 'border-pen bg-panel text-pen'
+                    : 'border-pen bg-raised text-pen'
                   : 'border-border bg-panel text-faint',
             ]"
           >
@@ -50,7 +50,7 @@ const canceled = computed(() => props.job?.status === 'canceled')
         <span
           v-if="index < BUILD_STAGES.length - 1"
           class="h-px w-3 shrink-0"
-          :class="index < stageIndex ? 'bg-invert' : 'bg-border'"
+          :class="index < stageIndex ? 'bg-pen' : 'bg-border'"
           aria-hidden="true"
         />
       </div>

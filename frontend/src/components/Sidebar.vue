@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { Plus, LogOut, FolderOpen, GraduationCap } from 'lucide-vue-next'
+import { Plus, LogOut, ChevronRight } from 'lucide-vue-next'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
@@ -92,100 +92,120 @@ async function logout() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col bg-panel">
+  <div class="sidebar relative flex h-full flex-col bg-panel">
+    <span class="sidebar__binding" aria-hidden="true">
+      <i /><i /><i />
+    </span>
+
     <!-- Logo -->
     <button
       type="button"
-      class="flex items-center gap-3 px-5 py-5 text-left transition-opacity hover:opacity-80"
+      class="relative flex items-center gap-3 px-5 py-5 text-left transition-opacity hover:opacity-85"
       @click="goHome"
     >
       <span
-        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-invert text-invert-ink"
+        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-invert font-serif text-lg font-bold text-invert-ink"
       >
-        <GraduationCap class="h-5 w-5" />
+        M
       </span>
       <span class="min-w-0">
-        <span class="block truncate text-[17px] font-bold tracking-tight text-ink">MockFinal</span>
-        <span class="block truncate text-xs text-muted">期末终极复习助手</span>
+        <span class="block truncate font-serif text-lg font-bold tracking-tight text-ink">
+          MockFinal
+        </span>
+        <span class="mt-0.5 block truncate font-mono text-[10px] tracking-wide text-faint">
+          期末终极复习助手
+        </span>
       </span>
     </button>
 
     <!-- 新建工作区 -->
-    <div class="px-4 pb-3">
-      <AppButton variant="secondary" block @click="wsStore.openCreate()">
+    <div class="relative px-4 pb-4">
+      <AppButton block @click="wsStore.openCreate()">
         <template #icon><Plus class="h-4 w-4" /></template>
         新建工作区
       </AppButton>
     </div>
 
     <!-- 工作区列表 -->
-    <nav class="min-h-0 flex-1 overflow-y-auto px-3 pb-3" aria-label="工作区列表">
-      <p class="px-2 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-wider text-faint">
-        我的工作区
-      </p>
+    <nav class="relative min-h-0 flex-1 overflow-y-auto px-3 pb-3" aria-label="工作区列表">
+      <div class="flex items-center gap-3 px-2 pb-3 pt-1">
+        <p class="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-faint">
+          我的工作区
+        </p>
+        <span class="h-px flex-1 bg-border" />
+      </div>
 
       <div v-if="loading && workspaces.length === 0" class="space-y-2 px-1 py-2">
         <div
           v-for="i in 3"
           :key="i"
-          class="h-11 animate-pulse rounded-2xl bg-raised"
+          class="h-11 animate-pulse rounded-sm bg-raised"
           style="animation-duration: 1.4s"
         />
       </div>
 
       <p
         v-else-if="workspaces.length === 0"
-        class="mx-1 rounded-2xl border border-dashed border-border px-3 py-6 text-center text-xs leading-relaxed text-muted"
+        class="mx-1 rounded-sm border border-dashed border-border px-3 py-6 text-center text-xs leading-relaxed text-muted"
       >
         还没有工作区<br />点击上方「新建工作区」开始
       </p>
 
-      <ul v-else class="space-y-1">
-        <li v-for="ws in workspaces" :key="ws.id">
+      <ul v-else class="space-y-0.5">
+        <li v-for="(ws, index) in workspaces" :key="ws.id">
           <button
             type="button"
-            class="group flex w-full items-center gap-2.5 rounded-2xl px-3 py-2.5 text-left transition-colors duration-150"
+            class="group flex w-full items-center gap-3 border-l-2 px-3 py-2.5 text-left transition-colors duration-150"
             :class="
               currentId === ws.id
-                ? 'bg-invert text-invert-ink'
-                : 'text-ink hover:bg-raised'
+                ? 'border-pen bg-raised text-ink'
+                : 'border-transparent text-ink hover:border-border-strong hover:bg-raised'
             "
             @click="selectWorkspace(ws.id)"
           >
-            <FolderOpen
-              class="h-4 w-4 shrink-0"
-              :class="currentId === ws.id ? 'text-invert-ink' : 'text-muted group-hover:text-ink'"
-            />
+            <span
+              class="w-5 shrink-0 font-mono text-[10px]"
+              :class="currentId === ws.id ? 'text-pen' : 'text-faint'"
+            >
+              {{ String(index + 1).padStart(2, '0') }}
+            </span>
             <span class="min-w-0 flex-1">
-              <span class="block truncate text-sm font-medium">{{ ws.name }}</span>
+              <span class="block truncate font-serif text-sm font-bold">{{ ws.name }}</span>
               <span
                 v-if="ws.description"
-                class="block truncate text-[11px]"
-                :class="currentId === ws.id ? 'text-invert-ink opacity-70' : 'text-faint'"
+                class="mt-0.5 block truncate text-[11px]"
+                :class="currentId === ws.id ? 'text-muted' : 'text-faint'"
               >
                 {{ ws.description }}
               </span>
             </span>
+            <ChevronRight
+              class="h-3.5 w-3.5 shrink-0 transition-transform duration-150 group-hover:translate-x-0.5"
+              :class="currentId === ws.id ? 'text-pen' : 'text-faint'"
+            />
           </button>
         </li>
       </ul>
     </nav>
 
     <!-- 底部：主题 / 用户 / 退出 -->
-    <footer class="shrink-0 border-t border-border px-4 py-3.5">
+    <footer class="relative shrink-0 border-t border-border px-4 py-3.5">
       <div class="flex items-center gap-2.5">
         <span
-          class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-raised text-sm font-semibold text-ink"
+          class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-pen/40 bg-pen-soft font-hand text-base font-bold text-pen"
         >
           {{ userInitial }}
         </span>
-        <span class="min-w-0 flex-1 truncate text-sm font-medium text-ink">
-          {{ user?.username ?? '未登录' }}
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-medium text-ink">
+            {{ user?.username ?? '未登录' }}
+          </span>
+          <span class="block font-mono text-[10px] tracking-wide text-faint">已登录</span>
         </span>
         <ThemeToggle size="sm" />
         <button
           type="button"
-          class="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-sm text-muted transition-colors hover:bg-raised hover:text-pen"
           aria-label="退出登录"
           title="退出登录"
           @click="logout"
@@ -238,3 +258,39 @@ async function logout() {
     </Modal>
   </div>
 </template>
+
+<style scoped>
+.sidebar__binding {
+  position: absolute;
+  left: 14px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--pen-line);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.sidebar__binding i {
+  position: absolute;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--panel);
+  transform: translateX(-50%);
+}
+
+.sidebar__binding i:nth-child(1) {
+  top: 22%;
+}
+
+.sidebar__binding i:nth-child(2) {
+  top: 50%;
+}
+
+.sidebar__binding i:nth-child(3) {
+  top: 78%;
+}
+</style>
