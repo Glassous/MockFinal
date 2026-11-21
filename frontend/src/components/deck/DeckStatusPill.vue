@@ -37,6 +37,7 @@ const config = computed(() => {
     case 'planning':
     case 'building':
     case 'validating':
+    case 'running':
     case 'pending':
       return { icon: Loader2, cls: 'border-border bg-raised text-ink', spin: true }
     case 'partial':

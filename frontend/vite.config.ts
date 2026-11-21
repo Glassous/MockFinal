@@ -9,7 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      // 阅读器与 Validator 共用同一份 shell/runtime 源码，避免渲染漂移
+      // 阅读器与页面 shell 共用同一份源码，避免渲染漂移
       '@shared': fileURLToPath(new URL('../shared', import.meta.url)),
     },
   },
@@ -17,12 +17,6 @@ export default defineConfig({
     port: Number(process.env.VITE_PORT ?? 5173),
     fs: {
       allow: [fileURLToPath(new URL('..', import.meta.url))],
-    },
-    proxy: {
-      '/api': {
-        target: process.env.VITE_API_TARGET ?? 'http://127.0.0.1:8000',
-        changeOrigin: true,
-      },
     },
   },
 })

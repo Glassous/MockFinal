@@ -1,14 +1,4 @@
-import {
-  ApiError,
-  getToken,
-  handleUnauthorized,
-  parseErrorResponse,
-  request,
-  requestBlob,
-} from './client'
-import { API_BASE } from './base'
-import { FEATURES } from '@/lib/features'
-import { createSseParser } from '@/lib/sse'
+import { request, requestBlob } from './client'
 import type {
   Deck,
   DeckBuildResponse,
@@ -42,14 +32,10 @@ export function deleteDeck(deckId: number): Promise<void> {
   return request<void>(`/decks/${deckId}`, { method: 'DELETE' })
 }
 
-const DECK_BUILD_UNAVAILABLE = '复习页构建服务未部署（Serverless 版本暂不提供）'
-const DECK_CHAT_UNAVAILABLE = '页面 AI 助手未部署（Serverless 版本暂不提供）'
-
 export function buildDeck(
   deckId: number,
   options: { rebuildAll?: boolean; replan?: boolean } = {},
 ): Promise<DeckBuildResponse> {
-  if (!FEATURES.deckBuild) return Promise.reject(new ApiError(503, DECK_BUILD_UNAVAILABLE))
   return request<DeckBuildResponse>(`/decks/${deckId}/build`, {
     method: 'POST',
     body: { rebuild_all: options.rebuildAll ?? false, replan: options.replan ?? false },
@@ -57,12 +43,16 @@ export function buildDeck(
 }
 
 export function cancelDeckBuild(deckId: number): Promise<DeckJob> {
-  if (!FEATURES.deckBuild) return Promise.reject(new ApiError(503, DECK_BUILD_UNAVAILABLE))
   return request<DeckJob>(`/decks/${deckId}/cancel`, { method: 'POST' })
 }
 
 export function getDeckJob(jobId: number): Promise<DeckJob> {
   return request<DeckJob>(`/deck-jobs/${jobId}`)
+}
+
+/** 客户端驱动的构建推进：每次最多执行一次模型调用。 */
+export function advanceDeckJob(jobId: number): Promise<DeckJob> {
+  return request<DeckJob>(`/deck-jobs/${jobId}/advance`, { method: 'POST' })
 }
 
 export function listDeckEvents(jobId: number, afterId = 0): Promise<DeckEvent[]> {
@@ -86,7 +76,6 @@ export async function rebuildPage(
   pageId: number,
   feedback?: string,
 ): Promise<DeckBuildResponse> {
-  if (!FEATURES.deckBuild) throw new ApiError(503, DECK_BUILD_UNAVAILABLE)
   return request<DeckBuildResponse>(`/decks/${deckId}/pages/${pageId}/rebuild`, {
     method: 'POST',
     body: { feedback: feedback?.trim() || null },
@@ -125,7 +114,7 @@ export interface PageMessageStreamHandlers {
   onError: (detail: string) => void
 }
 
-/** POST 页面问答并消费 SSE；HTTP 错误抛 ApiError，流内错误交给 onError。 */
+/** POST 页面问答（非流式）：拿到完整回答后一次性回调。HTTP 错误抛 ApiError。 */
 export async function streamPageMessage(
   deckId: number,
   pageId: number,
@@ -133,65 +122,10 @@ export async function streamPageMessage(
   handlers: PageMessageStreamHandlers,
   signal?: AbortSignal,
 ): Promise<void> {
-  if (!FEATURES.deckChat) throw new ApiError(501, DECK_CHAT_UNAVAILABLE)
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    Accept: 'text/event-stream',
-  }
-  const token = getToken()
-  if (token) headers.Authorization = `Bearer ${token}`
-
-  const res = await fetch(`${API_BASE}/decks/${deckId}/pages/${pageId}/messages`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(payload),
-    signal,
-  })
-  if (res.status === 401) handleUnauthorized()
-  if (!res.ok) throw await parseErrorResponse(res)
-  if (!res.body) throw new ApiError(500, '当前浏览器不支持流式回答')
-
-  const reader = res.body.getReader()
-  const decoder = new TextDecoder()
-  const parse = createSseParser()
-  let settled = false
-
-  const handleEvents = (events: ReturnType<ReturnType<typeof createSseParser>>) => {
-    for (const event of events) {
-      let data: unknown
-      try {
-        data = JSON.parse(event.data)
-      } catch {
-        continue
-      }
-      if (event.event === 'delta') {
-        const text = (data as { text?: unknown }).text
-        if (typeof text === 'string' && text) handlers.onDelta(text)
-      } else if (event.event === 'done') {
-        settled = true
-        const id = (data as { message_id?: unknown }).message_id
-        const refs = (data as { refs?: unknown }).refs
-        handlers.onDone({
-          message_id: typeof id === 'number' ? id : 0,
-          refs: Array.isArray(refs) ? (refs as PageMessageRef[]) : [],
-        })
-      } else if (event.event === 'error') {
-        settled = true
-        const detail = (data as { detail?: unknown }).detail
-        handlers.onError(typeof detail === 'string' ? detail : '页面助手回答失败，请稍后重试')
-      }
-    }
-  }
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      handleEvents(parse(decoder.decode(value, { stream: true })))
-    }
-    handleEvents(parse(decoder.decode()))
-    if (!settled) handlers.onError('连接已中断，回答可能不完整，请重试')
-  } finally {
-    reader.releaseLock()
-  }
+  const result = await request<{ message_id: number; content: string; refs: PageMessageRef[] }>(
+    `/decks/${deckId}/pages/${pageId}/messages`,
+    { method: 'POST', body: payload, signal },
+  )
+  handlers.onDelta(result.content)
+  handlers.onDone({ message_id: result.message_id, refs: result.refs ?? [] })
 }

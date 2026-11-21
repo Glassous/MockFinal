@@ -7,6 +7,7 @@ import {
 } from '@shared/page-shell/shell.mjs'
 import runtimeSource from '@shared/page-runtime/runtime.js?raw'
 import type { PageBundle } from '@/types'
+import { upgradeMath } from './mathUpgrade'
 
 export {
   BUNDLE_SCHEMA_VERSION,
@@ -36,7 +37,12 @@ export function buildPageShell(
   theme: 'light' | 'dark',
 ): PageShell {
   const channel = createChannel()
-  const html = buildShell({ bundle, runtimeSource, channel, theme })
+  const html = buildShell({
+    bundle: { ...bundle, html: upgradeMath(bundle.html) },
+    runtimeSource,
+    channel,
+    theme,
+  })
   return { html, channel }
 }
 

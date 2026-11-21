@@ -7,7 +7,6 @@ import { deckRoutes } from './routes/decks.ts'
 import { generationRoutes } from './routes/generation.ts'
 import { healthRoutes } from './routes/health.ts'
 import { materialRoutes } from './routes/materials.ts'
-import { probeRoutes } from './routes/probe.ts'
 import { workspaceRoutes } from './routes/workspaces.ts'
 
 export interface RouteContext {
@@ -31,7 +30,6 @@ const ROUTES: Route[] = [
   ...generationRoutes,
   ...artifactRoutes,
   ...deckRoutes,
-  ...probeRoutes,
 ]
 
 interface CompiledRoute {

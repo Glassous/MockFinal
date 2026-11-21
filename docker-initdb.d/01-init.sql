@@ -1,3 +1,0 @@
--- 首次初始化数据库时由 postgres 镜像自动执行（仅当数据卷为空时）
--- 去 Embedding 后不再启用 pgvector；旧库中的 vector 扩展与 material_chunks 保留但不再读写，
--- 确认无需回滚后由维护者手动清理（见 Plan.md §5.4）。
